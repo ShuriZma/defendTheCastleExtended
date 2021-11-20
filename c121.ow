@@ -706,7 +706,7 @@ rule ("PLAYER: UPGRADE - PLAYER'S MAX HEALTH - DEALT HEALING") {
     }
     conditions {
         Is Game In Progress == True;
-        "@Condition healer != eventPlayer"
+        disabled Healer != Event Player;
         Global.UpgradePlayerMaxHealthValue < Value In Array(Global.UpgradePlayerMaxHealthMaxValue, 2);
     }
     actions {
@@ -1100,9 +1100,9 @@ rule ("GLOBAL: TIMER - MAIN GAME LOOP") {
     }
     conditions {
         Is Game In Progress == True;
+        disabled Global.GateHealth > 0;
     }
     actions {
-        "@Condition GateHealth > 0"
         Wait(1, Ignore Condition);
         Modify Global Variable(TimeSec, Add, 1);
         If(Compare(Global.TimeSec, ==, 60));
@@ -1928,9 +1928,9 @@ rule ("BOT: BALL - REACHED THE GATE") {
         Is Alive(Event Player) == True;
         (Event Player).IsRespawning == False;
         (Event Player).BotIsPathFinding == False;
+        disabled Distance Between(Position Of(Event Player), Global.GatePosition) < 3;
     }
     actions {
-        "@Condition distance(eventPlayer.getPosition(), GatePosition) < 3"
         Start Holding Button(Event Player, Button(Ability 1));
         Set Ammo(Event Player, 0, 0);
         Wait(1, Ignore Condition);
@@ -2071,9 +2071,10 @@ rule ("BOT: ECHO - BAD STATUS - RESET BEAM") {
         Is Alive(Event Player) == True;
         (Event Player).IsRespawning == False;
         (Event Player).HasBadStatus == True;
+        disabled (Has Status(Event Player, Hacked) || Has Status(Event Player, Frozen) || Has Status(Event Player, Knocked Down) || Has Status(
+        			Event Player, Asleep) || Has Status(Event Player, Stunned)) == True;
     }
     actions {
-        "@Condition (eventPlayer.hasStatusEffect(Status.HACKED) or eventPlayer.hasStatusEffect(Status.FROZEN) or eventPlayer.hasStatusEffect(Status.KNOCKED_DOWN) or eventPlayer.hasStatusEffect(Status.ASLEEP) or eventPlayer.hasStatusEffect(Status.STUNNED)) == true"
         If((Event Player).BotDoesUniqueBehaviour);
             Call Subroutine(BotEchoDetachPlayer);
         End;
@@ -2446,8 +2447,12 @@ rule ("BOT: REIN - SET PLAYER AS TARGET") {
         Has Spawned(Event Player) == True;
         Is Alive(Event Player) == True;
         (Event Player).IsRespawning == False;
-        "@Condition eventPlayer.BotIsPathFinding == false\r\nBOT IS FAR FROM GATES\r\n@Condition distance(vect(eventPlayer.getPosition().x, 0, eventPlayer.getPosition().z), vect(GatePosition.x, 0, GatePosition.z)) > 20\r\nCAN SEE PLAYER"
-        Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
+        disabled Event Player.BotIsPathFinding == False;
+		"BOT IS FAR FROM GATES"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+		    X Component Of(Global.GatePosition), 0, Z Component Of(Global.GatePosition))) > 20;
+		"CAN SEE PLAYER"
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
     }
     actions {
         Call Subroutine(BotResetPathFinding);
@@ -2471,9 +2476,11 @@ rule ("BOT: REIN - SET GATE AS TARGET") {
         (Event Player).IsRespawning == False;
         "BOT DOESN'T FOLLOW PLAYER"
         (Event Player).BotTargetPlayer == -1;
+        "CAN'T SEE ANY PLAYER"
+        		disabled Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), !Is In Line of Sight(Eye Position(
+        			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
     }
     actions {
-        "CAN'T SEE ANY PLAYER\r\n@Condition (any([not isInLoS(eventPlayer.getEyePosition(), i.getEyePosition(), BarrierLos.PASS_THROUGH_BARRIERS) for i in [player for player in getLivingPlayers(Team.1) if player.hasSpawned()]])) == true"
         Call Subroutine(BotResetPathFinding);
         "SET GATE AS TARGET"
         Set Player Variable(Event Player, BotTargetPosition, Global.GatePosition);
@@ -2514,9 +2521,12 @@ rule ("BOT: REIN - ATTACK TARGET") {
         (Event Player).IsRespawning == False;
         "CAN ATTACK TARGET"
         Distance Between(Position Of(Event Player), If-Then-Else(Compare((Event Player).BotTargetPlayer, !=, -1), Position Of((Event Player).BotTargetPlayer), Global.GatePosition)) < 4;
+        "CAN ATTACK TARGET (2D DISTANCE)"
+        disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+        	X Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition), 0,
+        	Z Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition))) < 4;
     }
     actions {
-        "@Condition (distance(vect(eventPlayer.getPosition().x, 0, eventPlayer.getPosition().z), vect((eventPlayer.BotTargetPlayer.getPosition() if eventPlayer.BotTargetPlayer != -1 else GatePosition).x, 0, (eventPlayer.BotTargetPlayer.getPosition() if eventPlayer.BotTargetPlayer != -1 else GatePosition).z))) < 4"
         Start Holding Button(Event Player, Button(Primary Fire));
         Stop Holding Button(Event Player, Button(Secondary Fire));
         "TARGET IS PLAYER"
@@ -2545,9 +2555,12 @@ rule ("BOT: REIN - STOP ATTACK TARGET") {
         (Event Player).IsRespawning == False;
         "CAN ATTACK TARGET"
         Distance Between(Position Of(Event Player), If-Then-Else(Compare((Event Player).BotTargetPlayer, !=, -1), Position Of((Event Player).BotTargetPlayer), Global.GatePosition)) > 4;
+        "CAN'T ATTACK TARGET (2D DISTANCE)"
+    	disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+    		X Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition), 0,
+    		Z Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition))) > 4;
     }
     actions {
-        "@Condition (distance(vect(eventPlayer.getPosition().x, 0, eventPlayer.getPosition().z), vect((eventPlayer.BotTargetPlayer.getPosition() if eventPlayer.BotTargetPlayer != -1 else GatePosition).x, 0, (eventPlayer.BotTargetPlayer.getPosition() if eventPlayer.BotTargetPlayer != -1 else GatePosition).z))) > 4"
         Stop Holding Button(Event Player, Button(Primary Fire));
     }
 }
