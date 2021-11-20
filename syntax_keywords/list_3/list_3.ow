@@ -1,0 +1,229 @@
+All
+All Teams
+Barriers Do Not Block LOS
+Buff Impact Sound
+Checkmark
+Current Array Element
+Event Player
+Global
+Good Explosion
+Green
+Is Assembling Heroes
+Is Game In Progress
+Last Text ID
+Left
+Ongoing
+Player Received Healing
+Primary Fire
+Reinhardt
+Restart Rule
+Right
+Secondary Fire
+Subroutine
+Team
+Team Deathmatch
+Deathmatch
+Top
+Turquoise
+Description
+Mode Name
+Max Spectators
+Max Team 1 Players
+Max Team 2 Players
+Return To Lobby
+Swap Teams After Match
+Escort
+enabled maps
+Havana
+General
+Beam Effects
+Kinetic Explosion Effects
+Explosion Sounds
+Play More Effects
+Spawn More Dummy Bots
+Energy Explosion Effects
+Game Mode Start
+Spawn Health Packs
+Orisa
+White
+Visible To and String
+Default Visibility
+Server Load
+Server Load Peak
+Server Load Average
+Blue
+Visible To Values and Color
+Bad Beam
+Purple
+Up
+Orange
+Event Healing
+Plus
+Yellow
+Current Map
+Each Player
+Abort When
+To World
+Direction and Turn Rate
+Replace existing throttle
+Direction and Magnitude
+Ring
+Phased Out
+Sphere
+Sky Blue
+Red
+Zenyatta
+Widowmaker
+Visible To
+Bastion
+Is In Setup
+Echo
+Visible To Position and Radius
+Host Player
+Interact
+Down
+Player Dealt Final Blow
+Good Pickup Effect
+Event Was Critical Hit
+Skull
+Player Dealt Damage
+Victim
+Event Damage
+Asterisk
+Disable Inspector Recording
+Pause Match Time
+Disable Built-In Game Mode Scoring
+Disable Built-In Game Mode Announcer
+Disable Built-In Game Mode Completion
+Do Nothing
+Ignore Condition
+Loop If Condition Is
+Wrecking Ball
+Torbjörn
+Brigitte
+Destination and Duration
+Player Joined Match
+Ana
+Mercy
+Lúcio
+Moira
+Baptiste
+Ashe
+D.Va
+Genji
+Hanzo
+Frozen
+Cassidy
+Soldier: 76
+Knocked Down
+Tracer
+Asleep
+Stunned
+Wrecking Ball Piledriver Impact Effect
+Doomfist Meteor Strike Impact Sound
+Sigma Accretion Impact Effect
+Sigma Accretion Impact Sound
+Gray
+Cancel Contrary Motion
+Winston
+Pharah
+Good Beam
+Player Died
+Roadhog
+Hacked
+Ultimate
+Default
+Bad Aura
+Black
+Rotation
+Player Took Damage
+Last Heal Over Time ID
+Event Ability
+Hello
+Junkrat Frag Launcher Explosion Effect
+Ashe Dynamite Explosion Sound
+Surfaces And Enemy Barriers
+Enemy Barriers Block LOS
+Ability
+Sombra EMP Explosion Effect
+Sombra EMP Explosion Sound
+Junkrat RIP Tire Explosion Effect
+DVa Self Destruct Explosion Sound
+Surfaces And All Barriers
+Doomfist Meteor Strike Impact Effect
+Last Created Entity
+Debuff Impact Sound
+Incorporate Contrary Motion
+Jump
+Bad Pickup Effect
+Crouch
+Empty Array
+Energy Sound
+Append To Array
+Good Aura
+Attacker
+Explosion Sound
+Total Time Elapsed
+Torbjörn Turret Sight Beam
+Wrecking Ball Minefield Explosion Sound
+Pharah Barrage Explosion Effect
+Zarya Particle Beam
+Break
+Bastion Tank Cannon Explosion Effect
+Bastion Tank Cannon Explosion Sound
+Pharah Rocket Launcher Explosion Effect
+Bad Explosion
+Burning
+Reload
+Pharah Concussive Blast Effect
+Healee
+Poison
+Fire
+Bolt
+Mei
+Reaper
+Sombra
+Sigma
+Player Earned Elimination
+Symmetra
+Doomfist
+Zarya
+Ring Explosion
+Rooted
+Last Created Health Pool
+Armor
+Mercy Heal Beam
+Destination and Rate
+Surfaces
+Violet
+Junkrat
+Player Dealt Knockback
+Restart When
+Player Dealt Healing
+Pharah Concussive Blast Sound
+Unkillable
+Invincible
+Lime Green
+Ring Explosion Sound
+Cloud
+Aqua
+Last Damage Modification ID
+Receivers Damagers and Damage Percent
+Melee
+To Player
+Healer
+Orb
+Shields
+Junkrat RIP Tire Explosion Sound
+Moira Fade Disappear Effect
+Visible To Position Radius and Color
+Player Left Match
+Backward
+Current Array Index
+Forward
+Local Player
+Visible To String and Color
+Visible To Position and Color
+Visible To Sort Order String and Color
+Direction Rate and Max Speed
+Loop

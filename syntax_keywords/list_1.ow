@@ -71,3 +71,158 @@ Y Component Of
 Z Component Of
 disabled
 disabled rule
+Facing Direction Of
+Create Progress Bar HUD Text
+Hero Icon String
+Create Beam Effect
+Eye Position
+Play Effect
+Ability Icon String
+Icon String
+Number Of Players
+Objective Position
+Create Dummy Bot
+For Global Variable
+Create In-World Text
+Set Respawn Max Time
+Set Player Variable At Index
+Set Damage Dealt
+Set Match Time
+Set Objective Description
+Disable Game Mode HUD
+Disable Game Mode In-World UI
+Declare Team Victory
+Divide
+Wait Until
+Is Dead
+Is True For Any
+Destroy Dummy Bot
+Slot Of
+Set Move Speed
+Start Scaling Player
+Set Gravity
+Ultimate Charge Percent
+Weapon
+Is Firing Primary
+Is In View Angle
+Is Using Ability
+Stop Chasing Global Variable
+Chase Global Variable Over Time
+Disable Kill Feed
+Disable Death Spectate Target HUD
+Disable Hero HUD
+Disable Messages
+Disable Text Chat
+Disable Scoreboard
+Disable Death Spectate All Players
+Disable Voice Chat
+Reset Player Hero Availability
+Set Player Allowed Heroes
+Enable Nameplates
+Ammo
+Set Facing
+Teleport
+Random Integer
+Modify Player Variable At Index
+Disable Nameplates
+Destroy Effect
+Entity Exists
+Is Alive
+Has Status
+Random Value In Array
+While
+Is In Air
+Disable Movement Collision With Environment
+Min
+Apply Impulse
+Clear Status
+Enable Movement Collision With Environment
+Start Forcing Player Outlines
+Update Every Frame
+World Vector Of
+Stop Heal Over Time
+Health
+Loop If
+Max Health
+Start Heal Over Time
+Ray Cast Hit Player
+All Living Players
+Communicate
+Players Within Radius
+Team Of
+Respawn
+Start Holding Button
+Is On Ground
+Set Ability Cooldown
+Is In Alternate Form
+Press Button
+Attach Players
+Start Forcing Player To Be Hero
+Chase Player Variable Over Time
+Detach Players
+Stop Holding Button
+Is Using Ultimate
+Is Reloading
+Random Real
+Stop Facing
+Players On Hero
+Ray Cast Hit Position
+Is Firing Secondary
+Disallow Button
+Allow Button
+Absolute Value
+Number Of Heroes
+Player Closest To Reticle
+Is Duplicating
+Cooldown
+Normalized Health
+Set Player Health
+Set Damage Received
+Cancel Primary Action
+Set Environment Credit Player
+Ability Cooldown
+Remove Health Pool From Player
+Add Health Pool To Player
+Opposite Team Of
+Chase Player Variable At Rate
+Ability Resource
+Players in View Angle
+Start Damage Over Time
+Start Damage Modification
+Stop Damage Modification
+Stop Chasing Player Variable
+Closest Player To
+Set Projectile Speed
+Start Scaling Barriers
+Stop Scaling Barriers
+Input Binding String
+Spawn Points
+Set Invisible
+Dot Product
+Speed Of
+Remove From Array
+Vertical Angle From Direction
+Horizontal Angle From Direction
+Direction From Angles
+Cross Product
+Vertical Facing Angle Of
+Do Not Clip
+Horizontal Facing Angle Of
+Sine From Radians
+Is Communicating Any Emote
+Start Camera
+Set Aim Speed
+Enable Hero HUD
+Start Forcing Throttle
+Set Primary Fire Enabled
+Set Secondary Fire Enabled
+Set Ability 1 Enabled
+Set Ability 2 Enabled
+Set Melee Enabled
+Set Jump Enabled
+Stop Forcing Throttle
+Stop Camera
+Set Crouch Enabled
+Set Healing Dealt
+Destroy All Dummy Bots
+Start Accelerating
