@@ -11,3 +11,8 @@ c122:
     -> Reinhardt
     -> Wrecking Ball
     -> Widowmaker
+
+c123:
+-> Widow can't shoot right after teleporting
+-> Reduced amount of needed Echo & Boss kills from 10 to 5
+-> Fixed Mercy rez respawn position
