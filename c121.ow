@@ -242,6 +242,15 @@ subroutines {
     126: BotGetNextNodeIdAndPosition
     127: BotResetPathFinding
 }
+
+disabled rule("=== PATH BUILDER MODE IMPORT ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("MAP: HAVANA") {
     event {
         Ongoing - Global;
@@ -436,6 +445,14 @@ rule ("BOT: PATH FINDING - REACHED THE NODE") {
     }
 }
 
+disabled rule("=== PATH BUILDER MODE IMPORT ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS") {
     event {
         Ongoing - Global;
@@ -475,6 +492,34 @@ rule ("GLOBAL: GAME MODE INIT - COMMON PROPERTIES") {
     }
 }
 
+disabled rule("PLAYER: DEBUG - PRESS  INTERACT")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		disabled Modify Player Score(Event Player, 10);
+		disabled Global.GateHealth -= 5;
+		disabled Start Rule(GateProgressBarColor, Restart Rule);
+		Global.TimeSec = 59;
+		Set Status(Event Player, Null, Phased Out, 9999);
+		disabled Set Ultimate Charge(Event Player, 100);
+		disabled Kill(Event Player, Null);
+		disabled Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
+	}
+}
+
 rule ("GLOBAL: DEBUG - AI NAVIGATION") {
     event {
         Ongoing - Global;
@@ -488,6 +533,68 @@ rule ("GLOBAL: DEBUG - AI NAVIGATION") {
             Create In-World Text(All Players(All Teams), Custom String("NODE {0}", Global.LoopIterator1, Null, Null), Value In Array(Global.NodePositions, Global.LoopIterator1), 1.2, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
         End;
     }
+}
+
+disabled rule("GLOBAL: DEBUG - CREATE BOTS")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is In Setup == True;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Orisa), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
+	}
+}
+
+disabled rule("PLAYER: DEBUG - INFOS")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.IsDebug == True;
+		Host Player == Event Player;
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) == False;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Custom String("POS {0}\r\nFACING {1}", Position Of(Event Player), Facing Direction Of(Event Player)),
+			Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Custom String("SERVER PERFORMANCE\r\nLOAD {0}%\r\nPEAK {1}%\r\nAVG {2}%", Server Load,
+			Server Load Peak, Server Load Average), Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+		disabled Create Progress Bar HUD Text(Event Player, 45, Custom String("45 / 100 KILLS"), Left, -99, Color(Blue), Color(White),
+			Visible To Values and Color, Default Visibility);
+		disabled Create HUD Text(Event Player, Custom String("{0}", Hero Icon String(Hero Of(Event Player))), Null, Custom String(
+			"LEVEL 1 - 50 AMMO CLIP"), Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		"ЭФФЕКТ С ОФФСЕТОМ ОТ ПОЗИЦИИ ГЛАЗ"
+		disabled Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player) - Vector(0, 0.700, 0) + Facing Direction Of(
+			Event Player) * 3, Eye Position(Event Player) + Facing Direction Of(Event Player) * 50, Color(Purple),
+			Visible To Position and Radius);
+	}
+}
+
+disabled rule("=== TEAM UPGRADES ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("GLOBAL: TEAM UPGRADES - INIT") {
@@ -883,6 +990,14 @@ rule ("GLOBAL: UPGRADE - +50% DAMAGE - DONE") {
     }
 }
 
+disabled rule("=== GAME PHASES ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("GLOBAL: ASEMBLING PHASE - MAKE CHALLENGES HUDS") {
     event {
         Ongoing - Global;
@@ -955,6 +1070,14 @@ rule ("GLOBAL: GAME IN PROGRESS") {
         Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.TimeMin, If-Then-Else(Compare(Global.TimeSec, <, 10), Custom String("0{0}", Global.TimeSec, Null, Null), Global.TimeSec), Null), Top, 2, Null, Null, Color(White), Visible To and String, Default Visibility);
         Start Rule(GameLogicWave0, Do Nothing);
     }
+}
+
+disabled rule("=== GAME - MAIN LOGIC ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("GLOBAL: DEFEAT") {
@@ -1147,6 +1270,14 @@ rule ("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES") {
     }
 }
 
+disabled rule("=== GATE ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("SUBROUTINE: GATE REPAIR")
 {
 	event
@@ -1307,6 +1438,14 @@ rule ("SUBROUTINE: GATE PROGRESS BAR COLOR") {
         Set Global Variable(GateProgressBarColorComponent, Divide(Multiply(Global.GateHealth, 255), Global.GateMaxHealth));
         Set Global Variable(GateProgressBarColorCurrent, Custom Color(255, Global.GateProgressBarColorComponent, Global.GateProgressBarColorComponent, 255));
     }
+}
+
+disabled rule("=== COMMON MECHANICS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("ALL: INIT") {
@@ -1507,6 +1646,14 @@ rule ("BOT: DEATH") {
     }
 }
 
+disabled rule("=== BOT COMMON MECHANICS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("BOT: BAD STATUS") {
     event {
         Ongoing - Each Player;
@@ -1578,6 +1725,43 @@ rule ("SUBROUTINE: BOT - APPEAR FROM UNDERGROUND") {
     }
 }
 
+disabled rule("=== PLAYER MECHANICS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("PLAYER: DARKNESS")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+		!Entity Exists(Event Player.BotEffects) == True;
+	}
+
+	actions
+	{
+		Disable Nameplates(Event Player, All Players(All Teams));
+		Start Forcing Player Outlines(Event Player, All Players(All Teams), False, Color(White), Default);
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + Vector(0, 2, 0)
+			+ Facing Direction Of(Event Player) * 14), 25, Visible To Position and Radius);
+		Event Player.BotEffects = Last Created Entity;
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + World Vector Of(Vector(-5, 0,
+			3), Event Player, Rotation) + Facing Direction Of(Event Player) * 10), 25, Visible To Position and Radius);
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + World Vector Of(Vector(5, 0,
+			3), Event Player, Rotation) + Facing Direction Of(Event Player) * 10), 25, Visible To Position and Radius);
+	}
+}
+
 rule ("PLAYER: HEALTH REGEN") {
     event {
         Player Took Damage;
@@ -1595,6 +1779,38 @@ rule ("PLAYER: HEALTH REGEN") {
     }
 }
 
+disabled rule("=== NERFS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("REINHARDT: ANTI-CHARGE FOR BASTION & ORISA")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Using Ability 1(Event Player) == True;
+		Hero Of(Ray Cast Hit Player(Eye Position(Event Player) + Vector(0, 2, 0), Eye Position(Event Player) + Vector(0, 2, 0)
+			+ Facing Direction Of(Event Player) * 2, All Living Players(Team 2), Event Player, True)) == (Hero(Bastion) == True || Hero(
+			Orisa) == True);
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Knocked Down, 1.500);
+	}
+}
+
 rule ("HOG: ANTI-HOOK FOR BASTION & ORISA") {
     event {
         Player Dealt Damage;
@@ -1608,6 +1824,14 @@ rule ("HOG: ANTI-HOOK FOR BASTION & ORISA") {
     actions {
         Set Status(Event Player, Null, Stunned, 0.005);
     }
+}
+
+disabled rule("=== ZENYATTA ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("BOT: ZEN - REACHED THE GATE") {
@@ -1682,6 +1906,14 @@ rule ("SUBROUTINE: ZEN - RESPAWN") {
         Start Rule(BotStartPathFinding, Do Nothing);
         Start Facing(Event Player, Direction Towards(Position Of(Event Player), (Event Player).BotNextNodePosition), 360, To World, Direction and Turn Rate);
     }
+}
+
+disabled rule("=== WRECKING BALL ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("BOT: BALL - REACHED THE GATE") {
@@ -1777,6 +2009,14 @@ rule ("SUBROUTINE: BALL - RESPAWN") {
     }
 }
 
+disabled rule("=== ECHO ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("BOT: ECHO - FLY ABILITY") {
     event {
         Ongoing - Each Player;
@@ -1867,6 +2107,82 @@ rule ("BOT: ECHO - CAN'T SEE PORTAL - APPLY IMPULSE") {
         End;
         Loop If Condition Is True;
     }
+}
+
+disabled rule("BOT: ECHO - MAIN LOGIC - BACKUP")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Echo;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.IsRespawning == False;
+	}
+
+	actions
+	{
+		If(!Event Player.BotIsPathFinding);
+			Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Is In Line of Sight(Eye Position(Event Player),
+				Eye Position(Current Array Element), Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player),
+				Position Of(Current Array Element)))[0];
+		End;
+		"NO PLAYERS IN VIEW RANGE"
+		disabled If(Event Player.BotSeePlayer == Null);
+		disabled Stop Throttle In Direction(Event Player);
+		disabled End;
+		"FLY TO PLAYER"
+		If(Event Player.BotSeePlayer != Null && Distance Between(Position Of(Event Player), Position Of(Event Player.BotSeePlayer))
+			> 4 && Event Player.BotDoesUniqueBehaviour == False);
+			Event Player.BotTargetPlayer = Event Player.BotSeePlayer;
+			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)), 300, To World,
+				Direction and Turn Rate);
+			Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)),
+				1, To World, Replace existing throttle, Direction and Magnitude);
+			Start Holding Button(Event Player, Button(Jump));
+		"ACTIVATE FOCUS BEAM"
+		Else If(Event Player.BotSeePlayer != Null && Distance Between(Position Of(Event Player), Position Of(Event Player.BotSeePlayer))
+				< 4 && Event Player.BotDoesUniqueBehaviour == False && Event Player.HasBadStatus == False);
+			Event Player.BotDoesUniqueBehaviour = True;
+			Set Status(Event Player.BotSeePlayer, Event Player, Stunned, 1);
+			Set Status(Event Player.BotSeePlayer, Event Player, Hacked, 99999);
+			Attach Players(Event Player.BotSeePlayer, Event Player, Vector(0, 0, 2));
+			Press Button(Event Player, Button(Ability 2));
+		"TELEPORT PLAYER TO AWAY"
+		Else If(Event Player.BotDoesUniqueBehaviour && Distance Between(Position Of(Event Player.BotSeePlayer),
+				Global.BotEchoRespawnPosition) < 4);
+			Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Global.BotEchoRespawnPosition, 1);
+			Teleport(Event Player.BotSeePlayer, Random Value In Array(Global.BotEchoTeleportPositions));
+			Set Status(Event Player.BotSeePlayer, Event Player, Knocked Down, 1);
+			Call Subroutine(BotEchoDetachPlayer);
+		"BEGIN TO FLY TO THE PORTAL"
+		Else If(Event Player.BotDoesUniqueBehaviour == True);
+			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Global.BotEchoRespawnPosition), 100, To World,
+				Direction and Turn Rate);
+			"BOT SEES THE PORTAL"
+			If(Is In Line of Sight(Position Of(Event Player), Global.BotEchoRespawnPosition, Barriers Do Not Block LOS));
+				"RESET PATH FINDING"
+				If(Event Player.BotIsPathFinding);
+					Call Subroutine(BotResetPathFinding);
+				End;
+				Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Global.BotEchoRespawnPosition), 1,
+					To World, Replace existing throttle, Direction and Magnitude);
+			"BOT DOES NOT SEE THE PORTAL"
+			Else If(!Event Player.BotIsPathFinding);
+				Event Player.BotTargetPlayer = Event Player.BotSeePlayer;
+				Stop Holding Button(Event Player, Button(Jump));
+				Start Rule(BotStartPathFinding, Restart Rule);
+			End;
+		End;
+		Wait(0.500, Ignore Condition);
+		Loop If Condition Is True;
+	}
 }
 
 rule ("BOT: ECHO - MAIN LOGIC - LOOP") {
@@ -2111,6 +2427,14 @@ rule ("SUBROUTINE: ECHO - DETACH PLAYER") {
     }
 }
 
+disabled rule("=== REINHARDT ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("BOT: REIN - SET PLAYER AS TARGET") {
     event {
         Ongoing - Each Player;
@@ -2292,6 +2616,14 @@ rule ("SUBROUTINE: REIN - RESPAWN") {
     }
 }
 
+disabled rule("=== WIDOW ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("BOT: WIDOW - SEE PLAYER") {
     event {
         Ongoing - Each Player;
@@ -2430,6 +2762,137 @@ rule ("SUBROUTINE: WIDOW - BAD STATUS") {
         Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Eye Position(Event Player), Update Every Frame(Ray Cast Hit Position(Eye Position(Event Player), Add(Eye Position(Event Player), Multiply(Facing Direction Of(Event Player), 999)), Null, Event Player, False)), Color(Red), Visible To Position and Radius);
         Set Player Variable(Event Player, BotEffects, Last Created Entity);
     }
+}
+
+disabled rule("=== BASTION ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("BOT: BASTION - FLAME GUN")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.BotSeePlayer == True;
+		Is Reloading(Event Player) == False;
+		Event Player.BotDoesUniqueBehaviour == False;
+		Is In View Angle(Event Player, Position Of(Event Player.BotSeePlayer), 50) == True;
+		Distance Between(Position Of(Event Player), Position Of(Event Player.BotSeePlayer)) < 8;
+	}
+
+	actions
+	{
+		Event Player.BotDoesUniqueBehaviour = True;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Update Every Frame(Eye Position(Event Player) + World Vector Of(
+			Vector(-1, -1.200, 1.800), Event Player, Rotation)), 1, Visible To Position and Radius);
+		Event Player.BotEffects = Last Created Entity;
+		Start Rule(BotBastionFlameGunDamage, Do Nothing);
+		Wait(1.100, Ignore Condition);
+		Destroy Effect(Event Player.BotEffects);
+		Wait(4, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+disabled rule("BOT: BASTION - CAN SEE PLAYER")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		disabled Event Player.BotSeePlayer == Null;
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
+	}
+
+	actions
+	{
+		Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
+		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)), 100, To World,
+			Direction and Turn Rate);
+	}
+}
+
+disabled rule("BOT: BASTION - CAN'T SEE PLAYER")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.BotSeePlayer != Null;
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == False;
+	}
+
+	actions
+	{
+		Event Player.BotSeePlayer = Null;
+		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 100, To World,
+			Direction and Turn Rate);
+	}
+}
+
+disabled rule("BOT: BASTION - MOVE TO BASTION'S TARGET (POSITION)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.IsRespawning == False;
+		Event Player.BotIsPathFinding == False;
+		Event Player.BotDoesUniqueBehaviour == False;
+	}
+
+	actions
+	{
+		Event Player.BotTargetPosition = Random Value In Array(Filtered Array(Global.BastionTargetPositions, Distance Between(Position Of(
+			Event Player), Current Array Element) > 3.500));
+		Start Rule(BotStartPathFinding, Do Nothing);
+	}
 }
 
 rule ("BOT: BASTION - MAIN LOGIC - LOOP") {
@@ -2588,6 +3051,41 @@ rule ("SUBROUTINE: BASTION - ARTILLERY DAMAGE") {
             Wait(0.4, Ignore Condition);
         End;
     }
+}
+
+disabled rule("SUBROUTINE: BASTION - FLAME GUN DAMAGE")
+{
+	event
+	{
+		Subroutine;
+		BotBastionFlameGunDamage;
+	}
+
+	actions
+	{
+		Event Player.BotRayCastHitPosition = Eye Position(Event Player) + World Vector Of(Vector(-1, -1.200, 1.800), Event Player,
+			Rotation);
+		"FIRE PARTICLES OF FLAME GUN"
+		For Player Variable(Event Player, BotLoopIterator1, 1, 13, 3);
+			Event Player.BotEventPosition = Ray Cast Hit Position(Event Player.BotRayCastHitPosition,
+				Event Player.BotRayCastHitPosition + Facing Direction Of(Event Player) * Event Player.BotLoopIterator1, Null, Event Player,
+				True);
+			Damage(Players Within Radius(Event Player.BotEventPosition, 4, Team 1, Surfaces And Enemy Barriers), Event Player, 20);
+			Set Status(Players Within Radius(Event Player.BotEventPosition, 4, Team 1, Off), Event Player, Burning, 2);
+			Play Effect(All Players(All Teams), Debuff Impact Sound, Color(White), Event Player.BotEventPosition, 150);
+			Play Effect(All Players(All Teams), Bad Explosion, Color(Orange), Event Player.BotEventPosition, 2.500);
+			Wait(0.200, Ignore Condition);
+		End;
+		Event Player.BotDoesUniqueBehaviour = False;
+	}
+}
+
+disabled rule("=== ORISA + BASTION ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("BOT: ORISA-BASTION - REACHED TARGET POSITION") {
@@ -5563,6 +6061,14 @@ rule ("Reinhard Charge Cancel") {
     }
 }
 
+disabled rule("Map Editor Walls")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule ("Initial Global") {
     event {
         Ongoing - Global;
@@ -5697,6 +6203,14 @@ rule ("Wall Data") {
         Set Global Variable(showwalls, True);
         Set Global Variable(Wall_ID, Array(5, 5, 5, 5));
     }
+}
+
+disabled rule("NEW SHOP")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule ("Setting Shop Position") {

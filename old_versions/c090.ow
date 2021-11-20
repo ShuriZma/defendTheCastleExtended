@@ -2,13 +2,12 @@ settings
 {
 	main
 	{
-		Description: "Defend Castle v0.6.c121 by HuKuTa94#2589 modified by ShuriZma#2349 - J1K6F (Code Version: v090) - Defend the gate, kill enemies and don't allow them to damage the gate! Torb, Brig and Rein can repair the gate but beware! You never know what the enemy might be hiding until now! Special Thanks to: Shingen#21859 for the Abilities, LemonAid#11644 for the Hero Talents & Josbird for teaching me about Menus! Find the Original Mode on: workshop.codes/BQEGS PS: SHINGEN PLS COME BACK"
-		Mode Name: "Defend Castle v0.6.c121"
+		Description: "Defend Castle v0.6.c090 by HuKuTa94#2589 modified by ShuriZma#2349 - J1K6F - Defend the gate, kill enemies and don't allow them to damage the gate! Torb, Brig and Rein can repair the gate but beware! You never know what the enemy might be hiding until now! Special Thanks to: Shingen#21859 for the Abilities, LemonAid#11644 for the Hero Talents & Josbird for teaching me about Menus! Find the Original Mode on: workshop.codes/BQEGS"
 	}
 
 	lobby
 	{
-		Max Spectators: 0
+		Max Spectators: 4
 		Max Team 1 Players: 4
 		Max Team 2 Players: 0
 		Return To Lobby: Never
@@ -41,6 +40,7 @@ settings
 
 	workshop
 	{
+		Ana can nano herself even if there are other players only if no player targeted: On
 		Story Heroes: Off
 	}
 
@@ -51,7 +51,6 @@ settings
 		Explosion Sounds
 		Play More Effects
 		Spawn More Dummy Bots
-		Energy Explosion Effects
 	}
 }
 
@@ -99,7 +98,7 @@ variables
 		38: UpgradePlayerMaxHealthMaxValue
 		39: UpgradeCriticalDamageMaxValue
 		40: UpgradeGateMaxHealthMaxValue
-		41: DamageDone
+		41: UpgradePlayerMaxHealthNewValue
 		42: IsDebugAINavigation
 		43: GameLogicCountOfUniqueHeroes
 		44: IsNewWaveGameLogicProcessing
@@ -118,8 +117,6 @@ variables
 		57: bossRotation
 		58: lastBoss
 		59: Time10Min
-		61: challengeCount
-		62: UpgradeBossHealthValue
 		112: AllPos
 		113: AllDir
 		114: firstpos
@@ -132,6 +129,7 @@ variables
 		121: showwalls
 		122: is_Grounded
 		123: g_beamType
+		124: x
 		125: NodePositions
 		126: NodeConnections
 		127: DistanceMatrix
@@ -168,7 +166,7 @@ variables
 		28: PlayerHealth
 		29: AbilityCountdown
 		30: HP_Pool
-		31: Effects__
+		31: Effects_
 		32: Ability_Projectile1
 		33: Ability_End
 		34: Storm_Projectile
@@ -182,7 +180,6 @@ variables
 		42: Chain_Reaction_Immune
 		43: Ability_Active
 		44: Ability_Resource
-		45: secondWindActive
 		46: isInMenu
 		47: ReinPin
 		48: PlayerFacing
@@ -191,7 +188,6 @@ variables
 		51: Gen_Available
 		52: Ability_Player
 		53: Ability_Countdown
-		54: lastSecondWind
 		105: filterpos
 		106: lastsavedpos
 		107: closestbodypos
@@ -199,7 +195,7 @@ variables
 		109: prevpos_intersection
 		110: active_wall
 		111: closestwall
-		112: x_
+		112: x
 		113: intersection_length
 		114: thickness
 		115: BotCancelPathFinding
@@ -220,6 +216,7 @@ variables
 subroutines
 {
 	0: BotBastionArtilleryDamage
+	1: BotBastionFlameGunDamage
 	2: BotBastionRespawn
 	3: GateProgressBarColor
 	4: BotZenyattaRespawn
@@ -244,11 +241,18 @@ subroutines
 	23: GameLogicWave0
 	24: Refund
 	25: EnablePlayer
-	26: GateRepair
 	124: BotStartPathFinding
 	125: BotGetClosestNodeIdToTarget
 	126: BotGetNextNodeIdAndPosition
 	127: BotResetPathFinding
+}
+
+disabled rule("=== PATH BUILDER MODE IMPORT ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule("MAP: HAVANA")
@@ -372,6 +376,7 @@ rule("SUBROUTINE: BOT - RESET PATH FINDING")
 		Event Player.BotIsPathFinding = False;
 		Event Player.BotCancelPathFinding = False;
 		Stop Throttle In Direction(Event Player);
+		disabled Stop Facing(Event Player);
 	}
 }
 
@@ -385,9 +390,10 @@ rule("SUBROUTINE: BOT - START PATH FINDING")
 
 	actions
 	{
-		"if eventPlayer.BotIsPathFinding == true:\r\n        return"
+		disabled Abort If(Event Player.BotIsPathFinding == True);
 		Call Subroutine(BotGetNextNodeIdAndPosition);
-		"eventPlayer.startFacing(directionTowards(eventPlayer.getPosition(), eventPlayer.BotNextNodePosition), 360, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)"
+		disabled Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 360, To World,
+			Direction and Turn Rate);
 		Start Throttle In Direction(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 1,
 			To World, Replace existing throttle, Direction and Magnitude);
 		Event Player.BotIsPathFinding = True;
@@ -406,14 +412,15 @@ rule("SUBROUTINE: BOT - GET NEXT NODE ID AND POSITION")
 	{
 		"BOT JUST START FOLLOW PATH OR LOST NEXT NODE"
 		If(Event Player.BotPrevNodeId == -1);
-			Event Player.BotClosestNodeIdToBot = Index Of Array Value(Global.NodePositions, First Of(Sorted Array(Filtered Array(
-				Global.NodePositions, Is In Line of Sight(Position Of(Event Player) + Vector(0, 2, 0), Current Array Element,
-				Barriers Do Not Block LOS)), Distance Between(Position Of(Event Player), Current Array Element))));
+			Event Player.BotClosestNodeIdToBot = Index Of Array Value(Global.NodePositions, Sorted Array(Filtered Array(Global.NodePositions,
+				Is In Line of Sight(Position Of(Event Player) + Vector(0, 2, 0), Current Array Element, Barriers Do Not Block LOS) == True),
+				Distance Between(Position Of(Event Player), Current Array Element))[0]);
 			Call Subroutine(BotGetClosestNodeIdToTarget);
 		End;
 		"NEXT NODE IS TARGET (DISTANCE TO TARGET NODE = 1)"
 		If(Global.DistanceMatrix[Event Player.BotClosestNodeIdToBot][Event Player.BotClosestNodeIdToTarget] == 1);
 			Event Player.BotNextNodeId = Event Player.BotClosestNodeIdToTarget;
+		"CHECK CONNECTIONS OF REACHED  NODE"
 		Else;
 			Event Player.BotShortestDistanceToTarget = 999;
 			Event Player.BotCurrentDistanceToTarget = Event Player.BotShortestDistanceToTarget;
@@ -431,14 +438,16 @@ rule("SUBROUTINE: BOT - GET NEXT NODE ID AND POSITION")
 			< -3 && Event Player.BotPrevNodeId != Event Player.BotClosestNodeIdToBot);
 			Event Player.BotPrevNodeId = Event Player.BotClosestNodeIdToBot;
 			Event Player.BotNextNodeId = Event Player.BotClosestNodeIdToBot;
+		"BOT CAN SEE TARGET POSITION AND NEXT NODE IS TARGET"
 		Else If(
 				Global.DistanceMatrix[Event Player.BotClosestNodeIdToBot][Event Player.BotClosestNodeIdToTarget] == 1 && Is In Line of Sight(
 				Position Of(Event Player) + Vector(0, 1.600, 0), Event Player.BotTargetPosition + Vector(0, 2, 0), Barriers Do Not Block LOS));
 			Event Player.BotNextNodePosition = Event Player.BotTargetPosition;
 			Abort;
-		Else If(!Is In Line of Sight(Position Of(Event Player) + Vector(0, 1.600, 0),
+		"BOT CAN'T SEE NEXT NODE AND PREV NODE != REACHED NODE"
+		Else If(Is In Line of Sight(Position Of(Event Player) + Vector(0, 1.600, 0),
 				Global.NodePositions[Event Player.BotNextNodeId] + Vector(0, 2, 0), Barriers Do Not Block LOS)
-				&& Event Player.BotPrevNodeId != Event Player.BotClosestNodeIdToBot);
+				== False && Event Player.BotPrevNodeId != Event Player.BotClosestNodeIdToBot);
 			Event Player.BotPrevNodeId = Event Player.BotClosestNodeIdToBot;
 			Event Player.BotNextNodeId = Event Player.BotClosestNodeIdToBot;
 		End;
@@ -458,9 +467,9 @@ rule("SUBROUTINE: BOT - GET CLOSEST NODE ID AND POSITION TO TARGET")
 	{
 		Event Player.BotTargetPosition = Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer)
 			: Event Player.BotTargetPosition;
-		Event Player.BotClosestNodeIdToTarget = Index Of Array Value(Global.NodePositions, First Of(Sorted Array(Filtered Array(
+		Event Player.BotClosestNodeIdToTarget = Index Of Array Value(Global.NodePositions, Sorted Array(Filtered Array(
 			Global.NodePositions, Is In Line of Sight(Event Player.BotTargetPosition + Vector(0, 2, 0), Current Array Element,
-			Barriers Do Not Block LOS)), Distance Between(Event Player.BotTargetPosition, Current Array Element))));
+			Barriers Do Not Block LOS) == True), Distance Between(Event Player.BotTargetPosition, Current Array Element))[0]);
 	}
 }
 
@@ -523,9 +532,8 @@ rule("BOT: PATH FINDING - LOST THE NODE")
 		Is Dummy Bot(Event Player) == True;
 		Has Spawned(Event Player) == True;
 		Event Player.BotIsPathFinding == True;
-		Is In Line of Sight(Position Of(Event Player) + Vector(0, 1.600, 0), Event Player.BotNextNodePosition + Vector(0, 2.500, 0),
-			Barriers Do Not Block LOS) == False;
-		Speed Of In Direction(Event Player, Throttle Of(Event Player)) < 2;
+		(Is In Line of Sight(Position Of(Event Player) + Vector(0, 1.600, 0), Event Player.BotNextNodePosition + Vector(0, 2.500, 0),
+			Barriers Do Not Block LOS) == False && Speed Of In Direction(Event Player, Throttle Of(Event Player)) < 2) == True;
 	}
 
 	actions
@@ -557,8 +565,8 @@ rule("BOT: PATH FINDING - REACHED THE NODE")
 		Has Spawned(Event Player) == True;
 		Event Player.BotIsPathFinding == True;
 		Event Player.BotClosestNodeIdToTarget >= 0;
-		Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
-			X Component Of(Event Player.BotNextNodePosition), 0, Z Component Of(Event Player.BotNextNodePosition))) < 0.850;
+		(Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Event Player.BotNextNodePosition), 0, Z Component Of(Event Player.BotNextNodePosition))) < 0.850) == True;
 	}
 
 	actions
@@ -578,6 +586,7 @@ rule("BOT: PATH FINDING - REACHED THE NODE")
 			If(Event Player.BotCurrentDistanceToTarget > 0.850);
 				Event Player.BotNextNodePosition = Event Player.BotTargetPosition;
 				Skip(6);
+			"BOT REACHED TARGET"
 			Else;
 				Call Subroutine(BotResetPathFinding);
 				Abort;
@@ -587,6 +596,14 @@ rule("BOT: PATH FINDING - REACHED THE NODE")
 		Call Subroutine(BotGetNextNodeIdAndPosition);
 		Start Throttle In Direction(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 1,
 			To World, Replace existing throttle, Direction and Magnitude);
+	}
+}
+
+disabled rule("=== PATH BUILDER MODE IMPORT ===")
+{
+	event
+	{
+		Ongoing - Global;
 	}
 }
 
@@ -619,10 +636,10 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"DEFEND CASTLE v0.6.c121 BY HUKUTA94#2589\r\nmodified by ShuriZma#2349\r\nDiscord: discord.shurizma.de\r\n{0}", Custom String(
-			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
-			Custom String("{0}", Custom String("   \nPS: SHINGEN PLS COME BACK")))), Right, -1000, Null, Null, Color(White), Visible To,
-			Default Visibility);
+			"DEFEND CASTLE v0.6.c090 BY HUKUTA94#2589\r\nmodified by ShuriZma#2349\r\nDiscord: discord.shurizma.de\r\n{1}", Null,
+			Custom String(
+			"Special Thanks to:\r\nShingen#21859 for the Abilities,\r\nLemonAid#11644 for the Hero Talents &\r\nJosbird for teaching me about Menus")),
+			Right, -1000, Color(White), Color(White), Color(White), Visible To, Default Visibility);
 		Global.GateRepairPosition = Vector(153, 8, -46.500);
 		Global.GatePosition = Vector(148.800, 6, -46.400);
 		Global.BallSpawnPositions = Array(Vector(104, 7, -46), Vector(106, 2, -31));
@@ -643,7 +660,34 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 		Global.ZenRespawnTime = 10;
 		Global.GameLogicCountOfUniqueHeroes = 5;
 		Global.lastBoss = Array(Null, Null, Null, Null);
-		Create Effect(All Players(Team 1), Ring, Color(Sky Blue), Vector(186, 11, -46.500), 9, Visible To Position and Radius);
+	}
+}
+
+disabled rule("PLAYER: DEBUG - PRESS  INTERACT")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		disabled Modify Player Score(Event Player, 10);
+		disabled Global.GateHealth -= 5;
+		disabled Start Rule(GateProgressBarColor, Restart Rule);
+		Global.TimeSec = 59;
+		Set Status(Event Player, Null, Phased Out, 9999);
+		disabled Set Ultimate Charge(Event Player, 100);
+		disabled Kill(Event Player, Null);
+		disabled Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
 	}
 }
 
@@ -669,6 +713,68 @@ rule("GLOBAL: DEBUG - AI NAVIGATION")
 	}
 }
 
+disabled rule("GLOBAL: DEBUG - CREATE BOTS")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is In Setup == True;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Orisa), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
+	}
+}
+
+disabled rule("PLAYER: DEBUG - INFOS")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.IsDebug == True;
+		Host Player == Event Player;
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) == False;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Custom String("POS {0}\r\nFACING {1}", Position Of(Event Player), Facing Direction Of(Event Player)),
+			Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Custom String("SERVER PERFORMANCE\r\nLOAD {0}%\r\nPEAK {1}%\r\nAVG {2}%", Server Load,
+			Server Load Peak, Server Load Average), Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+		disabled Create Progress Bar HUD Text(Event Player, 45, Custom String("45 / 100 KILLS"), Left, -99, Color(Blue), Color(White),
+			Visible To Values and Color, Default Visibility);
+		disabled Create HUD Text(Event Player, Custom String("{0}", Hero Icon String(Hero Of(Event Player))), Null, Custom String(
+			"LEVEL 1 - 50 AMMO CLIP"), Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		"ЭФФЕКТ С ОФФСЕТОМ ОТ ПОЗИЦИИ ГЛАЗ"
+		disabled Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player) - Vector(0, 0.700, 0) + Facing Direction Of(
+			Event Player) * 3, Eye Position(Event Player) + Facing Direction Of(Event Player) * 50, Color(Purple),
+			Visible To Position and Radius);
+	}
+}
+
+disabled rule("=== TEAM UPGRADES ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("GLOBAL: TEAM UPGRADES - INIT")
 {
 	event
@@ -678,31 +784,24 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.UpgradeMaxAmmoMaxValue[0] = 250;
+		Global.UpgradeMaxAmmoMaxValue[0] = 200;
 		Global.UpgradeMaxAmmoMaxValue[1] = 500;
-		Global.UpgradeMaxAmmoMaxValue[2] = 1000;
 		Global.UpgradeCriticalDamageMaxValue[0] = 10;
-		Global.UpgradeCriticalDamageMaxValue[1] = 10;
-		Global.UpgradeCriticalDamageMaxValue[2] = 10;
+		Global.UpgradeCriticalDamageMaxValue[1] = 5;
+		Global.UpgradePlayerMaxHealthNewValue = 150;
 		Global.UpgradePlayerMaxHealthMaxValue[0] = 2500;
 		Global.UpgradePlayerMaxHealthMaxValue[1] = 5000;
-		Global.UpgradePlayerMaxHealthMaxValue[2] = 10000;
 		Global.UpgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.GateMaxHealth + Global.GateMaxHealth * 0.500, Up);
-		Global.UpgradeGateMaxHealthMaxValue[1] = 2 * First Of(Global.UpgradeGateMaxHealthMaxValue);
-		Global.UpgradeGateMaxHealthMaxValue[2] = 2 * Global.UpgradeGateMaxHealthMaxValue[1];
+		Global.UpgradeGateMaxHealthMaxValue[1] = Global.UpgradeGateMaxHealthMaxValue[0] + Global.UpgradeGateMaxHealthMaxValue[0];
 		Abort If(Global.IsDebug == False);
 		Global.UpgradeMaxAmmoMaxValue[0] = 1;
 		Global.UpgradeCriticalDamageMaxValue[0] = 1;
 		Global.UpgradePlayerMaxHealthMaxValue[0] = 1;
 		Global.UpgradeGateMaxHealthMaxValue[0] = 1;
-		Global.UpgradeMaxAmmoMaxValue[1] = 1;
+		Global.UpgradeMaxAmmoMaxValue[1] = 10;
 		Global.UpgradeCriticalDamageMaxValue[1] = 1;
-		Global.UpgradePlayerMaxHealthMaxValue[1] = 1;
-		Global.UpgradeGateMaxHealthMaxValue[1] = 1;
-		Global.UpgradeMaxAmmoMaxValue[2] = 1;
-		Global.UpgradeCriticalDamageMaxValue[2] = 1;
-		Global.UpgradePlayerMaxHealthMaxValue[2] = 1;
-		Global.UpgradeGateMaxHealthMaxValue[2] = 1;
+		Global.UpgradePlayerMaxHealthMaxValue[1] = 100;
+		Global.UpgradeGateMaxHealthMaxValue[1] = 25;
 	}
 }
 
@@ -716,7 +815,7 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradeGateMaxHealthValue >= First Of(Global.UpgradeGateMaxHealthMaxValue);
+		(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[0]) == True;
 	}
 
 	actions
@@ -724,19 +823,18 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH - DONE")
 		Big Message(All Players(Team 1), Custom String("GATE'S MAX HEALTH UNLOCKED!"));
 		Play Effect(All Players(All Teams), Good Explosion, Color(Green), Global.GatePosition, 5);
 		Play Effect(All Players(All Teams), Buff Impact Sound, Color(Green), Global.GatePosition, 100);
-		Global.GateMaxHealth = First Of(Global.UpgradeGateMaxHealthMaxValue);
+		Global.GateMaxHealth = Global.UpgradeGateMaxHealthMaxValue[0];
 		Global.GateHealth = Global.GateMaxHealth;
-		Destroy HUD Text(First Of(Global.UpgradeGateMaxHealthHudId));
+		Destroy HUD Text(Global.UpgradeGateMaxHealthHudId[0]);
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("GATE'S MAX HEALTH: {0} HP", First Of(Global.UpgradeGateMaxHealthMaxValue)), Right, 1,
-			Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			Icon String(Checkmark)), Custom String("GATE'S MAX HEALTH: {0} HP", Global.UpgradeGateMaxHealthMaxValue[0]), Right, 1, Color(
+			Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.UpgradeGateMaxHealthHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("2X GATE REPAIR"),
 			Custom String("REPAIR GATE {0}/{1} HP", Global.UpgradeGateMaxHealthValue, Global.UpgradeGateMaxHealthMaxValue[1]), Left, 12,
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.UpgradeGateMaxHealthHudId[1] = Last Text ID;
 		Start Rule(GateProgressBarColor, Restart Rule);
-		Global.challengeCount += 1;
 	}
 }
 
@@ -750,7 +848,7 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 2 - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1];
+		(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]) == True;
 	}
 
 	actions
@@ -760,45 +858,11 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 2 - DONE")
 		Play Effect(All Players(All Teams), Buff Impact Sound, Color(Green), Global.GatePosition, 100);
 		Destroy HUD Text(Global.UpgradeGateMaxHealthHudId[1]);
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("2X GATE REPAIR"), Right, 2, Color(Green), Color(Green), Color(Green), Visible To,
+			Icon String(Checkmark)), Custom String("2X GATE REPAIR"), Right, 1, Color(Green), Color(Green), Color(Green), Visible To,
 			Default Visibility);
 		Global.UpgradeGateMaxHealthHudId[1] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("2X AUTO-REPAIR"),
-			Custom String("REPAIR GATE {0}/{1} HP", Global.UpgradeGateMaxHealthValue, Global.UpgradeGateMaxHealthMaxValue[2]), Left, 12,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
-		Global.UpgradeGateMaxHealthHudId[2] = Last Text ID;
 		Global.GateHealth = Global.GateMaxHealth;
 		Start Rule(GateProgressBarColor, Restart Rule);
-		Global.challengeCount += 1;
-	}
-}
-
-rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 3 - DONE")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[2];
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("2X AUTO-REPAIR UNLOCKED!"));
-		Play Effect(All Players(All Teams), Good Explosion, Color(Green), Global.GatePosition, 5);
-		Play Effect(All Players(All Teams), Buff Impact Sound, Color(Green), Global.GatePosition, 100);
-		Destroy HUD Text(Global.UpgradeGateMaxHealthHudId[2]);
-		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("2X AUTO-REPAIR"), Right, 3, Color(Green), Color(Green), Color(Green), Visible To,
-			Default Visibility);
-		Global.UpgradeGateMaxHealthHudId[2] = Last Text ID;
-		Global.GateHealth = Global.GateMaxHealth;
-		Start Rule(GateProgressBarColor, Restart Rule);
-		Global.challengeCount += 1;
 	}
 }
 
@@ -814,8 +878,8 @@ rule("PLAYER: UPGRADE - PLAYER'S MAX HEALTH - DEALT HEALING")
 	conditions
 	{
 		Is Game In Progress == True;
-		"@Condition healer != eventPlayer"
-		Global.UpgradePlayerMaxHealthValue < Global.UpgradePlayerMaxHealthMaxValue[2];
+		disabled Healer != Event Player;
+		Global.UpgradePlayerMaxHealthValue < Global.UpgradePlayerMaxHealthMaxValue[1];
 	}
 
 	actions
@@ -834,22 +898,23 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradePlayerMaxHealthValue >= First Of(Global.UpgradePlayerMaxHealthMaxValue);
+		(Global.UpgradePlayerMaxHealthValue >= Global.UpgradePlayerMaxHealthMaxValue[0]) == True;
 	}
 
 	actions
 	{
 		Big Message(All Players(Team 1), Custom String("PLAYER'S MAX HEALTH UNLOCKED!"));
-		Destroy HUD Text(First Of(Global.UpgradePlayerMaxHealthHudId));
+		Destroy HUD Text(Global.UpgradePlayerMaxHealthHudId[0]);
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"PLAYER'S MAX HEALTH +50%"), Right, 4, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			"PLAYER'S MAX HEALTH: {0}%", Global.UpgradePlayerMaxHealthNewValue), Right, 2, Color(Green), Color(Green), Color(Green),
+			Visible To, Default Visibility);
 		Global.UpgradePlayerMaxHealthHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("Up You Go: You respawn twice as fast"), Custom String(
 			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.UpgradePlayerMaxHealthValue, Down),
 			Global.UpgradePlayerMaxHealthMaxValue[1]), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
 			Default Visibility);
 		Global.UpgradePlayerMaxHealthHudId[1] = Last Text ID;
-		For Global Variable(LoopIterator1, 0, Number Of Players(Team 1), 1);
+		For Global Variable(LoopIterator1, 0, Count Of(All Players(Team 1)), 1);
 			Play Effect(All Players(All Teams), Good Pickup Effect, Color(Yellow), Position Of(All Players(Team 1)[Global.LoopIterator1]), 1);
 			Play Effect(All Players(All Teams), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.LoopIterator1]), 100);
 		End;
@@ -857,7 +922,6 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
 		All Players(Team 1).PlayerHealth = 100 + Global.MaxHealthDone + All Players(Team 1).Abilities[14] * 5;
 		Set Max Health(All Players(Team 1), All Players(Team 1).PlayerHealth);
 		Heal(All Players(Team 1), Null, 9999);
-		Global.challengeCount += 1;
 	}
 }
 
@@ -871,7 +935,7 @@ rule("GLOBAL: UPGRADE - PERK UP YOU GO - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradePlayerMaxHealthValue >= Global.UpgradePlayerMaxHealthMaxValue[1];
+		(Global.UpgradePlayerMaxHealthValue >= Global.UpgradePlayerMaxHealthMaxValue[1]) == True;
 	}
 
 	actions
@@ -879,56 +943,18 @@ rule("GLOBAL: UPGRADE - PERK UP YOU GO - DONE")
 		Big Message(All Players(Team 1), Custom String("UP YOU GO UNLOCKED!"));
 		Destroy HUD Text(Global.UpgradePlayerMaxHealthHudId[1]);
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("{0}", Icon String(Checkmark)), Custom String("Up You Go"),
-			Right, 5, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			Right, 3, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.UpgradePlayerMaxHealthHudId[1] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("PLAYER'S MAX HEALTH +100%"), Custom String(
-			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.UpgradePlayerMaxHealthValue, Down),
-			Global.UpgradePlayerMaxHealthMaxValue[2]), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		Global.UpgradePlayerMaxHealthHudId[2] = Last Text ID;
 		Set Respawn Max Time(All Players(Team 1), 5);
 		Heal(All Players(Team 1), Null, 9999);
-		For Global Variable(LoopIterator1, 0, Number Of Players(Team 1), 1);
+		For Global Variable(LoopIterator1, 0, Count Of(All Players(Team 1)), 1);
 			Play Effect(All Players(All Teams), Good Pickup Effect, Color(Yellow), Position Of(All Players(Team 1)[Global.LoopIterator1]), 1);
 			Play Effect(All Players(All Teams), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.LoopIterator1]), 100);
 		End;
 		Global.Perk[2] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Up You Go"), Left, 917, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Up You Go"), Left, 917, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		All Players(Team 1).AbilityHUD[17] = Last Text ID;
-		Global.challengeCount += 1;
-	}
-}
-
-rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.UpgradePlayerMaxHealthValue >= Global.UpgradePlayerMaxHealthMaxValue[2];
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("PLAYER'S MAX HEALTH 2 UNLOCKED!"));
-		Destroy HUD Text(Global.UpgradePlayerMaxHealthHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"PLAYER'S MAX HEALTH +100%"), Right, 6, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.UpgradePlayerMaxHealthHudId[2] = Last Text ID;
-		For Global Variable(LoopIterator1, 0, Number Of Players(Team 1), 1);
-			Play Effect(All Players(All Teams), Good Pickup Effect, Color(Yellow), Position Of(All Players(Team 1)[Global.LoopIterator1]), 1);
-			Play Effect(All Players(All Teams), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.LoopIterator1]), 100);
-		End;
-		Global.MaxHealthDone = 150;
-		All Players(Team 1).PlayerHealth = 100 + Global.MaxHealthDone + All Players(Team 1).Abilities[14] * 5;
-		Set Max Health(All Players(Team 1), All Players(Team 1).PlayerHealth);
-		Heal(All Players(Team 1), Null, 9999);
-		Global.challengeCount += 1;
 	}
 }
 
@@ -946,7 +972,7 @@ rule("PLAYER: UPGRADE - CRITICAL DAMAGE - DEALT KILL")
 		Is Game In Progress == True;
 		Event Was Critical Hit == True;
 		Hero Of(Victim) == Hero(Widowmaker);
-		Global.UpgradeCriticalDamageValue < First Of(Global.UpgradeCriticalDamageMaxValue);
+		Global.UpgradeCriticalDamageValue < Global.UpgradeCriticalDamageMaxValue[0];
 	}
 
 	actions
@@ -966,22 +992,21 @@ rule("GLOBAL: UPGRADE - CRITICAL DAMAGE - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradeCriticalDamageValue >= First Of(Global.UpgradeCriticalDamageMaxValue);
+		Global.UpgradeCriticalDamageValue >= Global.UpgradeCriticalDamageMaxValue[0];
 	}
 
 	actions
 	{
 		Big Message(All Players(Team 1), Custom String("CRITICAL DAMAGE 150% UNLOCKED!"));
-		Destroy HUD Text(First Of(Global.UpgradeCriticalDamageHudId));
+		Destroy HUD Text(Global.UpgradeCriticalDamageHudId[0]);
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"CRITICAL DAMAGE 150%"), Right, 7, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			"CRITICAL DAMAGE 150%"), Right, 4, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.UpgradeCriticalDamageHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String(
 			"Sharpshooter: Deal 40% more damage to enemies that are further than 15 meters away"), Custom String("KILL ECHO {0}/{1}",
 			Global.UpgradePerkSharpshooterValue, Global.UpgradeCriticalDamageMaxValue[1]), Left, 14, Color(Orange), Color(White), Color(
 			White), Visible To and String, Default Visibility);
 		Global.UpgradeCriticalDamageHudId[1] = Last Text ID;
-		Global.challengeCount += 1;
 	}
 }
 
@@ -998,7 +1023,7 @@ rule("PLAYER: UPGRADE - CRITICAL DAMAGE - UNLOCKED")
 	{
 		Is Game In Progress == True;
 		Event Was Critical Hit == True;
-		Global.UpgradeCriticalDamageValue >= First Of(Global.UpgradeCriticalDamageMaxValue);
+		Global.UpgradeCriticalDamageValue >= Global.UpgradeCriticalDamageMaxValue[0];
 	}
 
 	actions
@@ -1021,7 +1046,7 @@ rule("PLAYER: UPGRADE - PERK SHARPSHOOTER - DEALT KILL")
 		Is Game In Progress == True;
 		Hero Of(Victim) == Hero(Echo);
 		Global.UpgradePerkSharpshooterValue < Global.UpgradeCriticalDamageMaxValue[1];
-		Global.UpgradeCriticalDamageValue >= First Of(Global.UpgradeCriticalDamageMaxValue);
+		Global.UpgradeCriticalDamageValue >= Global.UpgradeCriticalDamageMaxValue[0];
 	}
 
 	actions
@@ -1049,41 +1074,12 @@ rule("GLOBAL: UPGRADE - PERK SHARPSHOOTER - DONE")
 		Big Message(All Players(Team 1), Custom String("SHARPSHOOTER UNLOCKED!"));
 		Destroy HUD Text(Global.UpgradeCriticalDamageHudId[1]);
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"Sharpshooter"), Right, 8, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			"Sharpshooter"), Right, 5, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.UpgradeCriticalDamageHudId[1] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("-10% BOSS HEALTH"), Custom String("KILL Bosses {0}/{1}",
-			Global.UpgradeBossHealthValue, Global.UpgradeCriticalDamageMaxValue[2]), Left, 14, Color(Orange), Color(White), Color(White),
-			Visible To and String, Default Visibility);
-		Global.UpgradeCriticalDamageHudId[2] = Last Text ID;
 		Global.Perk[0] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Sharpshooter"), Left, 918, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Sharpshooter"), Left, 918, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		All Players(Team 1).AbilityHUD[18] = Last Text ID;
-		Global.challengeCount += 1;
-	}
-}
-
-rule("GLOBAL: UPGRADE - -10% BOSS HEALTH - DONE")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2];
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("-10% BOSS HEALTH UNLOCKED!"));
-		Destroy HUD Text(Global.UpgradeCriticalDamageHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"-10% BOSS HEALTH"), Right, 9, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.UpgradeCriticalDamageHudId[2] = Last Text ID;
-		Global.challengeCount += 1;
 	}
 }
 
@@ -1100,15 +1096,12 @@ rule("PLAYER: UPGRADE - MAX AMMO - DEALT KILL")
 	{
 		Is Game In Progress == True;
 		Hero Of(Victim) == Hero(Zenyatta);
-		Global.UpgradeMaxAmmoValue < Global.UpgradeMaxAmmoMaxValue[2];
+		Global.UpgradeMaxAmmoValue < Global.UpgradeMaxAmmoMaxValue[1];
 	}
 
 	actions
 	{
-		If(Event Player.isBoss == 1);
-			Global.UpgradeMaxAmmoValue += 10;
-		Else;
-			Global.UpgradeMaxAmmoValue += 1;
+		Global.UpgradeMaxAmmoValue += 1;
 	}
 }
 
@@ -1122,27 +1115,26 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradeMaxAmmoValue >= First Of(Global.UpgradeMaxAmmoMaxValue);
+		(Global.UpgradeMaxAmmoValue >= Global.UpgradeMaxAmmoMaxValue[0]) == True;
 	}
 
 	actions
 	{
 		Big Message(All Players(Team 1), Custom String("MAX AMMO 200% UNLOCKED!"));
-		Destroy HUD Text(First Of(Global.UpgradeMaxAmmoHudId));
+		Destroy HUD Text(Global.UpgradeMaxAmmoHudId[0]);
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"MAX AMMO 200%"), Right, 10, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			"MAX AMMO 200%"), Right, 6, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.UpgradeMaxAmmoHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
-			Custom String("KILL {0}: {1}/{2}", Hero(Zenyatta), Global.UpgradeMaxAmmoValue, Global.UpgradeMaxAmmoMaxValue[1]), Left, 15,
+			Custom String("KILL {2}: {0}/{1}", Global.UpgradeMaxAmmoValue, Global.UpgradeMaxAmmoMaxValue[1], Hero(Zenyatta)), Left, 15,
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.UpgradeMaxAmmoHudId[1] = Last Text ID;
-		For Global Variable(LoopIterator1, 0, Number Of Players(Team 1), 1);
+		For Global Variable(LoopIterator1, 0, Count Of(All Players(Team 1)), 1);
 			Set Max Ammo(All Players(Team 1)[Global.LoopIterator1], 0, Max Ammo(All Players(Team 1)[Global.LoopIterator1], 0) * 2);
 			Set Max Ammo(All Players(Team 1)[Global.LoopIterator1], 1, Max Ammo(All Players(Team 1)[Global.LoopIterator1], 1) * 2);
 			Set Ammo(All Players(Team 1)[Global.LoopIterator1], 0, Max Ammo(All Players(Team 1)[Global.LoopIterator1], 0));
 			Set Ammo(All Players(Team 1)[Global.LoopIterator1], 1, Max Ammo(All Players(Team 1)[Global.LoopIterator1], 1));
 		End;
-		Global.challengeCount += 1;
 	}
 }
 
@@ -1156,7 +1148,7 @@ rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.UpgradeMaxAmmoValue >= Global.UpgradeMaxAmmoMaxValue[1];
+		(Global.UpgradeMaxAmmoValue >= Global.UpgradeMaxAmmoMaxValue[1]) == True;
 	}
 
 	actions
@@ -1164,44 +1156,20 @@ rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
 		Big Message(All Players(Team 1), Custom String("BULLETSTORM UNLOCKED!"));
 		Destroy HUD Text(Global.UpgradeMaxAmmoHudId[1]);
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"Bulletstorm"), Right, 11, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+			"Bulletstorm"), Right, 7, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.UpgradeMaxAmmoHudId[1] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL {0}: {1}/{2}", Hero(
-			Zenyatta), Global.UpgradeMaxAmmoValue, Global.UpgradeMaxAmmoMaxValue[2]), Left, 15, Color(Orange), Color(White), Color(White),
-			Visible To and String, Default Visibility);
-		Global.UpgradeMaxAmmoHudId[2] = Last Text ID;
 		Global.Perk[1] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		All Players(Team 1).AbilityHUD[19] = Last Text ID;
-		Global.challengeCount += 1;
 	}
 }
 
-rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
+disabled rule("=== GAME PHASES ===")
 {
 	event
 	{
 		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.UpgradeMaxAmmoValue >= Global.UpgradeMaxAmmoMaxValue[1];
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("+50% DAMAGE UNLOCKED!"));
-		Destroy HUD Text(Global.UpgradeMaxAmmoHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"+50% DAMAGE"), Right, 12, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.UpgradeMaxAmmoHudId[2] = Last Text ID;
-		Global.DamageDone = 50;
-		All Players(Team 1).DamageDealt = 100 + Global.DamageDone + All Players(Team 1).Abilities[13] * 5;
-		Set Damage Dealt(All Players(Team 1), All Players(Team 1).DamageDealt);
-		Global.challengeCount += 1;
 	}
 }
 
@@ -1228,32 +1196,38 @@ rule("GLOBAL: ASEMBLING PHASE - MAKE CHALLENGES HUDS")
 		Create In-World Text(All Players(Team 1), Custom String("  {0}\r\nREPAIR\r\n  {1}", Hero Icon String(Hero(Torbjörn)),
 			Ability Icon String(Hero(Bastion), Button(Secondary Fire))), Global.GatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES"), Left, 11, Null, Null, Color(White), Visible To,
-			Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES"), Left, 11, Color(White), Color(Blue), Color(
+			White), Visible To, Default Visibility);
 		"UPGRADE - GATE'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String(
-			"GATE'S MAX HEALTH: {0} HP", First Of(Global.UpgradeGateMaxHealthMaxValue)), Custom String("REPAIR GATE {0}/{1} HP",
-			Global.UpgradeGateMaxHealthValue, First Of(Global.UpgradeGateMaxHealthMaxValue)), Left, 12, Color(Orange), Color(White), Color(
-			White), Visible To and String, Default Visibility);
+			"GATE'S MAX HEALTH: {0} HP", Global.UpgradeGateMaxHealthMaxValue[0]), Custom String("REPAIR GATE {0}/{1} HP",
+			Global.UpgradeGateMaxHealthValue, Global.UpgradeGateMaxHealthMaxValue[0]), Left, 12, Color(Orange), Color(White), Color(White),
+			Visible To and String, Default Visibility);
 		Global.UpgradeGateMaxHealthHudId[0] = Last Text ID;
-		"hudSubheader(getPlayers(Team.1), \"  \\r\\n  \", HudPosition.LEFT, 2, Color.WHITE, HudReeval.VISIBILITY, SpecVisibility.DEFAULT)\r\nUPGRADE - PLAYER'S MAX HEALTH"
-		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("PLAYER'S MAX HEALTH +50%"), Custom String(
-			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.UpgradePlayerMaxHealthValue, Down), First Of(
-			Global.UpgradePlayerMaxHealthMaxValue)), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		Global.UpgradePlayerMaxHealthHudId[0] = Last Text ID;
-		"hudSubheader(getPlayers(Team.1), \" \\r\\n \", HudPosition.LEFT, 4, Color.WHITE, HudReeval.VISIBILITY, SpecVisibility.DEFAULT)\r\nUPGRADE - CRITICAL DAMAGE"
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("CRITICAL DAMAGE 150%"), Custom String(
-			"KILL WIDOW WITH HEADSHOT: {0}/{1}", Global.UpgradeCriticalDamageValue, First Of(Global.UpgradeCriticalDamageMaxValue)), Left,
-			14, Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
-		Global.UpgradeCriticalDamageHudId[0] = Last Text ID;
-		"hudSubheader(getPlayers(Team.1), \" \\r\\n \", HudPosition.LEFT, 6, Color.WHITE, HudReeval.VISIBILITY, SpecVisibility.DEFAULT)\r\nUPGRADE - MAX AMMO"
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL {0}: {1}/{2}",
-			Hero(Zenyatta), Global.UpgradeMaxAmmoValue, First Of(Global.UpgradeMaxAmmoMaxValue)), Left, 15, Color(Orange), Color(White),
+		disabled Create HUD Text(All Players(Team 1), Null, Custom String("  \r\n  "), Null, Left, 2, Color(White), Color(White), Color(White),
+			Visible To, Default Visibility);
+		"UPGRADE - PLAYER'S MAX HEALTH"
+		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("PLAYER'S MAX HEALTH {0}%",
+			Global.UpgradePlayerMaxHealthNewValue), Custom String("HEAL PLAYERS {0}/{1} HP", Round To Integer(
+			Global.UpgradePlayerMaxHealthValue, Down), Global.UpgradePlayerMaxHealthMaxValue[0]), Left, 13, Color(Orange), Color(White),
 			Color(White), Visible To and String, Default Visibility);
+		Global.UpgradePlayerMaxHealthHudId[0] = Last Text ID;
+		disabled Create HUD Text(All Players(Team 1), Null, Custom String(" \r\n "), Null, Left, 4, Color(White), Color(White), Color(White),
+			Visible To, Default Visibility);
+		"UPGRADE - CRITICAL DAMAGE"
+		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("CRITICAL DAMAGE 150%"), Custom String(
+			"KILL WIDOW WITH HEADSHOT: {0}/{1}", Global.UpgradeCriticalDamageValue, Global.UpgradeCriticalDamageMaxValue[0]), Left, 14,
+			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+		Global.UpgradeCriticalDamageHudId[0] = Last Text ID;
+		disabled Create HUD Text(All Players(Team 1), Null, Custom String(" \r\n "), Null, Left, 6, Color(White), Color(White), Color(White),
+			Visible To, Default Visibility);
+		"UPGRADE - MAX AMMO"
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL {2}: {0}/{1}",
+			Global.UpgradeMaxAmmoValue, Global.UpgradeMaxAmmoMaxValue[0], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
+			White), Visible To and String, Default Visibility);
 		Global.UpgradeMaxAmmoHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Custom String("HOLD {0} - Reload to open the shop", Input Binding String(Button(Reload))),
-			Null, Null, Top, 1000, Color(Yellow), Null, Null, Visible To and String, Default Visibility);
+			Null, Null, Top, 1000, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
 	}
 }
 
@@ -1309,9 +1283,17 @@ rule("GLOBAL: GAME IN PROGRESS")
 			"GATE {0}/{1}", Global.GateHealth, Global.GateMaxHealth), Top, 1, Global.GateProgressBarColorCurrent, Color(White),
 			Visible To Values and Color, Default Visibility);
 		Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.TimeMin,
-			Global.TimeSec < 10 ? Custom String("0{0}", Global.TimeSec) : Global.TimeSec), Top, 2, Null, Null, Color(White),
-			Visible To and String, Default Visibility);
+			Global.TimeSec < 10 ? Custom String("0{0}", Global.TimeSec) : Global.TimeSec), Top, 2, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
 		Start Rule(GameLogicWave0, Do Nothing);
+	}
+}
+
+disabled rule("=== GAME - MAIN LOGIC ===")
+{
+	event
+	{
+		Ongoing - Global;
 	}
 }
 
@@ -1345,11 +1327,11 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 	conditions
 	{
 		Is Game In Progress == True;
+		disabled Global.GateHealth > 0;
 	}
 
 	actions
 	{
-		"@Condition GateHealth > 0"
 		Wait(1, Ignore Condition);
 		Global.TimeSec += 1;
 		If(Global.TimeSec == 60);
@@ -1358,6 +1340,7 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 			Global.Time5Min = Round To Integer(Global.TimeMin / 5, Down);
 			Global.Time10Min = Round To Integer(Global.TimeMin / 10, Down);
 			Global.SpawnPositionMaxId += 1;
+			disabled Start Rule(GameLogicAddNextHeroInGame, Restart Rule);
 		Else If(Global.TimeSec == 30);
 			Global.SpawnPositionMaxId += 1;
 		End;
@@ -1375,7 +1358,12 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 
 	actions
 	{
-		"REDUCE RESPAWN TIME FOR ZENS\r\nZenRespawnTime -= 1.5\r\nZenRespawnTime = max(1, ZenRespawnTime)\r\n([player for player in getPlayers(Team.2) if player.getCurrentHero() == DefaultHeroBotsPool[0]]).setRespawnTime(ZenRespawnTime)\r\nALL HEROES WAS ADDED IN GAME"
+		"REDUCE RESPAWN TIME FOR ZENS"
+		disabled Global.ZenRespawnTime -= 1.500;
+		disabled Global.ZenRespawnTime = Max(1, Global.ZenRespawnTime);
+		disabled Set Respawn Max Time(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Global.DefaultHeroBotsPool[0]),
+			Global.ZenRespawnTime);
+		"ALL HEROES WAS ADDED IN GAME"
 		Abort If(Global.DefaultHeroBotsPoolCurrentId == Count Of(Global.DefaultHeroBotsPool) - 1);
 		Global.DefaultHeroBotsPoolCurrentId += 1;
 		"ВРЕМЕННЫЙ КОСТЫЛЬ ЧТОБЫ ЭХО ЗАМЕНИЛА ХАМСТЕРА"
@@ -1384,8 +1372,8 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Wrecking Ball)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Wrecking Ball)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Wrecking Ball))[0];
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(0.050, Ignore Condition);
 			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
@@ -1397,8 +1385,8 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 			Zenyatta)), 99999);
 		"REPLACE HIM TO A NEW HERO"
-		Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-			Current Array Element) == Hero(Zenyatta)));
+		Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+			== Hero(Zenyatta))[0];
 		Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 		Wait(0.050, Ignore Condition);
 		Create Dummy Bot(Global.DefaultHeroBotsPool[Global.DefaultHeroBotsPoolCurrentId], Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
@@ -1437,67 +1425,62 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 		If(Hero Of(Event Player) == Hero(Zenyatta));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 30);
-				Set Max Health(Event Player, 5 * (100 + Global.TimeMin * 10) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (100 + Global.TimeMin * 10));
 				Start Scaling Player(Event Player, 1.500, False);
 			Else;
 				If(20 + 3 * Number Of Players(Team 1) + 3 * Global.TimeMin > 75);
 					Set Move Speed(Event Player, 75);
 				Else;
-					Set Move Speed(Event Player, 20 + 3 * Number Of Players(Team 1) + 3 * Global.TimeMin);
+					Set Move Speed(Event Player, 20 + 3 * Count Of(All Players(Team 1)) + 3 * Global.TimeMin);
 				End;
 				Set Max Health(Event Player, 100 + Global.TimeMin * 10);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 20);
-				Set Max Health(Event Player, 5 * (70 + 20 * Number Of Players(Team 1) + 10 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.TimeMin));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
-				If(30 + Global.TimeMin + 2.500 * Global.Time5Min > 40);
-					Set Move Speed(Event Player, 40);
+				If(30 + Global.TimeMin + 2.500 * Global.Time5Min > 50);
+					Set Move Speed(Event Player, 50);
 				Else;
 					Set Move Speed(Event Player, 30 + Global.TimeMin + 2.500 * Global.Time5Min);
 				End;
 				Set Ultimate Charge(Event Player, 0);
-				Set Max Health(Event Player, 70 + 20 * Number Of Players(Team 1) + 10 * Global.TimeMin);
+				Set Max Health(Event Player, 70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.TimeMin);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Widowmaker));
 			If(Event Player.isBoss == 1);
-				Set Damage Dealt(Event Player, 2 * (85 + 15 * Number Of Players(Team 1) + 25 * Global.Time5Min));
+				Set Damage Dealt(Event Player, 2 * (85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.Time5Min));
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 5 * (100 + 25 * Number Of Players(Team 1) + 5 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.TimeMin));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Event Player.BotCounter = 0;
-				Set Damage Dealt(Event Player, 85 + 15 * Number Of Players(Team 1) + 25 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.Time5Min);
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 100 + 25 * Number Of Players(Team 1) + 5 * Global.TimeMin);
+				Set Max Health(Event Player, 100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.TimeMin);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Bastion));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 50);
-				Set Damage Dealt(Event Player, 85 + 5 * Number Of Players(Team 1) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
 				Start Scaling Player(Event Player, 3, False);
-				Set Max Health(Event Player, 5 * (155 + 150 * Number Of Players(Team 1) + 20 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.TimeMin));
 			Else;
 				Set Move Speed(Event Player, 80);
-				Set Damage Dealt(Event Player, 85 + 5 * Number Of Players(Team 1) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
 				Start Scaling Player(Event Player, 2, False);
-				Set Max Health(Event Player, 155 + 150 * Number Of Players(Team 1) + 20 * Global.TimeMin);
+				Set Max Health(Event Player, 155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.TimeMin);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Orisa));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 5 * (220 + Number Of Players(Team 1) * 80 + 50 * Global.Time5Min) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.Time5Min));
 				Set Move Speed(Event Player, 30 + 5 * Global.Time5Min);
 			Else;
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 220 + Number Of Players(Team 1) * 80 + 50 * Global.Time5Min);
+				Set Max Health(Event Player, 220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.Time5Min);
 				Set Move Speed(Event Player, 90 + 5 * Global.Time5Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Echo));
@@ -1505,29 +1488,27 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 				Set Gravity(Event Player, 40);
 				Set Move Speed(Event Player, 70 + 5 * Global.Time5Min);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 5 * (90 + 25 * Number Of Players(Team 1) + 15 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Set Gravity(Event Player, 40);
 				Set Move Speed(Event Player, 130 + 5 * Global.Time5Min);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 90 + 25 * Number Of Players(Team 1) + 15 * Global.TimeMin);
+				Set Max Health(Event Player, 90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.500, False);
 				Set Move Speed(Event Player, 70);
-				Set Damage Dealt(Event Player, 100 + 5 * Number Of Players(Team 1) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 5 * (55 + 25 * Number Of Players(Team 1) + 15 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin));
 			Else;
-				"eventPlayer.startScalingSize(0.85, false)"
+				disabled Start Scaling Player(Event Player, 0.850, False);
 				Set Move Speed(Event Player, 110);
-				Set Damage Dealt(Event Player, 100 + 5 * Number Of Players(Team 1) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 55 + 25 * Number Of Players(Team 1) + 15 * Global.TimeMin);
+				Set Max Health(Event Player, 55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin);
 			End;
 		End;
 		Wait(0.250, Ignore Condition);
@@ -1536,54 +1517,11 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 	}
 }
 
-rule("SUBROUTINE: GATE REPAIR")
+disabled rule("=== GATE ===")
 {
 	event
 	{
-		Subroutine;
-		GateRepair;
-	}
-
-	actions
-	{
-		Small Message(Event Player, Custom String("REPAIR +2% ULTIMATE"));
-		"UPGRADE - GATE'S MAX HEALTH"
-		If(Global.UpgradeGateMaxHealthValue < Global.UpgradeGateMaxHealthMaxValue[2]);
-			If(Event Player.IsNanoed == 1);
-				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
-					Global.UpgradeGateMaxHealthValue += 100 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 20;
-				Else;
-					Global.UpgradeGateMaxHealthValue += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-				End;
-			Else;
-				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
-					Global.UpgradeGateMaxHealthValue += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-				Else;
-					Global.UpgradeGateMaxHealthValue += 25 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 5;
-				End;
-			End;
-		End;
-		"HEAL GATE"
-		If(Event Player.IsNanoed == 1);
-			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
-				Global.GateHealth += 100 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 20;
-			Else;
-				Global.GateHealth += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-			End;
-		Else;
-			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
-				Global.GateHealth += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-			Else;
-				Global.GateHealth += 25 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 5;
-			End;
-			If(Global.GateHealth > Global.GateMaxHealth);
-				Global.GateHealth = Global.GateMaxHealth;
-			Else;
-				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
-			End;
-		End;
-		"UPDATE GATE'S HEALTH BAR"
-		Start Rule(GateProgressBarColor, Restart Rule);
+		Ongoing - Global;
 	}
 }
 
@@ -1609,8 +1547,46 @@ rule("TORB: GATE REPAIR")
 
 	actions
 	{
-		Call Subroutine(GateRepair);
-		Wait(Is Using Ability 2(Event Player) ? 0.350 : 0.700, Ignore Condition);
+		Small Message(Event Player, Custom String("REPAIR +2% ULTIMATE"));
+		"UPGRADE - GATE'S MAX HEALTH"
+		If(Global.UpgradeGateMaxHealthValue < Global.UpgradeGateMaxHealthMaxValue[1]);
+			If(Event Player.IsNanoed == 1);
+				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+					Global.UpgradeGateMaxHealthValue += 100 - Number Of Players(Team 1) * 20;
+				Else;
+					Global.UpgradeGateMaxHealthValue += 50 - Number Of Players(Team 1) * 10;
+				End;
+			Else;
+				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+					Global.UpgradeGateMaxHealthValue += 50 - Number Of Players(Team 1) * 10;
+				Else;
+					Global.UpgradeGateMaxHealthValue += 25 - Number Of Players(Team 1) * 5;
+				End;
+			End;
+		End;
+		"HEAL GATE"
+		If(Event Player.IsNanoed == 1);
+			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+				Global.GateHealth += 100 - Number Of Players(Team 1) * 20;
+			Else;
+				Global.GateHealth += 50 - Number Of Players(Team 1) * 10;
+			End;
+		Else;
+			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+				Global.GateHealth += 50 - Number Of Players(Team 1) * 10;
+			Else;
+				Global.GateHealth += 25 - Number Of Players(Team 1) * 5;
+			End;
+			If(Global.GateHealth > Global.GateMaxHealth);
+				Global.GateHealth = Global.GateMaxHealth;
+			"CHARGE ULTIMATE"
+			Else;
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
+			End;
+		End;
+		"UPDATE GATE'S HEALTH BAR"
+		Start Rule(GateProgressBarColor, Restart Rule);
+		Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
 		Loop If Condition Is True;
 	}
 }
@@ -1636,7 +1612,45 @@ rule("Brig: GATE REPAIR")
 
 	actions
 	{
-		Call Subroutine(GateRepair);
+		Small Message(Event Player, Custom String("REPAIR +2% ULTIMATE"));
+		"UPGRADE - GATE'S MAX HEALTH"
+		If(Global.UpgradeGateMaxHealthValue < Global.UpgradeGateMaxHealthMaxValue[1]);
+			If(Event Player.IsNanoed == 1);
+				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+					Global.UpgradeGateMaxHealthValue += 100 - Number Of Players(Team 1) * 20;
+				Else;
+					Global.UpgradeGateMaxHealthValue += 50 - Number Of Players(Team 1) * 10;
+				End;
+			Else;
+				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+					Global.UpgradeGateMaxHealthValue += 50 - Number Of Players(Team 1) * 10;
+				Else;
+					Global.UpgradeGateMaxHealthValue += 25 - Number Of Players(Team 1) * 5;
+				End;
+			End;
+		End;
+		"HEAL GATE"
+		If(Event Player.IsNanoed == 1);
+			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+				Global.GateHealth += 100 - Number Of Players(Team 1) * 20;
+			Else;
+				Global.GateHealth += 50 - Number Of Players(Team 1) * 10;
+			End;
+		Else;
+			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+				Global.GateHealth += 50 - Number Of Players(Team 1) * 10;
+			Else;
+				Global.GateHealth += 25 - Number Of Players(Team 1) * 5;
+			End;
+			If(Global.GateHealth > Global.GateMaxHealth);
+				Global.GateHealth = Global.GateMaxHealth;
+			"CHARGE ULTIMATE"
+			Else;
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
+			End;
+		End;
+		"UPDATE GATE'S HEALTH BAR"
+		Start Rule(GateProgressBarColor, Restart Rule);
 		Wait(0.500, Ignore Condition);
 		Loop If Condition Is True;
 	}
@@ -1664,7 +1678,45 @@ rule("Rein: GATE REPAIR")
 	actions
 	{
 		Wait(0.100, Ignore Condition);
-		Call Subroutine(GateRepair);
+		Small Message(Event Player, Custom String("REPAIR +2% ULTIMATE"));
+		"UPGRADE - GATE'S MAX HEALTH"
+		If(Global.UpgradeGateMaxHealthValue < Global.UpgradeGateMaxHealthMaxValue[1]);
+			If(Event Player.IsNanoed == 1);
+				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+					Global.UpgradeGateMaxHealthValue += 100 - Number Of Players(Team 1) * 20;
+				Else;
+					Global.UpgradeGateMaxHealthValue += 50 - Number Of Players(Team 1) * 10;
+				End;
+			Else;
+				If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+					Global.UpgradeGateMaxHealthValue += 50 - Number Of Players(Team 1) * 10;
+				Else;
+					Global.UpgradeGateMaxHealthValue += 25 - Number Of Players(Team 1) * 5;
+				End;
+			End;
+		End;
+		"HEAL GATE"
+		If(Event Player.IsNanoed == 1);
+			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+				Global.GateHealth += 100 - Number Of Players(Team 1) * 20;
+			Else;
+				Global.GateHealth += 50 - Number Of Players(Team 1) * 10;
+			End;
+		Else;
+			If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[1]);
+				Global.GateHealth += 50 - Number Of Players(Team 1) * 10;
+			Else;
+				Global.GateHealth += 25 - Number Of Players(Team 1) * 5;
+			End;
+			If(Global.GateHealth > Global.GateMaxHealth);
+				Global.GateHealth = Global.GateMaxHealth;
+			"CHARGE ULTIMATE"
+			Else;
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
+			End;
+		End;
+		"UPDATE GATE'S HEALTH BAR"
+		Start Rule(GateProgressBarColor, Restart Rule);
 		Wait(0.850, Ignore Condition);
 		Loop If Condition Is True;
 	}
@@ -1690,6 +1742,7 @@ rule("SUBROUTINE: GATE PROGRESS BAR COLOR")
 				Global.GateProgressBarColorCurrent = Color(White);
 				Wait(0.030, Ignore Condition);
 			End;
+		"GATE WAS REPAIRED"
 		Else;
 			Global.GateProgressBarColorCurrent = Color(Green);
 			Wait(0.030, Ignore Condition);
@@ -1700,6 +1753,14 @@ rule("SUBROUTINE: GATE PROGRESS BAR COLOR")
 		Global.GateProgressBarColorComponent = Global.GateHealth * 255 / Global.GateMaxHealth;
 		Global.GateProgressBarColorCurrent = Custom Color(255, Global.GateProgressBarColorComponent, Global.GateProgressBarColorComponent,
 			255);
+	}
+}
+
+disabled rule("=== COMMON MECHANICS ===")
+{
+	event
+	{
+		Ongoing - Global;
 	}
 }
 
@@ -1722,8 +1783,10 @@ rule("ALL: INIT")
 		"BOT INIT"
 		If(Is Dummy Bot(Event Player));
 			Call Subroutine(BotInit);
+		"PLAYER INIT"
 		Else;
 			Call Subroutine(PlayerInit);
+		End;
 	}
 }
 
@@ -1773,9 +1836,9 @@ rule("SUBROUTINE: PLAYER - INIT")
 				Torbjörn), Hero(Tracer), Hero(Winston), Hero(Pharah)));
 		End;
 		"TEAM CHALLENGE - PLAYER'S MAX HEALTH"
-		If(Global.UpgradePlayerMaxHealthValue >= First Of(Global.UpgradePlayerMaxHealthMaxValue));
-			Event Player.PlayerHealth = 100 + Global.MaxHealthDone + Event Player.Abilities[14] * 5;
-			Set Max Health(Event Player, Event Player.PlayerHealth);
+		If(Global.UpgradePlayerMaxHealthValue >= Global.UpgradePlayerMaxHealthMaxValue[0] && Max Health(Event Player)
+			!= Global.UpgradePlayerMaxHealthNewValue);
+			Set Max Health(Event Player, Global.UpgradePlayerMaxHealthNewValue);
 		End;
 		If(Is Game In Progress);
 			Disable Game Mode HUD(Event Player);
@@ -1809,6 +1872,7 @@ rule("ALL: RESPAWN")
 				Create Beam Effect(All Players(All Teams), Good Beam, Eye Position(Event Player), Event Player.BotNextNodePosition, Color(Green),
 					Visible To Position and Radius);
 			End;
+		"PLAYER RESPAWN"
 		Else;
 			Call Subroutine(PlayerRespawn);
 		End;
@@ -1831,9 +1895,10 @@ rule("SUBROUTINE: BOT - RESPAWN")
 		Event Player.IsRespawning = True;
 		Enable Nameplates(Event Player, All Players(Team 1));
 		Call Subroutine(BotResetPathFinding);
-		"if eventPlayer.getCurrentHero() != eventPlayer.CurrentHero:"
+		disabled If(Hero Of(Event Player) != Event Player.CurrentHero);
 		Call Subroutine(GameLogicSetBotProperties);
-		"__end__()\r\nINDIVIDUAL HERO'S RESPAWN SCRIPTS"
+		disabled End;
+		"INDIVIDUAL HERO'S RESPAWN SCRIPTS"
 		If(Hero Of(Event Player) == Hero(Bastion));
 			Call Subroutine(BotBastionRespawn);
 		Else If(Hero Of(Event Player) == Hero(Zenyatta));
@@ -1864,13 +1929,15 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 	actions
 	{
 		"TEAM CHALLENGE - MAX AMMO"
-		If(Hero Of(Event Player) != Event Player.CurrentHero && Global.UpgradeMaxAmmoValue >= First Of(Global.UpgradeMaxAmmoMaxValue));
+		If(Hero Of(Event Player) != Event Player.CurrentHero && Global.UpgradeMaxAmmoValue >= Global.UpgradeMaxAmmoMaxValue[0]);
 			Set Max Ammo(Event Player, 0, Ammo(Event Player, 0) * 2);
 			Set Max Ammo(Event Player, 1, Ammo(Event Player, 1) * 2);
 			Set Ammo(Event Player, 0, Max Ammo(Event Player, 0));
 			Set Ammo(Event Player, 1, Max Ammo(Event Player, 1));
 		End;
-		"MUST BE AFTER TEAM CHALLENGE MAX AMMO!\r\neventPlayer.CurrentHero = eventPlayer.getCurrentHero()\r\nPLAYER RESPAWN"
+		"MUST BE AFTER TEAM CHALLENGE MAX AMMO!"
+		disabled Event Player.CurrentHero = Hero Of(Event Player);
+		"PLAYER RESPAWN"
 		Set Status(Event Player, Null, Phased Out, 3);
 		Set Facing(Event Player, Vector(-1, 0, 0), To World);
 		Teleport(Event Player, Global.PlayerSpawnPositions[Slot Of(Event Player) == Count Of(Global.PlayerSpawnPositions) ? Random Integer(
@@ -1891,12 +1958,6 @@ rule("PLAYER: DEATH")
 
 	actions
 	{
-		If(Hero Of(Event Player) == Hero(Roadhog));
-			Event Player.Abilities[8] -= 1;
-			Wait(Global.Perk[2] ? 5 : 10, Ignore Condition);
-			Event Player.Abilities[8] += 1;
-		End;
-		"if eventPlayer.lastSecondWind > 0:\r\neventPlayer.lastSecondWind = 0\r\n__end__()"
 		Event Player.IsDead = True;
 	}
 }
@@ -1913,12 +1974,6 @@ rule("BOT: DEATH")
 	actions
 	{
 		If(Event Player.isBoss == 1);
-			If(Global.UpgradePerkSharpshooterValue >= Global.UpgradeCriticalDamageMaxValue[1]);
-				If(Global.UpgradeBossHealthValue < Global.UpgradeCriticalDamageMaxValue[2]);
-					Global.UpgradeBossHealthValue += 1;
-					Small Message(All Players(Team 1), Custom String("-10% BOSS HEALTH CHALLENGE +1"));
-				End;
-			End;
 			Event Player.isBoss = 0;
 			Global.activeBoss = Null;
 			Big Message(All Players(Team 1), Custom String("BOSS DIED - {0}", Hero Of(Event Player)));
@@ -1927,13 +1982,25 @@ rule("BOT: DEATH")
 		Event Player.HasBadStatus = False;
 		Event Player.BotDoesUniqueBehaviour = False;
 		Disable Nameplates(Event Player, All Players(Team 1));
-		"eventPlayer.stopForcingButton(Button.ABILITY_1)\r\neventPlayer.stopForcingButton(Button.PRIMARY_FIRE)\r\neventPlayer.stopForcingButton(Button.SECONDARY_FIRE)\r\nBOT HAS 1 EFFECT IN VAR (NOT ARRAY)"
+		disabled Stop Holding Button(Event Player, Button(Ability 1));
+		disabled Stop Holding Button(Event Player, Button(Primary Fire));
+		disabled Stop Holding Button(Event Player, Button(Secondary Fire));
+		"BOT HAS 1 EFFECT IN VAR (NOT ARRAY)"
 		Skip If(!Entity Exists(Event Player.BotEffects), 1);
 		Destroy Effect(Event Player.BotEffects);
+		"BOT HAS MORE THEN 1 EFFECT IN VAR (ARRAY)"
 		Skip If(Count Of(Event Player.BotEffects) == 0, 3);
 		For Player Variable(Event Player, BotLoopIterator1, 0, Count Of(Event Player.BotEffects), 1);
 			Destroy Effect(Event Player.BotEffects[Event Player.BotLoopIterator1]);
 		End;
+	}
+}
+
+disabled rule("=== BOT COMMON MECHANICS ===")
+{
+	event
+	{
+		Ongoing - Global;
 	}
 }
 
@@ -1982,17 +2049,21 @@ rule("SUBROUTINE: BOT - LANDING FROM SKY")
 		Stop Throttle In Direction(Event Player);
 		"SET RESPAWN POSITION"
 		Event Player.BotEventPosition = Random Value In Array(Global.BigBossSpawnPositions);
-		"CREATE EFFECTS\r\ncreateEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.RED, eventPlayer.BotEventPosition, 3, EffectReeval.VISIBILITY)\r\neventPlayer.BotEffects = getLastCreatedEntity()\r\nRESPAWN IN LIGHT SHAFT EFFECT"
+		"CREATE EFFECTS"
+		disabled Create Effect(All Players(All Teams), Light Shaft, Color(Red), Event Player.BotEventPosition, 3, Visible To);
+		disabled Event Player.BotEffects = Last Created Entity;
+		"RESPAWN IN LIGHT SHAFT EFFECT"
 		Teleport(Event Player, Event Player.BotEventPosition + Vector(0, 25, 0));
 		Wait(0.020, Ignore Condition);
 		"SLOW LANDING"
 		Set Gravity(Event Player, 50);
-		While(Is In Air(Event Player));
+		While(Is In Air(Event Player) == True);
 			Play Effect(All Players(All Teams), Good Pickup Effect, Color(Orange), Position Of(Event Player) + Vector(0, -2.700, 0), 2);
 			Wait(0.250, Ignore Condition);
 		End;
 		Set Gravity(Event Player, 100);
-		"destroyEffect(eventPlayer.BotEffects)\r\nLANDING EFFECTS"
+		disabled Destroy Effect(Event Player.BotEffects);
+		"LANDING EFFECTS"
 		Play Effect(All Players(All Teams), Wrecking Ball Piledriver Impact Effect, Custom Color(105, 87, 46, 255), Position Of(
 			Event Player), 8);
 		Play Effect(All Players(All Teams), Doomfist Meteor Strike Impact Sound, Color(White), Position Of(Event Player), 150);
@@ -2027,6 +2098,43 @@ rule("SUBROUTINE: BOT - APPEAR FROM UNDERGROUND")
 	}
 }
 
+disabled rule("=== PLAYER MECHANICS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("PLAYER: DARKNESS")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+		!Entity Exists(Event Player.BotEffects) == True;
+	}
+
+	actions
+	{
+		Disable Nameplates(Event Player, All Players(All Teams));
+		Start Forcing Player Outlines(Event Player, All Players(All Teams), False, Color(White), Default);
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + Vector(0, 2, 0)
+			+ Facing Direction Of(Event Player) * 14), 25, Visible To Position and Radius);
+		Event Player.BotEffects = Last Created Entity;
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + World Vector Of(Vector(-5, 0,
+			3), Event Player, Rotation) + Facing Direction Of(Event Player) * 10), 25, Visible To Position and Radius);
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + World Vector Of(Vector(5, 0,
+			3), Event Player, Rotation) + Facing Direction Of(Event Player) * 10), 25, Visible To Position and Radius);
+	}
+}
+
 rule("PLAYER: HEALTH REGEN")
 {
 	event
@@ -2048,6 +2156,38 @@ rule("PLAYER: HEALTH REGEN")
 	}
 }
 
+disabled rule("=== NERFS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("REINHARDT: ANTI-CHARGE FOR BASTION & ORISA")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Using Ability 1(Event Player) == True;
+		Hero Of(Ray Cast Hit Player(Eye Position(Event Player) + Vector(0, 2, 0), Eye Position(Event Player) + Vector(0, 2, 0)
+			+ Facing Direction Of(Event Player) * 2, All Living Players(Team 2), Event Player, True)) == (Hero(Bastion) == True || Hero(
+			Orisa) == True);
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Knocked Down, 1.500);
+	}
+}
+
 rule("HOG: ANTI-HOOK FOR BASTION & ORISA")
 {
 	event
@@ -2066,6 +2206,14 @@ rule("HOG: ANTI-HOOK FOR BASTION & ORISA")
 	actions
 	{
 		Set Status(Event Player, Null, Stunned, 0.005);
+	}
+}
+
+disabled rule("=== ZENYATTA ===")
+{
+	event
+	{
+		Ongoing - Global;
 	}
 }
 
@@ -2091,9 +2239,9 @@ rule("BOT: ZEN - REACHED THE GATE")
 	{
 		Set Ammo(Event Player, 0, 0);
 		Communicate(Event Player, Hello);
-		"BotResetPathFinding()"
+		disabled Call Subroutine(BotResetPathFinding);
 		Wait(1.500, Ignore Condition);
-		Abort If(Is Dead(Event Player));
+		Abort If(Is Dead(Event Player) == True);
 		Kill(Event Player, Null);
 	}
 }
@@ -2160,6 +2308,14 @@ rule("SUBROUTINE: ZEN - RESPAWN")
 	}
 }
 
+disabled rule("=== WRECKING BALL ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("BOT: BALL - REACHED THE GATE")
 {
 	event
@@ -2176,11 +2332,11 @@ rule("BOT: BALL - REACHED THE GATE")
 		Is Alive(Event Player) == True;
 		Event Player.IsRespawning == False;
 		Event Player.BotIsPathFinding == False;
+		disabled Distance Between(Position Of(Event Player), Global.GatePosition) < 3;
 	}
 
 	actions
 	{
-		"@Condition distance(eventPlayer.getPosition(), GatePosition) < 3"
 		Start Holding Button(Event Player, Button(Ability 1));
 		Set Ammo(Event Player, 0, 0);
 		Wait(1, Ignore Condition);
@@ -2274,6 +2430,14 @@ rule("SUBROUTINE: BALL - RESPAWN")
 	}
 }
 
+disabled rule("=== ECHO ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("BOT: ECHO - FLY ABILITY")
 {
 	event
@@ -2344,11 +2508,12 @@ rule("BOT: ECHO - BAD STATUS - RESET BEAM")
 		Is Alive(Event Player) == True;
 		Event Player.IsRespawning == False;
 		Event Player.HasBadStatus == True;
+		disabled (Has Status(Event Player, Hacked) || Has Status(Event Player, Frozen) || Has Status(Event Player, Knocked Down) || Has Status(
+			Event Player, Asleep) || Has Status(Event Player, Stunned)) == True;
 	}
 
 	actions
 	{
-		"@Condition (eventPlayer.hasStatusEffect(Status.HACKED) or eventPlayer.hasStatusEffect(Status.FROZEN) or eventPlayer.hasStatusEffect(Status.KNOCKED_DOWN) or eventPlayer.hasStatusEffect(Status.ASLEEP) or eventPlayer.hasStatusEffect(Status.STUNNED)) == true"
 		If(Event Player.BotDoesUniqueBehaviour);
 			Call Subroutine(BotEchoDetachPlayer);
 		End;
@@ -2390,6 +2555,82 @@ rule("BOT: ECHO - CAN'T SEE PORTAL - APPLY IMPULSE")
 	}
 }
 
+disabled rule("BOT: ECHO - MAIN LOGIC - BACKUP")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Echo;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.IsRespawning == False;
+	}
+
+	actions
+	{
+		If(!Event Player.BotIsPathFinding);
+			Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Is In Line of Sight(Eye Position(Event Player),
+				Eye Position(Current Array Element), Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player),
+				Position Of(Current Array Element)))[0];
+		End;
+		"NO PLAYERS IN VIEW RANGE"
+		disabled If(Event Player.BotSeePlayer == Null);
+		disabled Stop Throttle In Direction(Event Player);
+		disabled End;
+		"FLY TO PLAYER"
+		If(Event Player.BotSeePlayer != Null && Distance Between(Position Of(Event Player), Position Of(Event Player.BotSeePlayer))
+			> 4 && Event Player.BotDoesUniqueBehaviour == False);
+			Event Player.BotTargetPlayer = Event Player.BotSeePlayer;
+			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)), 300, To World,
+				Direction and Turn Rate);
+			Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)),
+				1, To World, Replace existing throttle, Direction and Magnitude);
+			Start Holding Button(Event Player, Button(Jump));
+		"ACTIVATE FOCUS BEAM"
+		Else If(Event Player.BotSeePlayer != Null && Distance Between(Position Of(Event Player), Position Of(Event Player.BotSeePlayer))
+				< 4 && Event Player.BotDoesUniqueBehaviour == False && Event Player.HasBadStatus == False);
+			Event Player.BotDoesUniqueBehaviour = True;
+			Set Status(Event Player.BotSeePlayer, Event Player, Stunned, 1);
+			Set Status(Event Player.BotSeePlayer, Event Player, Hacked, 99999);
+			Attach Players(Event Player.BotSeePlayer, Event Player, Vector(0, 0, 2));
+			Press Button(Event Player, Button(Ability 2));
+		"TELEPORT PLAYER TO AWAY"
+		Else If(Event Player.BotDoesUniqueBehaviour && Distance Between(Position Of(Event Player.BotSeePlayer),
+				Global.BotEchoRespawnPosition) < 4);
+			Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Global.BotEchoRespawnPosition, 1);
+			Teleport(Event Player.BotSeePlayer, Random Value In Array(Global.BotEchoTeleportPositions));
+			Set Status(Event Player.BotSeePlayer, Event Player, Knocked Down, 1);
+			Call Subroutine(BotEchoDetachPlayer);
+		"BEGIN TO FLY TO THE PORTAL"
+		Else If(Event Player.BotDoesUniqueBehaviour == True);
+			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Global.BotEchoRespawnPosition), 100, To World,
+				Direction and Turn Rate);
+			"BOT SEES THE PORTAL"
+			If(Is In Line of Sight(Position Of(Event Player), Global.BotEchoRespawnPosition, Barriers Do Not Block LOS));
+				"RESET PATH FINDING"
+				If(Event Player.BotIsPathFinding);
+					Call Subroutine(BotResetPathFinding);
+				End;
+				Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Global.BotEchoRespawnPosition), 1,
+					To World, Replace existing throttle, Direction and Magnitude);
+			"BOT DOES NOT SEE THE PORTAL"
+			Else If(!Event Player.BotIsPathFinding);
+				Event Player.BotTargetPlayer = Event Player.BotSeePlayer;
+				Stop Holding Button(Event Player, Button(Jump));
+				Start Rule(BotStartPathFinding, Restart Rule);
+			End;
+		End;
+		Wait(0.500, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
 rule("BOT: ECHO - MAIN LOGIC - LOOP")
 {
 	event
@@ -2410,9 +2651,9 @@ rule("BOT: ECHO - MAIN LOGIC - LOOP")
 	actions
 	{
 		If(Event Player.BotDoesUniqueBehaviour == False);
-			Event Player.BotSeePlayer = First Of(Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-				&& Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)),
-				Distance Between(Position Of(Event Player), Position Of(Current Array Element))));
+			Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+				== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+				== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		End;
 		"TELEPORT PLAYER SO FAR"
 		If(Event Player.BotDoesUniqueBehaviour && Distance Between(Position Of(Event Player.BotEchoCapturedPlayer),
@@ -2434,6 +2675,7 @@ rule("BOT: ECHO - MAIN LOGIC - LOOP")
 				End;
 				Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Global.BotEchoRespawnPosition), 1,
 					To World, Replace existing throttle, Direction and Magnitude);
+			"BOT DOES NOT SEE THE PORTAL"
 			Else If(!Event Player.BotIsPathFinding);
 				Event Player.BotTargetPlayer = Event Player.BotEchoCapturedPlayer;
 				Stop Holding Button(Event Player, Button(Jump));
@@ -2578,7 +2820,7 @@ rule("BOT: ECHO - PLAYER DEAD")
 		Has Spawned(Event Player) == True;
 		Is Alive(Event Player) == True;
 		Event Player.IsRespawning == False;
-		Is Dead(Event Player.BotEchoCapturedPlayer) == True;
+		Is Dead(Event Player.BotEchoCapturedPlayer) != Null;
 	}
 
 	actions
@@ -2699,6 +2941,14 @@ rule("SUBROUTINE: ECHO - DETACH PLAYER")
 	}
 }
 
+disabled rule("=== REINHARDT ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("BOT: REIN - SET PLAYER AS TARGET")
 {
 	event
@@ -2714,7 +2964,11 @@ rule("BOT: REIN - SET PLAYER AS TARGET")
 		Has Spawned(Event Player) == True;
 		Is Alive(Event Player) == True;
 		Event Player.IsRespawning == False;
-		"@Condition eventPlayer.BotIsPathFinding == false\r\nBOT IS FAR FROM GATES\r\n@Condition distance(vect(eventPlayer.getPosition().x, 0, eventPlayer.getPosition().z), vect(GatePosition.x, 0, GatePosition.z)) > 20\r\nCAN SEE PLAYER"
+		disabled Event Player.BotIsPathFinding == False;
+		"BOT IS FAR FROM GATES"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Global.GatePosition), 0, Z Component Of(Global.GatePosition))) > 20;
+		"CAN SEE PLAYER"
 		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
 			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
 	}
@@ -2723,9 +2977,9 @@ rule("BOT: REIN - SET PLAYER AS TARGET")
 	{
 		Call Subroutine(BotResetPathFinding);
 		"SET CLOSEST PLAYER TO BOT AS TARGET AND FOLLOW HIM"
-		Event Player.BotTargetPlayer = First Of(Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			&& Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)),
-			Distance Between(Position Of(Event Player), Position Of(Current Array Element))));
+		Event Player.BotTargetPlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Position Of(Event Player.BotTargetPlayer)), 360, To World,
 			Direction and Turn Rate);
 		Start Rule(BotStartPathFinding, Restart Rule);
@@ -2749,11 +3003,13 @@ rule("BOT: REIN - SET GATE AS TARGET")
 		Event Player.IsRespawning == False;
 		"BOT DOESN'T FOLLOW PLAYER"
 		Event Player.BotTargetPlayer == -1;
+		"CAN'T SEE ANY PLAYER"
+		disabled Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), !Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
 	}
 
 	actions
 	{
-		"CAN'T SEE ANY PLAYER\r\n@Condition (any([not isInLoS(eventPlayer.getEyePosition(), i.getEyePosition(), BarrierLos.PASS_THROUGH_BARRIERS) for i in [player for player in getLivingPlayers(Team.1) if player.hasSpawned()]])) == true"
 		Call Subroutine(BotResetPathFinding);
 		"SET GATE AS TARGET"
 		Event Player.BotTargetPosition = Global.GatePosition;
@@ -2806,16 +3062,20 @@ rule("BOT: REIN - ATTACK TARGET")
 		"CAN ATTACK TARGET"
 		Distance Between(Position Of(Event Player), Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer)
 			: Global.GatePosition) < 4;
+		"CAN ATTACK TARGET (2D DISTANCE)"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition), 0,
+			Z Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition))) < 4;
 	}
 
 	actions
 	{
-		"@Condition (distance(vect(eventPlayer.getPosition().x, 0, eventPlayer.getPosition().z), vect((eventPlayer.BotTargetPlayer.getPosition() if eventPlayer.BotTargetPlayer != -1 else GatePosition).x, 0, (eventPlayer.BotTargetPlayer.getPosition() if eventPlayer."
 		Start Holding Button(Event Player, Button(Primary Fire));
 		Stop Holding Button(Event Player, Button(Secondary Fire));
 		"TARGET IS PLAYER"
 		Abort If(Event Player.BotTargetPlayer != -1);
 		If(Event Player.isBoss == 1);
+			"TARGET IS GATE"
 			Global.GateHealth -= 25;
 		Else;
 			Global.GateHealth -= 5;
@@ -2844,11 +3104,14 @@ rule("BOT: REIN - STOP ATTACK TARGET")
 		"CAN ATTACK TARGET"
 		Distance Between(Position Of(Event Player), Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer)
 			: Global.GatePosition) > 4;
+		"CAN'T ATTACK TARGET (2D DISTANCE)"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition), 0,
+			Z Component Of(Event Player.BotTargetPlayer != -1 ? Position Of(Event Player.BotTargetPlayer) : Global.GatePosition))) > 4;
 	}
 
 	actions
 	{
-		"@Condition (distance(vect(eventPlayer.getPosition().x, 0, eventPlayer.getPosition().z), vect((eventPlayer.BotTargetPlayer.getPosition() if eventPlayer.BotTargetPlayer != -1 else GatePosition).x, 0, (eventPlayer.BotTargetPlayer.getPosition() if eventPlayer."
 		Stop Holding Button(Event Player, Button(Primary Fire));
 	}
 }
@@ -2900,7 +3163,7 @@ rule("BOT: REIN - CHARGE IN GATE")
 
 	actions
 	{
-		"wait(0.8, Wait.ABORT_WHEN_FALSE)"
+		disabled Wait(0.800, Abort When False);
 		Start Holding Button(Event Player, Button(Ability 1));
 		Wait Until(Is Using Ability 1(Event Player), 1);
 		Stop Holding Button(Event Player, Button(Ability 1));
@@ -2939,6 +3202,14 @@ rule("SUBROUTINE: REIN - RESPAWN")
 	}
 }
 
+disabled rule("=== WIDOW ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("BOT: WIDOW - SEE PLAYER")
 {
 	event
@@ -2963,9 +3234,9 @@ rule("BOT: WIDOW - SEE PLAYER")
 
 	actions
 	{
-		Event Player.BotSeePlayer = First Of(Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			&& Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)),
-			Distance Between(Position Of(Event Player), Position Of(Current Array Element))));
+		Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		Event Player.BotWidowShotTime = Total Time Elapsed + (Global.TimeMin >= 9 ? Random Real(2, 5) : Random Real(5, 10));
 		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)), 9999, To World,
 			Direction and Turn Rate);
@@ -3126,6 +3397,137 @@ rule("SUBROUTINE: WIDOW - BAD STATUS")
 	}
 }
 
+disabled rule("=== BASTION ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("BOT: BASTION - FLAME GUN")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.BotSeePlayer == True;
+		Is Reloading(Event Player) == False;
+		Event Player.BotDoesUniqueBehaviour == False;
+		Is In View Angle(Event Player, Position Of(Event Player.BotSeePlayer), 50) == True;
+		Distance Between(Position Of(Event Player), Position Of(Event Player.BotSeePlayer)) < 8;
+	}
+
+	actions
+	{
+		Event Player.BotDoesUniqueBehaviour = True;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Update Every Frame(Eye Position(Event Player) + World Vector Of(
+			Vector(-1, -1.200, 1.800), Event Player, Rotation)), 1, Visible To Position and Radius);
+		Event Player.BotEffects = Last Created Entity;
+		Start Rule(BotBastionFlameGunDamage, Do Nothing);
+		Wait(1.100, Ignore Condition);
+		Destroy Effect(Event Player.BotEffects);
+		Wait(4, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+disabled rule("BOT: BASTION - CAN SEE PLAYER")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		disabled Event Player.BotSeePlayer == Null;
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
+	}
+
+	actions
+	{
+		Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
+		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer)), 100, To World,
+			Direction and Turn Rate);
+	}
+}
+
+disabled rule("BOT: BASTION - CAN'T SEE PLAYER")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.BotSeePlayer != Null;
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == False;
+	}
+
+	actions
+	{
+		Event Player.BotSeePlayer = Null;
+		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 100, To World,
+			Direction and Turn Rate);
+	}
+}
+
+disabled rule("BOT: BASTION - MOVE TO BASTION'S TARGET (POSITION)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.BotIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.IsRespawning == False;
+		Event Player.BotIsPathFinding == False;
+		Event Player.BotDoesUniqueBehaviour == False;
+	}
+
+	actions
+	{
+		Event Player.BotTargetPosition = Random Value In Array(Filtered Array(Global.BastionTargetPositions, Distance Between(Position Of(
+			Event Player), Current Array Element) > 3.500));
+		Start Rule(BotStartPathFinding, Do Nothing);
+	}
+}
+
 rule("BOT: BASTION - MAIN LOGIC - LOOP")
 {
 	event
@@ -3147,18 +3549,30 @@ rule("BOT: BASTION - MAIN LOGIC - LOOP")
 
 	actions
 	{
-		Event Player.BotSeePlayer = First Of(Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			&& Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)),
-			Distance Between(Position Of(Event Player), Position Of(Current Array Element))));
+		Event Player.BotSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		"SEE THE PLAYER"
 		If(Event Player.BotSeePlayer != Null);
 			Stop Holding Button(Event Player, Button(Secondary Fire));
 			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.BotSeePlayer) - Vector(0, 0.500,
 				0)), 100, To World, Direction and Turn Rate);
+		"SELF REPAIRING"
 		Else If(!Is Firing Secondary(Event Player) && Health(Event Player) < Max Health(Event Player));
 			Start Holding Button(Event Player, Button(Secondary Fire));
 		End;
-		"async(BotStartPathFinding, AsyncBehavior.NOOP)\r\nREACHED PATH TARGET\r\nelif distance(eventPlayer.getPosition(), eventPlayer.BotTargetPosition) <= 3:\r\nasync(BotResetPathFinding, AsyncBehavior.NOOP)\r\n__end__()"
+		"START FOLLOW PATH"
+		disabled If(!Event Player.BotIsPathFinding && !Event Player.BotDoesUniqueBehaviour);
+		disabled Start Rule(BotResetPathFinding, Do Nothing);
+		disabled Wait(0.050, Ignore Condition);
+		disabled Event Player.BotTargetPosition = Random Value In Array(Global.BastionTargetPositions);
+		disabled Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Event Player.BotTargetPosition + Vector(0, 2, 0)), 100,
+			To World, Direction and Turn Rate);
+		disabled Start Rule(BotStartPathFinding, Do Nothing);
+		"REACHED PATH TARGET"
+		disabled Else If(Distance Between(Position Of(Event Player), Event Player.BotTargetPosition) <= 3);
+		disabled Start Rule(BotResetPathFinding, Do Nothing);
+		disabled End;
 		Wait(1, Ignore Condition);
 		Loop If Condition Is True;
 	}
@@ -3221,7 +3635,8 @@ rule("BOT: BASTION - ARTILLERY")
 				Break;
 			End;
 		End;
-		"BotResetPathFinding()\r\nasync(BotStartPathFinding, AsyncBehavior.NOOP)"
+		disabled Call Subroutine(BotResetPathFinding);
+		disabled Start Rule(BotStartPathFinding, Do Nothing);
 		Start Throttle In Direction(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 1,
 			To World, Replace existing throttle, Direction and Magnitude);
 		Wait(1.500, Ignore Condition);
@@ -3326,6 +3741,41 @@ rule("SUBROUTINE: BASTION - ARTILLERY DAMAGE")
 	}
 }
 
+disabled rule("SUBROUTINE: BASTION - FLAME GUN DAMAGE")
+{
+	event
+	{
+		Subroutine;
+		BotBastionFlameGunDamage;
+	}
+
+	actions
+	{
+		Event Player.BotRayCastHitPosition = Eye Position(Event Player) + World Vector Of(Vector(-1, -1.200, 1.800), Event Player,
+			Rotation);
+		"FIRE PARTICLES OF FLAME GUN"
+		For Player Variable(Event Player, BotLoopIterator1, 1, 13, 3);
+			Event Player.BotEventPosition = Ray Cast Hit Position(Event Player.BotRayCastHitPosition,
+				Event Player.BotRayCastHitPosition + Facing Direction Of(Event Player) * Event Player.BotLoopIterator1, Null, Event Player,
+				True);
+			Damage(Players Within Radius(Event Player.BotEventPosition, 4, Team 1, Surfaces And Enemy Barriers), Event Player, 20);
+			Set Status(Players Within Radius(Event Player.BotEventPosition, 4, Team 1, Off), Event Player, Burning, 2);
+			Play Effect(All Players(All Teams), Debuff Impact Sound, Color(White), Event Player.BotEventPosition, 150);
+			Play Effect(All Players(All Teams), Bad Explosion, Color(Orange), Event Player.BotEventPosition, 2.500);
+			Wait(0.200, Ignore Condition);
+		End;
+		Event Player.BotDoesUniqueBehaviour = False;
+	}
+}
+
+disabled rule("=== ORISA + BASTION ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
 rule("BOT: ORISA-BASTION - REACHED TARGET POSITION")
 {
 	event
@@ -3350,9 +3800,14 @@ rule("BOT: ORISA-BASTION - REACHED TARGET POSITION")
 		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Vector(X Component Of(Global.GatePosition), -999,
 			Z Component Of(Global.GatePosition))), 80, To World, Direction and Turn Rate);
 		Start Facing(Global.BotOrisaChild, Direction Towards(Eye Position(Event Player), Is In Line of Sight(Eye Position(Event Player),
-			Global.GatePosition, Barriers Do Not Block LOS) ? Global.GatePosition : First Of(Sorted Array(All Living Players(Team 1),
-			Distance Between(Eye Position(Event Player), Position Of(Current Array Element))))), 200, To World, Direction and Turn Rate);
-		"BotOrisaChild.startFacing(directionTowards(eventPlayer.getEyePosition(), GatePosition if isInLoS(eventPlayer.getEyePosition(), GatePosition, BarrierLos.PASS_THROUGH_BARRIERS) else (sorted([player for player in getPlayers(Team.1) if player.isAlive() and isI"
+			Global.GatePosition, Barriers Do Not Block LOS) ? Global.GatePosition : Sorted Array(Filtered Array(All Players(Team 1),
+			Is Alive(Current Array Element)), Distance Between(Eye Position(Event Player), Position Of(Current Array Element)))[0]), 200,
+			To World, Direction and Turn Rate);
+		disabled Start Facing(Global.BotOrisaChild, Direction Towards(Eye Position(Event Player), Is In Line of Sight(Eye Position(Event Player),
+			Global.GatePosition, Barriers Do Not Block LOS) ? Global.GatePosition : Sorted Array(Filtered Array(All Players(Team 1),
+			Is Alive(Current Array Element) && Is In Line of Sight(Eye Position(Event Player), Position Of(Current Array Element),
+			Barriers Do Not Block LOS)), Distance Between(Eye Position(Event Player), Position Of(Current Array Element)))[0]), 200,
+			To World, Direction and Turn Rate);
 		Press Button(Event Player, Button(Ability 1));
 		Wait Until(Y Component Of(Facing Direction Of(Event Player)) < -0.300, 99999);
 		Press Button(Event Player, Button(Ability 2));
@@ -3385,14 +3840,19 @@ rule("BOT: ORISA-BASTION - SHOOT")
 	{
 		Event Player.BotDoesUniqueBehaviour = True;
 		While(Is Alive(Event Player));
-			"createEffect(getAllPlayers(), Effect.BAD_AURA, Color.PURPLE, eventPlayer.getEyePosition() - vect(0, 0.7, 0) + eventPlayer.getFacingDirection() * 3.2, 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)\r\neventPlayer.BotEffects = getLastCreatedEntity()"
+			disabled Create Effect(All Players(All Teams), Bad Aura, Color(Purple), Eye Position(Event Player) - Vector(0, 0.700, 0)
+				+ Facing Direction Of(Event Player) * 3.200, 1, Visible To Position and Radius);
+			disabled Event Player.BotEffects = Last Created Entity;
 			Wait(1.500, Ignore Condition);
+			disabled Destroy Effect(Event Player.BotEffects);
 			Abort If(Is Dead(Event Player));
 			Press Button(Event Player, Button(Primary Fire));
 			Press Button(Event Player, Button(Reload));
 			Event Player.BotRayCastHitPosition = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
 				+ Facing Direction Of(Event Player) * 999, All Players(Team 1), All Players(Team 2), True);
-			Event Player.BotRayCastHitPosition += Direction Towards(Event Player.BotRayCastHitPosition, Eye Position(Event Player)) * 0.200;
+			"ANTI-SHIELD BUG"
+			Event Player.BotRayCastHitPosition = Event Player.BotRayCastHitPosition + Direction Towards(Event Player.BotRayCastHitPosition,
+				Eye Position(Event Player)) * 0.200;
 			Create Beam Effect(All Players(All Teams), Zarya Particle Beam, Eye Position(Event Player) - Vector(0, 0.700, 0)
 				+ Facing Direction Of(Event Player) * 3, Event Player.BotRayCastHitPosition, Color(Purple), Visible To Position and Radius);
 			Event Player.BotEffects = Last Created Entity;
@@ -3479,14 +3939,14 @@ rule("SUBROUTINE: ORISA - RESPAWN")
 		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(Bastion)),
 			99999);
 		"SETUP BASTION AS CHILD"
-		Global.BotOrisaChild = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-			Current Array Element) == Hero(Bastion)));
+		Global.BotOrisaChild = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+			== Hero(Bastion))[0];
 		Global.BotOrisaChild.BotIsOrisaChild = True;
 		Global.BotOrisaChild.BotDoesUniqueBehaviour = True;
 		Wait(2, Ignore Condition);
 		Respawn(Global.BotOrisaChild);
 		Start Scaling Player(Global.BotOrisaChild, 1.800, False);
-		Set Damage Dealt(Global.BotOrisaChild, Absolute Value(2000));
+		Set Damage Dealt(Global.BotOrisaChild, 2000);
 		Set Status(Global.BotOrisaChild, Null, Phased Out, 9999);
 		Disable Nameplates(Global.BotOrisaChild, All Players(All Teams));
 		Set Facing(Global.BotOrisaChild, Vector(X Component Of(Facing Direction Of(Event Player)), 9999, Z Component Of(
@@ -3496,7 +3956,9 @@ rule("SUBROUTINE: ORISA - RESPAWN")
 		Stop Holding Button(Global.BotOrisaChild, Button(Ability 1));
 		Teleport(Global.BotOrisaChild, Position Of(Event Player));
 		Attach Players(Global.BotOrisaChild, Global.BotOrisaParent, Vector(0, 1.800, 0.230));
-		"wait(1)\r\nBotOrisaChild.stopForcingButton(Button.PRIMARY_FIRE)\r\nwait(0.25)"
+		disabled Wait(1, Ignore Condition);
+		disabled Stop Holding Button(Global.BotOrisaChild, Button(Primary Fire));
+		disabled Wait(0.250, Ignore Condition);
 		Call Subroutine(BotLandingFromSky);
 		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.BotNextNodePosition), 360, To World,
 			Direction and Turn Rate);
@@ -3521,23 +3983,23 @@ rule("GLOBAL: GAME LOGIC - MIN 0 - ZENS, REINS, BALL")
 	actions
 	{
 		"CREATE BOTS - ZEN"
-		While(Number Of Players(Team 2) < 13);
+		While(Count Of(All Players(Team 2)) < 15);
 			Create Dummy Bot(Hero(Zenyatta), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 			Wait(1, Ignore Condition);
 		End;
 		"BALL"
-		While(Number Of Heroes(Hero(Wrecking Ball), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Wrecking Ball))) == 0);
 			Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 			Wait(1, Ignore Condition);
 		End;
 		"REPLACE DEAD ZEN TO REIN"
-		While(Number Of Heroes(Hero(Reinhardt), Team 2) != 3);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Reinhardt))) != 3);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Zenyatta)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Zenyatta)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Zenyatta))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(0.200, Ignore Condition);
@@ -3562,13 +4024,13 @@ rule("GLOBAL: GAME LOGIC - MIN 1 - WIDOW")
 	actions
 	{
 		Global.IsNewWaveGameLogicProcessing = True;
-		While(Number Of Heroes(Hero(Widowmaker), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Widowmaker))) == 0);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Zenyatta)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Zenyatta)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Zenyatta))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(0.200, Ignore Condition);
@@ -3597,8 +4059,8 @@ rule("GLOBAL: GAME LOGIC - MIN 3 - BALL")
 		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 			Zenyatta)), 99999);
 		"REPLACE HIM TO A NEW HERO"
-		Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-			Current Array Element) == Hero(Zenyatta)));
+		Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+			== Hero(Zenyatta))[0];
 		Wait(0.200, Ignore Condition);
 		Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 		Wait(1, Ignore Condition);
@@ -3607,8 +4069,8 @@ rule("GLOBAL: GAME LOGIC - MIN 3 - BALL")
 		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 			Zenyatta)), 99999);
 		"REPLACE HIM TO A NEW HERO"
-		Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-			Current Array Element) == Hero(Zenyatta)));
+		Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+			== Hero(Zenyatta))[0];
 		Wait(0.200, Ignore Condition);
 		Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 		Wait(1, Ignore Condition);
@@ -3632,45 +4094,47 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 	actions
 	{
 		"PREPARE WAVE - DESTROY WIDOW AND BALLS"
-		Destroy Dummy Bot(Team 2, Slot Of(First Of(Players On Hero(Hero(Widowmaker), Team 2))));
-		While(Number Of Heroes(Hero(Wrecking Ball), Team 2) > 0);
+		Destroy Dummy Bot(Team 2, Slot Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Widowmaker))[0]));
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Wrecking Ball))) > 0);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Players On Hero(Hero(Wrecking Ball), Team 2));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Wrecking Ball))[0];
 			Kill(Global.DefaultCurrentBot, Null);
 			Wait(0.500, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 		End;
 		"BOSS WAVE"
-		Big Message(All Players(All Teams), Custom String("BOSS WAVE - {0} {1}", Hero(Reinhardt), Hero Icon String(Hero(Reinhardt))));
-		While(Number Of Heroes(Hero(Reinhardt), Team 2) < 6);
+		Big Message(All Players(All Teams), Custom String("BOSS WAVE - {1} {0}", Hero Icon String(Hero(Reinhardt)), Hero(Reinhardt)));
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Reinhardt))) < 6);
 			Wait Until(Is True For Any(All Players(Team 2), Distance Between(Position Of(Current Array Element), Global.GatePosition)
 				> 15 && Hero Of(Current Array Element) == Hero(Zenyatta)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Zenyatta)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Zenyatta))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+			disabled Wait(0.200, Ignore Condition);
+			disabled Set Max Health(Global.DefaultCurrentBot, 50);
 		End;
-		While(Number Of Heroes(Hero(Reinhardt), Team 2) > 3);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Reinhardt))) > 3);
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Reinhardt)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Reinhardt)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Reinhardt))[0];
 			Wait(0.500, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 		End;
-		While(Number Of Heroes(Hero(Widowmaker), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Widowmaker))) == 0);
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Widowmaker), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
-		While(Number Of Heroes(Hero(Wrecking Ball), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Wrecking Ball))) == 0);
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
-		While(Number Of Players(Team 2) < 13);
+		While(Count Of(All Players(Team 2)) < 15);
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Zenyatta), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
@@ -3693,19 +4157,19 @@ rule("GLOBAL: GAME LOGIC - MIN 7 - BASTION")
 
 	actions
 	{
-		While(Number Of Heroes(Hero(Bastion), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Bastion))) == 0);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Zenyatta)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Zenyatta)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Zenyatta))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(1, Ignore Condition);
 			Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
-		While(Number Of Heroes(Hero(Widowmaker), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Widowmaker))) == 0);
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Widowmaker), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
@@ -3727,46 +4191,46 @@ rule("GLOBAL: GAME LOGIC - MIN 9 - ECHO, +1 BASTION")
 
 	actions
 	{
-		While(Number Of Heroes(Hero(Wrecking Ball), Team 2) > 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Wrecking Ball))) > 0);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Wrecking Ball)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Wrecking Ball)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Wrecking Ball))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 		End;
-		While(Number Of Heroes(Hero(Echo), Team 2) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Echo))) == 0);
 			Wait(1, Ignore Condition);
 			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 		End;
-		While(Number Of Heroes(Hero(Bastion), Team 2) < 2);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Bastion))) < 2);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Zenyatta)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Zenyatta)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Zenyatta))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 		End;
-		While(Number Of Heroes(Hero(Wrecking Ball), Team 2) < 2);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Wrecking Ball))) < 2);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Zenyatta)), 99999);
 			"REPLACE HIM TO A NEW HERO"
-			Global.DefaultCurrentBot = First Of(Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(
-				Current Array Element) == Hero(Zenyatta)));
+			Global.DefaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
+				== Hero(Zenyatta))[0];
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.DefaultCurrentBot));
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
 		"FILL EMPTY SLOTS BY ZENS"
-		While(Number Of Players(Team 2) < 12);
+		While(Count Of(All Players(Team 2)) < 14);
 			Wait(1, Ignore Condition);
 			Create Dummy Bot(Hero(Zenyatta), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
@@ -3849,6 +4313,7 @@ rule("money on kill")
 		Else If(Hero Of(Victim) == Hero(Orisa));
 			All Players(Team 1).Money[0] += 100 * (Victim.isBoss ? 3 : 1);
 			Global.StartMoney += 100 * (Victim.isBoss ? 3 : 1);
+		End;
 	}
 }
 
@@ -3868,7 +4333,9 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 		Event Player.Money[0] = 2400 + Global.StartMoney;
 		If(Custom String("{0}", Event Player) == Custom String("ShuriZma"));
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
-				Server Load Peak), Null, Null, Left, -10000, Color(Red), Null, Null, Visible To and String, Default Visibility);
+				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
+				Default Visibility);
+		End;
 	}
 }
 
@@ -4135,8 +4602,32 @@ rule("Team 2 (Ability): Heavy Impact")
 	actions
 	{
 		Abort If(Random Real(-0.020, 1) > Event Damage / Max Health(Event Player));
-		Set Status(Event Player, Attacker, Stunned, Attacker.Abilities[7]);
+		Set Status(Event Player, Attacker, Stunned, 1 * Attacker.Abilities[7]);
 		Wait(5, Ignore Condition);
+	}
+}
+
+rule("Team 1 (Ability): Second Wind")
+{
+	event
+	{
+		Player Died;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.Abilities[9] == True;
+	}
+
+	actions
+	{
+		Abort If(Random Integer(1, 100) > Event Player.Abilities[9] * 30);
+		Resurrect(Event Player);
+		Small Message(All Players(All Teams), Custom String("{0} received a second wind!", Event Player));
+		Play Effect(All Players(All Teams), Good Pickup Effect, Color(Green), Event Player, 1);
+		Wait(30, Ignore Condition);
 	}
 }
 
@@ -4200,13 +4691,8 @@ rule("Auto Repair")
 
 	actions
 	{
-		If(Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[2]);
-			Global.GateHealth += 10 * Global.AutoRepair;
-			Global.UpgradeGateMaxHealthValue += 10 * Global.AutoRepair;
-		Else;
-			Global.GateHealth += 5 * Global.AutoRepair;
-			Global.UpgradeGateMaxHealthValue += 5 * Global.AutoRepair;
-		End;
+		Global.GateHealth += 5 * Global.AutoRepair;
+		Global.UpgradeGateMaxHealthValue += 5 * Global.AutoRepair;
 		If(Global.GateHealth > Global.GateMaxHealth);
 			Global.GateHealth = Global.GateMaxHealth;
 		End;
@@ -4683,7 +5169,7 @@ rule("Roadhog Hero Talent Text")
 	}
 }
 
-rule("Sig﻿ma Hero Talent Text")
+rule("Sigma Hero Talent Text")
 {
 	event
 	{
@@ -4715,7 +5201,7 @@ rule("Sombra Hero Talent Text")
 		Event Player.HeroTalentText[1] = Array(Ability Icon String(Hero(Sombra), Button(Secondary Fire)), Custom String(
 			"Malware: Enemies hacked or in fear take +100% more damage"));
 		Event Player.HeroTalentText[2] = Array(Ability Icon String(Hero(Sombra), Button(Ultimate)), Custom String(
-			"Glitch: EMP leaves behind a large hack zone "));
+			"G̶̨͈̹̫̠̳̰̺̜̟̣͓͕̍̍̋̽̏̾̿̀̍̊̕͜l̶̬͎̉̋̓̇͌̽̓̈́i̶̩̯͍̬͉̺̼̫̱̐t̸̝͕͎̉͆̀͗̎͐̅̈́̋̓̂͑̕͠c̷̛͉̬͙̦̗̦̘͖͊̏́͒̉̚͜h̸̡̡̨̪̱͈̜̖̗̟̲̠̟͗̓̋̍̈́̐̇̈́̇̃̅̔͘͝: EMP leave"));
 	}
 }
 
@@ -4885,18 +5371,18 @@ rule("Brigitte: Endeavor")
 	actions
 	{
 		Create Effect(All Players(All Teams), Ring, Color(Orange), Event Player, 0.400, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Eye Position(Event Player), 15);
 		Heal(Players Within Radius(Event Player, 15, Team Of(Event Player), Off), Event Player, 200);
 		Event Player.DamageDealt *= 2.500;
-		Set Move Speed(Event Player, 175);
+		Set Move Speed(Event Player, 100 * 1.750);
 		Add Health Pool To Player(Event Player, Armor, Max Health(Event Player) / 2, False, True);
 		Event Player.HP_Pool[1] = Last Created Health Pool;
 		Wait Until(Is Dead(Event Player), 6);
-		Event Player.DamageDealt = 100 + Global.DamageDone + Event Player.Abilities[13] * 5;
+		Event Player.DamageDealt = 100 + Event Player.Abilities[13] * 5;
 		Set Move Speed(Event Player, 100);
 		Remove Health Pool From Player(Event Player.HP_Pool[1]);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 	}
 }
 
@@ -4946,13 +5432,13 @@ rule("Mercy: Aurora")
 			Event Player) * 60, All Living Players(All Teams), Event Player, True);
 		Create Beam Effect(All Players(All Teams), Mercy Heal Beam, Event Player, Event Player.Ability_Projectile1, Color(White),
 			Visible To Position and Radius);
-		Event Player.Effects__[3] = Last Created Entity;
+		Event Player.Effects_[3] = Last Created Entity;
 		Chase Player Variable At Rate(Event Player, Ability_Projectile1, Event Player.Ability_End, 70, Destination and Rate);
 		While(Event Player.Ability_End != Event Player.Ability_Projectile1);
 			Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Event Player.Ability_Projectile1, 1);
 			Wait(0.032, Ignore Condition);
 		End;
-		Destroy Effect(Event Player.Effects__[3]);
+		Destroy Effect(Event Player.Effects_[3]);
 		Play Effect(All Players(All Teams), Good Explosion, Color(White), Event Player.Ability_Projectile1, 5);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Orange), Event Player.Ability_Projectile1, 5);
 		Damage(Players Within Radius(Event Player.Ability_Projectile1, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
@@ -5195,9 +5681,9 @@ rule("Ashe: Taunt")
 	{
 		Damage(Filtered Array(All Players(Opposite Team Of(Team Of(Event Player))), Has Status(Current Array Element, Burning)),
 			Event Player, 125);
-		Set Status(Has Status(Event Player, Burning) ? All Players(Opposite Team Of(Team Of(Event Player))) : Empty Array, Null, Frozen,
+		Set Status(Filtered Array(All Players(Opposite Team Of(Team Of(Event Player))), Has Status(Event Player, Burning)), Null, Frozen,
 			0.016);
-		Set Status(Has Status(Event Player, Burning) ? All Players(Opposite Team Of(Team Of(Event Player))) : Empty Array, Null, Stunned,
+		Set Status(Filtered Array(All Players(Opposite Team Of(Team Of(Event Player))), Has Status(Event Player, Burning)), Null, Stunned,
 			2);
 	}
 }
@@ -5311,13 +5797,13 @@ rule("Genji: Dragon's Breath")
 	{
 		Create Effect(All Players(All Teams), Good Aura, Color(Lime Green), Event Player.Ability_Projectile1, 1,
 			Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Event Player.Ability_Projectile1 = Eye Position(Event Player);
 		Chase Player Variable At Rate(Event Player, Ability_Projectile1, Event Player.Ability_End, 80, Destination and Rate);
 		Event Player.Ability_End = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + Facing Direction Of(
 			Event Player) * 60, All Living Players(Opposite Team Of(Team Of(Event Player))), All Players(Team Of(Event Player)), True);
 		Wait Until(Event Player.Ability_End == Event Player.Ability_Projectile1, 1);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Play Effect(All Players(All Teams), Ring Explosion Sound, Color(Green), Event Player.Ability_Projectile1, 100);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Lime Green), Event Player.Ability_Projectile1, 5);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Green), Event Player.Ability_Projectile1, 5);
@@ -5393,7 +5879,7 @@ rule("Hanzo: Punch II")
 	actions
 	{
 		Damage(Victim, Event Player, Event Damage * 0.800);
-		Apply Impulse(Victim, Facing Direction Of(Event Player), 12, To World, Cancel Contrary Motion);
+		Apply Impulse(Victim, Event Direction, 12, To World, Cancel Contrary Motion);
 		Apply Impulse(Victim, Up, 5, To World, Cancel Contrary Motion);
 		Set Environment Credit Player(Victim, Event Player);
 		Set Status(Victim, Null, Stunned, 1);
@@ -5411,7 +5897,7 @@ rule("Widowmaker: Kiss Of Death")
 
 	conditions
 	{
-		(Normalized Health(Victim) <= 0.300 || Event Damage >= Normalized Health(Victim) + Event Damage) == True;
+		Normalized Health(Victim) <= 0.300;
 		Is Firing Secondary(Event Player) == True;
 		Event Ability == Button(Primary Fire);
 		Event Player.Abilities[8] == True;
@@ -5491,8 +5977,9 @@ rule("McCree: Panic - Damage")
 
 	actions
 	{
-		Start Damage Modification(Event Player.Feared_until >= Total Time Elapsed ? All Players(Opposite Team Of(Team Of(Event Player)))
-			: Empty Array, All Players(Team Of(Event Player)), 220, Receivers Damagers and Damage Percent);
+		Start Damage Modification(Filtered Array(All Players(Opposite Team Of(Team Of(Event Player))),
+			Event Player.Feared_until >= Total Time Elapsed), All Players(Team Of(Event Player)), 220,
+			Receivers Damagers and Damage Percent);
 		Event Player.Modification_Damage[1] = Last Damage Modification ID;
 		Wait Until(!Event Player.Abilities[8], 99999);
 		Stop Damage Modification(Event Player.Modification_Damage[1]);
@@ -5759,7 +6246,7 @@ rule("Torbjorn: Melting Point")
 	}
 }
 
-rule("Torbjorn: Roots of Mag﻿ma")
+rule("Torbjorn: Roots of Magma")
 {
 	event
 	{
@@ -5850,7 +6337,7 @@ rule("Tracer: Chain Reaction")
 	conditions
 	{
 		Is True For Any(Filtered Array(All Players(Team Of(Event Player)), Current Array Element.Chain_Reaction_On), Distance Between(
-			Event Player, Current Array Element) <= 8) == True;
+			Event Player, Current Array Element) <= 8 && True) == True;
 		Event Player.Chain_Reaction_Immune == False;
 		Event Player.Chain_Reaction_On == False;
 		Is Alive(Event Player) == True;
@@ -5931,10 +6418,10 @@ rule("[Winston] Electric Field")
 	actions
 	{
 		Damage(Players Within Radius(Event Player.Ability_Projectile1, 6, Opposite Team Of(Team Of(Event Player)), Off), Event Player, 65);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Event Player.Ability_Active = True;
 		Create Effect(All Players(All Teams), Orb, Color(White), Event Player.Ability_Projectile1, 1, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Stop Chasing Player Variable(Event Player, Ability_Resource);
 		Event Player.Ability_Projectile1 = Eye Position(Event Player);
 		Event Player.Ability_End = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + Down * 1000, Null,
@@ -5974,7 +6461,7 @@ rule("[Winston] Electric Field 2")
 		Loop If Condition Is True;
 		Damage(Players Within Radius(Event Player.Ability_Projectile1, 6, Opposite Team Of(Team Of(Event Player)), Off), Event Player, 80);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Turquoise), Event Player.Ability_Projectile1, 12);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Play Effect(All Players(All Teams), Ring Explosion Sound, Color(White), Event Player.Ability_Projectile1, 125);
 	}
 }
@@ -6048,7 +6535,7 @@ rule("Pharah: Thunderbird")
 		Add Health Pool To Player(Event Player, Shields, 150, True, True);
 		Event Player.HP_Pool[1] = Last Created Health Pool;
 		Wait Until(!Event Player.Abilities[12] || Hero Of(Event Player) != Hero(Pharah), 99999);
-		Event Player.DamageDealt = 100 + Global.DamageDone + Event Player.Abilities[13] * 5;
+		Event Player.DamageDealt = 100 + Event Player.Abilities[13] * 5;
 		Stop Damage Modification(Event Player.Modification_Damage[1]);
 		Remove Health Pool From Player(Event Player.HP_Pool[1]);
 	}
@@ -6074,7 +6561,7 @@ rule("Orisa: Unstoppable Force")
 		Event Player.Gen_Direction = Facing Direction Of(Event Player);
 		Event Player.Ability_Active = True;
 		Create Effect(All Players(All Teams), Sphere, Color(Green), Event Player.Ability_Projectile1, 4, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Event Player.Ability_Projectile1 = Eye Position(Event Player) + Facing Direction Of(Event Player) * 0.500;
 		Event Player.Ability_End = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + Facing Direction Of(
 			Event Player) * 100, Null, All Players(All Teams), False);
@@ -6087,7 +6574,7 @@ rule("Orisa: Unstoppable Force")
 		Damage(Players Within Radius(Event Player.Ability_Projectile1, 5, Opposite Team Of(Team Of(Event Player)), Off), Event Player,
 			100);
 		Play Effect(All Players(All Teams), Good Explosion, Color(Lime Green), Event Player.Ability_Projectile1, 5);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Event Player.Ability_Active = False;
 	}
 }
@@ -6161,7 +6648,7 @@ rule("Orisa: Immoveable Object - Reduce dmg")
 
 	actions
 	{
-		Set Damage Received(Event Player, 0.300);
+		Set Damage Received(Event Player, 100 * 0.003);
 		Wait Until(!Is Using Ability 1(Event Player), 99999);
 		Set Damage Received(Event Player, 100);
 	}
@@ -6210,10 +6697,10 @@ rule("[Reaper] Shadow Streak (Sethh)")
 		Event Player.Ability_End = Position Of(Event Player) + Vector(0, 1, 0);
 		Create Beam Effect(All Players(All Teams), Bad Beam, Event Player.Ability_End, Event Player.Ability_Position, Color(Black),
 			Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Event Player.Ability_Active = True;
 		Wait Until(Is Dead(Event Player) || Is Using Ability 2(Event Player), 99999);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Event Player.Ability_Active = False;
 		Loop If Condition Is True;
 	}
@@ -6305,7 +6792,7 @@ rule("Reaper: Loom")
 	}
 }
 
-rule("Sig﻿ma: Gravity Well")
+rule("Sigma: Gravity Well")
 {
 	event
 	{
@@ -6333,7 +6820,7 @@ rule("Sig﻿ma: Gravity Well")
 	}
 }
 
-rule("Sig﻿ma: Gravity Channels")
+rule("Sigma: Gravity Channels")
 {
 	event
 	{
@@ -6349,7 +6836,7 @@ rule("Sig﻿ma: Gravity Channels")
 
 	actions
 	{
-		Start Damage Modification(Is Using Ultimate(Event Player) ? All Players(All Teams) : Empty Array, Event Player, 150,
+		Start Damage Modification(Filtered Array(All Players(All Teams), Is Using Ultimate(Event Player)), Event Player, 150,
 			Receivers Damagers and Damage Percent);
 		Event Player.Modification_Damage[1] = Last Damage Modification ID;
 		Wait Until(!Event Player.Abilities[12], 99999);
@@ -6509,9 +6996,9 @@ rule("Bastion: Taser - Visual beam")
 		Create Beam Effect(All Players(All Teams), Bad Beam, Event Player + Vector(False, 1, False),
 			Event Player.Ability_Player != Null ? Event Player.Ability_Player : Event Player, Color(Aqua),
 			Visible To Position Radius and Color);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Wait Until(!Event Player.Abilities[12], 99999);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 	}
 }
 
@@ -6560,9 +7047,9 @@ rule("Sombra: Glitch")
 		Event Player.Ability_Active = True;
 		Event Player.Ability_Position = Position Of(Event Player);
 		Create Effect(All Players(All Teams), Sphere, Color(Purple), Event Player.Ability_Position, 15, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Wait(8, Ignore Condition);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Event Player.Ability_Active = False;
 	}
 }
@@ -6608,9 +7095,9 @@ rule("Mei: Cold Snap")
 	actions
 	{
 		Create Effect(All Players(All Teams), Bad Aura, Color(Sky Blue), Event Player, 1, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Wait Until(!Is Using Ability 1(Event Player), 99999);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 		Damage(Players Within Radius(Eye Position(Event Player), 10, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 5);
 		Set Status(Players Within Radius(Eye Position(Event Player), 10, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
 			Frozen, 2);
@@ -6641,10 +7128,10 @@ rule("Mei: Icebound")
 	actions
 	{
 		Create Effect(All Players(All Teams), Ring, Color(Aqua), Event Player, 0.400, Visible To Position and Radius);
-		Event Player.Effects__[2] = Last Created Entity;
+		Event Player.Effects_[2] = Last Created Entity;
 		Set Projectile Speed(Event Player, 200);
 		Wait Until(!Is Firing Secondary(Event Player), 99999);
-		Destroy Effect(Event Player.Effects__[2]);
+		Destroy Effect(Event Player.Effects_[2]);
 		Set Projectile Speed(Event Player, 100);
 	}
 }
@@ -6890,9 +7377,9 @@ rule("Roadhog: Stench")
 	actions
 	{
 		Create Effect(All Players(All Teams), Ring, Color(Violet), Event Player, 8, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Wait Until(!Event Player.Abilities[8] || Hero Of(Event Player) != Hero(Roadhog), 99999);
-		Destroy Effect(Event Player.Effects__[1]);
+		Destroy Effect(Event Player.Effects_[1]);
 	}
 }
 
@@ -6935,7 +7422,7 @@ rule("Roadhog: Rusted Anchor")
 
 	actions
 	{
-		Start Damage Modification(Is Using Ability 1(Event Player) ? All Players(All Teams) : Empty Array, Event Player, 400,
+		Start Damage Modification(Filtered Array(All Players(All Teams), Is Using Ability 1(Event Player)), Event Player, 400,
 			Receivers Damagers and Damage Percent);
 		Event Player.Modification_Damage[1] = Last Damage Modification ID;
 		Wait Until(!Event Player.Abilities[8] || Hero Of(Event Player) != Hero(Roadhog), 99999);
@@ -6943,7 +7430,7 @@ rule("Roadhog: Rusted Anchor")
 	}
 }
 
-rule("Roadhog: Rusted Anchor - Reset cooldo﻿wn")
+rule("Roadhog: Rusted Anchor - Reset cooldown")
 {
 	event
 	{
@@ -6964,7 +7451,7 @@ rule("Roadhog: Rusted Anchor - Reset cooldo﻿wn")
 	}
 }
 
-rule("Zarya: Aug﻿ment")
+rule("Zarya: Augment")
 {
 	event
 	{
@@ -7079,16 +7566,16 @@ rule("Doomfist: Fissure")
 	actions
 	{
 		Create Effect(All Players(All Teams), Ring, Color(Orange), Event Player.Ability_Position, 8, Visible To Position and Radius);
-		Event Player.Effects__[1] = Last Created Entity;
+		Event Player.Effects_[1] = Last Created Entity;
 		Create Effect(All Players(All Teams), Cloud, Color(Orange), Event Player.Ability_Position, 8, Visible To Position and Radius);
-		Event Player.Effects__[2] = Last Created Entity;
+		Event Player.Effects_[2] = Last Created Entity;
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Event Player.Ability_Position, 16);
 		While(Event Player.Ability_Active == True);
 			Damage(Players Within Radius(Event Player.Ability_Position, 8, Opposite Team Of(Team Of(Event Player)), Off), Event Player, 34);
 			Wait(0.235, Ignore Condition);
 		End;
-		Destroy Effect(Event Player.Effects__[1]);
-		Destroy Effect(Event Player.Effects__[2]);
+		Destroy Effect(Event Player.Effects_[1]);
+		Destroy Effect(Event Player.Effects_[2]);
 	}
 }
 
@@ -7103,7 +7590,7 @@ rule("Team 1 (Perk): Sharpshooter")
 
 	conditions
 	{
-		First Of(Global.Perk) == True;
+		Global.Perk[0] == True;
 		Event Ability != Null;
 		Distance Between(Event Player, Victim) >= 10;
 	}
@@ -7148,23 +7635,24 @@ rule("Team 1 Challenges")
 	actions
 	{
 		If(Global.Perk[2] == 1);
-			Create HUD Text(Event Player, Null, Null, Custom String("Up You Go"), Left, 917, Null, Null, Color(Turquoise),
+			Create HUD Text(Event Player, Null, Null, Custom String("Up You Go"), Left, 917, Color(White), Color(White), Color(Turquoise),
 				Visible To and String, Default Visibility);
 			Event Player.AbilityHUD[17] = Last Text ID;
 		End;
-		If(First Of(Global.Perk) == 1);
-			Create HUD Text(Event Player, Null, Null, Custom String("Sharpshooter"), Left, 918, Null, Null, Color(Turquoise),
+		If(Global.Perk[0] == 1);
+			Create HUD Text(Event Player, Null, Null, Custom String("Sharpshooter"), Left, 918, Color(White), Color(White), Color(Turquoise),
 				Visible To and String, Default Visibility);
 			Event Player.AbilityHUD[18] = Last Text ID;
 		End;
 		If(Global.Perk[1] == 1);
-			Create HUD Text(Event Player, Null, Null, Custom String("Bulletstorm"), Left, 919, Null, Null, Color(Turquoise),
+			Create HUD Text(Event Player, Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(Turquoise),
 				Visible To and String, Default Visibility);
 			Event Player.AbilityHUD[19] = Last Text ID;
 		End;
 		If(Global.MaxHealthDone == 50);
 			Event Player.PlayerHealth = 100 + Global.MaxHealthDone + Event Player.Abilities[14] * 5;
 			Set Max Health(Event Player, Event Player.PlayerHealth);
+		End;
 	}
 }
 
@@ -7180,6 +7668,29 @@ rule("Remove Auto Repair when Player leaves")
 	actions
 	{
 		Global.AutoRepair -= Event Player.Abilities[16];
+	}
+}
+
+rule("Create +Health HUD if not exists and Player Health Challenge Done")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.MaxHealthDone == True;
+		Event Player.Abilities[14] == 0;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Null, Null, Custom String("+{0}% Health", Global.MaxHealthDone + Event Player.Abilities[14] * 5),
+			Left, 914, Color(White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
+		Event Player.AbilityHUD[14] = Last Text ID;
 	}
 }
 
@@ -7222,7 +7733,7 @@ rule("Refund")
 		Event Player.Abilities[12] = 0;
 		"Reset Damage"
 		Event Player.Abilities[13] = 0;
-		Event Player.DamageDealt = 100 + Global.DamageDone + Event Player.Abilities[13] * 5;
+		Event Player.DamageDealt = 100 + Event Player.Abilities[13] * 5;
 		Set Damage Dealt(Event Player, Event Player.DamageDealt);
 		"Reset Health"
 		Event Player.Abilities[14] = 0;
@@ -7258,9 +7769,10 @@ rule("Lucio Dash HUD Creation")
 		If(Event Player.Lucio_Dash_Active == False);
 			Event Player.Lucio_Dash_Active = True;
 			Create HUD Text(Event Player, Null, Null, Custom String("{0} Slam on ground - Press: {1}", Ability Icon String(Hero(Wrecking Ball),
-				Button(Crouch)), Input Binding String(Button(Crouch))), Left, 1000, Null, Null, Color(White), Visible To and String,
-				Default Visibility);
+				Button(Crouch)), Input Binding String(Button(Crouch))), Left, 1000, Color(White), Color(White), Color(White),
+				Visible To and String, Default Visibility);
 			Event Player.Lucio_Dash_Icon = Last Text ID;
+		End;
 	}
 }
 
@@ -7329,7 +7841,7 @@ rule("Ana Self-Nano")
 	{
 		Abort If(Global.SelfNanoWorkshopSetting == False && Number Of Players(Team 1) > 1);
 		Wait(0.100, Ignore Condition);
-		If(!Is Using Ultimate(Event Player));
+		If(Is Using Ultimate(Event Player) == False);
 			Create Dummy Bot(Hero(Ana), Team Of(Event Player), -1, Position Of(Event Player) + Backward, Eye Position(Event Player));
 			Event Player.AnaEntityID = Last Created Entity;
 			Wait(0.100, Ignore Condition);
@@ -7345,6 +7857,7 @@ rule("Ana Self-Nano")
 			Teleport(Event Player.AnaEntityID, Position Of(First Of(Spawn Points(Team Of(Event Player)))));
 			Wait(10, Ignore Condition);
 			Destroy Dummy Bot(Team Of(Event Player), Slot Of(Event Player.AnaEntityID));
+		End;
 	}
 }
 
@@ -7370,10 +7883,40 @@ rule("Reinhard Charge Cancel")
 		Wait Until(Event Player.ReinPin, 1);
 		If(Event Player.ReinPin != 0);
 			Apply Impulse(Event Player.ReinPin, Facing Direction Of(Event Player), 15, To World, Cancel Contrary Motion);
+		End;
 	}
 }
 
-rule("Initial Global")
+rule("Display Current HP/Max HP of bot")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		(Custom String("{0}", Event Player) == Custom String("ShuriZma")) == True;
+		Is Button Held(Event Player, Button(Crouch)) == True;
+	}
+
+	actions
+	{
+		Small Message(Event Player, Custom String("HP: {0}/{1}", Health(Victim), Max Health(Victim)));
+	}
+}
+
+disabled rule("Map Editor Walls")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("Initial Global")
 {
 	event
 	{
@@ -7395,7 +7938,7 @@ rule("Initial Global")
 	}
 }
 
-rule("Initial Player")
+disabled rule("Initial Player")
 {
 	event
 	{
@@ -7416,7 +7959,7 @@ rule("Initial Player")
 	}
 }
 
-rule("Collision Logic")
+disabled rule("Collision Logic")
 {
 	event
 	{
@@ -7439,8 +7982,8 @@ rule("Collision Logic")
 			|| Event Player.active_wall[Current Array Index] == 1 || (Dot Product(Direction Towards(Current Array Element,
 			Event Player.lastsavedpos), Global.AllDir[Current Array Index]) > 0) != (Dot Product(Direction Towards(Current Array Element,
 			Event Player), Global.AllDir[Current Array Index]) > 0));
-		For Player Variable(Event Player, x_, 0, Count Of(Event Player.closestwall), 1);
-			Global.z = Index Of Array Value(Global.AllPos, Event Player.closestwall[Event Player.x_]);
+		For Player Variable(Event Player, x, 0, Count Of(Event Player.closestwall), 1);
+			Global.z = Index Of Array Value(Global.AllPos, Event Player.closestwall[Event Player.x]);
 			If(Global.Wall_ID[Global.z] == 1 || Global.Wall_ID[Global.z] == 3 || Global.Wall_ID[Global.z] == 5);
 				If(Y Component Of(Global.firstpos[Global.z]) >= Y Component Of(Position Of(Event Player)) && Y Component Of(
 					Global.firstpos[Global.z]) <= Y Component Of(Eye Position(Event Player) + Vector(Empty Array, 0.200, Empty Array)));
@@ -7527,7 +8070,7 @@ rule("Collision Logic")
 	}
 }
 
-rule("Reset")
+disabled rule("Reset")
 {
 	event
 	{
@@ -7538,7 +8081,7 @@ rule("Reset")
 
 	conditions
 	{
-		Count Of(Remove From Array(Event Player.active_wall, 0)) == 0;
+		Count Of(Filtered Array(Event Player.active_wall, Current Array Element != 0)) == 0;
 	}
 
 	actions
@@ -7547,7 +8090,7 @@ rule("Reset")
 	}
 }
 
-rule("Wall Data")
+disabled rule("Effect Creation")
 {
 	event
 	{
@@ -7556,21 +8099,115 @@ rule("Wall Data")
 
 	actions
 	{
-		Global.AllPos = Array(Vector(155.968, 12.470, -30.507), Vector(155.962, 12.472, -62.500), Vector(81.153, 6.453, -103.851), Vector(
-			69.148, 6.474, -104.548));
-		Global.AllDir = Array(Vector(-1, 0, -0.002), Vector(1, 0, -0.001), Vector(0, 0, 1), Vector(0.001, 0, 1));
-		Global.firstpos = Array(Vector(155.971, 11.047, -31.771), Vector(155.964, 11.050, -61.229), Vector(79.761, 5.030, -103.852),
-			Vector(67.738, 5.022, -104.547));
-		Global.secondpos = Array(Vector(155.965, 13.894, -29.242), Vector(155.960, 13.894, -63.771), Vector(82.544, 7.876, -103.851),
-			Vector(70.558, 7.925, -104.550));
-		Global.firstpoint2 = Array(Vector(155.971, 13.894, -31.771), Vector(155.964, 13.894, -61.229), Vector(79.761, 7.876, -103.852),
-			Vector(67.738, 7.925, -104.547));
-		Global.secondpoint2 = Array(Vector(155.965, 11.047, -29.242), Vector(155.960, 11.050, -63.771), Vector(82.544, 5.030, -103.851),
-			Vector(70.558, 5.022, -104.550));
-		Global.z = 3;
-		Global.g_beamType = Array(1, 1, 1, 1);
+		Wait(5, Ignore Condition);
+		If(Global.showwalls);
+			For Global Variable(x, 0, Count Of(Global.AllPos), 1);
+				If(Global.Wall_ID[Global.x] == 5);
+					Create Beam Effect(All Players(Team 1), Good Beam, Global.firstpos[Global.x], Vector(X Component Of(Global.secondpos[Global.x]),
+						Y Component Of(Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Color(Red), None);
+					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.secondpos[Global.x]), Y Component Of(
+						Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Red), None);
+					Create Beam Effect(All Players(Team 1), Good Beam, Global.firstpos[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
+						X Component Of(Global.firstpos[Global.x]), Y Component Of(Global.secondpos[Global.x]), Z Component Of(
+						Global.firstpos[Global.x])), Color(Red), None);
+					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.firstpos[Global.x]), Y Component Of(
+						Global.secondpos[Global.x]), Z Component Of(Global.firstpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Red), None);
+				Else;
+					Skip(Array(14, 0, 5, 10)[Index Of Array Value(Array(1, 2, 3), Global.g_beamType[Global.x]) + 1]);
+					Create Beam Effect(All Players(Team 1), Grapple Beam, Global.firstpos[Global.x], Vector(X Component Of(Global.secondpos[Global.x]),
+						Y Component Of(Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Grapple Beam, Vector(X Component Of(Global.secondpos[Global.x]), Y Component Of(
+						Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Grapple Beam, Global.firstpos[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
+						X Component Of(Global.firstpos[Global.x]), Y Component Of(Global.secondpos[Global.x]), Z Component Of(
+						Global.firstpos[Global.x])), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Grapple Beam, Vector(X Component Of(Global.firstpos[Global.x]), Y Component Of(
+						Global.secondpos[Global.x]), Z Component Of(Global.firstpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Aqua), None);
+					Skip(9);
+					Create Beam Effect(All Players(Team 1), Good Beam, Global.firstpos[Global.x], Vector(X Component Of(Global.secondpos[Global.x]),
+						Y Component Of(Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.secondpos[Global.x]), Y Component Of(
+						Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Good Beam, Global.firstpos[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
+						X Component Of(Global.firstpos[Global.x]), Y Component Of(Global.secondpos[Global.x]), Z Component Of(
+						Global.firstpos[Global.x])), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.firstpos[Global.x]), Y Component Of(
+						Global.secondpos[Global.x]), Z Component Of(Global.firstpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Aqua), None);
+					Skip(4);
+					Create Beam Effect(All Players(Team 1), Bad Beam, Global.firstpos[Global.x], Vector(X Component Of(Global.secondpos[Global.x]),
+						Y Component Of(Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Bad Beam, Vector(X Component Of(Global.secondpos[Global.x]), Y Component Of(
+						Global.firstpos[Global.x]), Z Component Of(Global.secondpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Bad Beam, Global.firstpos[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
+						X Component Of(Global.firstpos[Global.x]), Y Component Of(Global.secondpos[Global.x]), Z Component Of(
+						Global.firstpos[Global.x])), Color(Aqua), None);
+					Create Beam Effect(All Players(Team 1), Bad Beam, Vector(X Component Of(Global.firstpos[Global.x]), Y Component Of(
+						Global.secondpos[Global.x]), Z Component Of(Global.firstpos[Global.x])), Global.secondpos[Global.x] + Vector(Empty Array,
+						Empty Array, 0.001), Color(Aqua), None);
+				End;
+				Wait(0.016, Ignore Condition);
+			End;
+		End;
+	}
+}
+
+disabled rule("Wall Data")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.AllPos = Array(Vector(1.154, 8.133, -45.517), Vector(5.154, 8.171, -45.534), Vector(9.162, 8.246, -45.510), Vector(13.147,
+			8.094, -45.538), Vector(17.157, 8.148, -45.522), Vector(9.937, 8.337, -21.624), Vector(22.998, 7.607, -20.287), Vector(26.615,
+			7.773, -29.822), Vector(27.583, 8.147, -38.875), Vector(-2.486, 8.569, -79.139), Vector(-40.924, 7.449, -86), Vector(-40.885,
+			11.441, -97.992), Vector(66.823, 8.544, -83.185), Vector(81.162, 6.417, -103.845), Vector(69.207, 6.436, -103.848), Vector(
+			155.967, 12.476, -30.504), Vector(155.960, 12.467, -62.505));
+		Global.AllDir = Array(Vector(0, 0, -1), Vector(0.007, 0, 1), Vector(0, 0, 1), Vector(0.003, 0, 1), Vector(-0.006, 0, 1), Vector(
+			-0.064, 0, 0.998), Vector(-0.997, 0, -0.072), Vector(0.999, 0, 0.053), Vector(-0.037, 0, 0.999), Vector(-1, 0, -0.009), Vector(
+			-1, 0, -0.010), Vector(-1, 0, 0.003), Vector(-1, 0, 0.003), Vector(-0.006, 0, -1), Vector(-0.001, 0, -1), Vector(1, 0, -0.003),
+			Vector(1, 0, 0.008));
+		Global.firstpos = Array(Vector(2.423, 6.041, -45.517), Vector(3.886, 6.002, -45.525), Vector(7.902, 6.018, -45.510), Vector(11.886,
+			6.009, -45.534), Vector(15.896, 6, -45.529), Vector(-3.161, 6.068, -22.459), Vector(23.035, 6.068, -20.789), Vector(26.132,
+			5.035, -20.753), Vector(27.099, 6, -38.893), Vector(-2.443, 6.191, -83.959), Vector(-40.910, 6.066, -87.299), Vector(-40.889,
+			10.050, -99.283), Vector(66.807, 6.208, -88.052), Vector(82.547, 5.023, -103.853), Vector(70.523, 5.046, -103.849), Vector(
+			155.971, 11.057, -29.237), Vector(155.949, 11.040, -61.239));
+		Global.secondpos = Array(Vector(-0.114, 10.225, -45.517), Vector(6.423, 10.339, -45.542), Vector(10.423, 10.474, -45.511), Vector(
+			14.409, 10.179, -45.542), Vector(18.418, 10.297, -45.514), Vector(23.035, 10.606, -20.789), Vector(22.962, 9.145, -19.784),
+			Vector(27.098, 10.510, -38.891), Vector(28.068, 10.294, -38.857), Vector(-2.530, 10.947, -74.318), Vector(-40.937, 8.833,
+			-84.701), Vector(-40.881, 12.833, -96.701), Vector(66.838, 10.881, -78.317), Vector(79.777, 7.810, -103.837), Vector(67.890,
+			7.825, -103.847), Vector(155.963, 13.894, -31.771), Vector(155.971, 13.894, -63.771));
+		Global.firstpoint2 = Array(Vector(2.423, 10.225, -45.517), Vector(3.886, 10.339, -45.525), Vector(7.902, 10.474, -45.510), Vector(
+			11.886, 10.179, -45.534), Vector(15.896, 10.297, -45.529), Vector(-3.161, 10.606, -22.459), Vector(23.035, 9.145, -20.789),
+			Vector(26.132, 10.510, -20.753), Vector(27.099, 10.294, -38.893), Vector(-2.443, 10.947, -83.959), Vector(-40.910, 8.833,
+			-87.299), Vector(-40.889, 12.833, -99.283), Vector(66.807, 10.881, -88.052), Vector(82.547, 7.810, -103.853), Vector(70.523,
+			7.825, -103.849), Vector(155.971, 13.894, -29.237), Vector(155.949, 13.894, -61.239));
+		Global.secondpoint2 = Array(Vector(-0.114, 6.041, -45.517), Vector(6.423, 6.002, -45.542), Vector(10.423, 6.018, -45.511), Vector(
+			14.409, 6.009, -45.542), Vector(18.418, 6, -45.514), Vector(23.035, 6.068, -20.789), Vector(22.962, 6.068, -19.784), Vector(
+			27.098, 5.035, -38.891), Vector(28.068, 6, -38.857), Vector(-2.530, 6.191, -74.318), Vector(-40.937, 6.066, -84.701), Vector(
+			-40.881, 10.050, -96.701), Vector(66.838, 6.208, -78.317), Vector(79.777, 5.023, -103.837), Vector(67.890, 5.046, -103.847),
+			Vector(155.963, 11.057, -31.771), Vector(155.971, 11.040, -63.771));
+		Global.z = 16;
+		Global.g_beamType = Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 		Global.showwalls = True;
-		Global.Wall_ID = Array(5, 5, 5, 5);
+		Global.Wall_ID = Array(5, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5);
+	}
+}
+
+disabled rule("NEW SHOP")
+{
+	event
+	{
+		Ongoing - Global;
 	}
 }
 
@@ -7601,99 +8238,98 @@ rule("Create Shop Buttons")
 	actions
 	{
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
-			"┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃"), Global.ShopBasePos - 41 * Global.ShopPosAngle[1] + 90 * First Of(Global.ShopPosAngle),
-			2.500, Do Not Clip, Visible To, Color(White), Default Visibility);
+			"┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃"), Global.ShopBasePos - 41 * Global.ShopPosAngle[1] + 90 * Global.ShopPosAngle[0], 2.500,
+			Do Not Clip, Visible To, Color(White), Default Visibility);
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
-			"┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃"), Global.ShopBasePos - 41 * Global.ShopPosAngle[1] - 90 * First Of(Global.ShopPosAngle),
-			2.500, Do Not Clip, Visible To, Color(White), Default Visibility);
+			"┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃"), Global.ShopBasePos - 41 * Global.ShopPosAngle[1] - 90 * Global.ShopPosAngle[0], 2.500,
+			Do Not Clip, Visible To, Color(White), Default Visibility);
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("Refund"),
-			Global.ShopBasePos + 45 * Global.ShopPosAngle[1] + 67.500 * First Of(Global.ShopPosAngle), 3, Do Not Clip, Visible To, Color(
-			Green), Default Visibility);
+			Global.ShopBasePos + 45 * Global.ShopPosAngle[1] + 67.500 * Global.ShopPosAngle[0], 3, Do Not Clip, Visible To, Color(Green),
+			Default Visibility);
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("[{0}] Leave",
-			Input Binding String(Button(Reload))), Global.ShopBasePos + 45 * Global.ShopPosAngle[1] - 67.500 * First Of(
-			Global.ShopPosAngle), 3, Do Not Clip, Visible To and String, Color(Green), Default Visibility);
-		Create In-World Text(Local Player.isInMenu ? Local Player : Empty Array, Custom String("{0}$\n", First Of(Local Player.Money)),
+			Input Binding String(Button(Reload))), Global.ShopBasePos + 45 * Global.ShopPosAngle[1] - 67.500 * Global.ShopPosAngle[0], 3,
+			Do Not Clip, Visible To and String, Color(Green), Default Visibility);
+		Create In-World Text(Local Player.isInMenu ? Local Player : Empty Array, Custom String("{0}$\n", Local Player.Money[0]),
 			Global.ShopBasePos + 36.500 * Global.ShopPosAngle[1], 3, Do Not Clip, Visible To and String, Color(White), Default Visibility);
 		Create In-World Text(Local Player.isInMenu ? Local Player : Empty Array, Custom String("▲"), Update Every Frame(
 			Global.ShopBasePos - (4 + Vertical Facing Angle Of(Local Player)) * Global.ShopPosAngle[1] + Horizontal Facing Angle Of(
-			Local Player) * First Of(Global.ShopPosAngle)), 4, Do Not Clip, Visible To Position and Color, Custom Color(
+			Local Player) * Global.ShopPosAngle[0]), 4, Do Not Clip, Visible To Position and Color, Custom Color(
 			245 + 10 * Sine From Radians(4 * Total Time Elapsed), 205 + 50 * Sine From Radians(4 * Total Time Elapsed),
 			200 * Sine From Radians(4 * Total Time Elapsed), 255), Default Visibility);
 		"Headhunter"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[1] ? Custom String("Headhunter II\n  800$") : Custom String("Headhunter I\n  800$"),
-			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] + 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] + 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[1] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Ambush"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[2] ? Custom String("Ambush II\n    800$") : Custom String("Ambush I\n    800$"),
-			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] + 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] + 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[2] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Quick Fix"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[3] ? Custom String("Quick Fix II\n  700$") : Custom String("Quick Fix I\n  700$"),
-			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] + 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] + 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[3] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Heavyweight"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[4] ? Custom String("Heavyweight II\n  1000$") : Custom String("Heavyweight I\n  1000$"),
-			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] + 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] + 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[4] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Charged"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[5] ? Custom String("Charged II\n  700$") : Custom String("Charged I\n  700$"),
-			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] + 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] + 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[5] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Haste"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[6] ? Custom String("Haste II\n  700$") : Custom String("Haste I\n  700$"),
-			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] + 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] + 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[6] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Heavy Impact"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[7] ? Custom String("Heavy Impact II\n  1000$") : Custom String("Heavy Impact I\n  1000$"),
-			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] + 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] + 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[7] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Hero Talent 1"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("Hero Talent 1\n  1200$"),
-			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] + 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] + 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[8] < 1 ? Color(Green) : Color(Gray), Default Visibility);
 		"Second Wind"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[9] ? Custom String("Second Wind II\n   900$") : Custom String("Second Wind I\n   900$"),
-			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] - 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] - 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[9] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Binding Heal"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[10] ? Custom String("Binding Heal II\n   700$") : Custom String("Binding Heal I\n   700$"),
-			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] - 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] - 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[10] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Resilience"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
 			Local Player.Abilities[11] ? Custom String("Resilience II\n   800$") : Custom String("Resilience I\n   800$"),
-			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] - 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] - 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[11] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Hero Talent 2"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("Hero Talent 2\n  1200$"),
-			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] - 22.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] - 22.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.Abilities[12] < 1 ? Color(Green) : Color(Gray), Default Visibility);
 		"PlusDamage"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("+5% Damage\n  400$"),
-			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] - 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos + 20 * Global.ShopPosAngle[1] - 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Color(Green), Default Visibility);
 		"PlusHealth"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("+5% Health\n       400$"),
-			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] - 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
+			Global.ShopBasePos - 2.500 * Global.ShopPosAngle[1] - 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Color(Green), Default Visibility);
 		"PlusHealing"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("+5% Healing\n  400$"),
-			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] - 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
-			Visible To and String, Color(Green), Default Visibility);
+			Global.ShopBasePos - 25 * Global.ShopPosAngle[1] - 67.500 * Global.ShopPosAngle[0], 2.500, Do Not Clip, Visible To and String,
+			Color(Green), Default Visibility);
 		"PlusHealing"
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
-			"+{0} Auto-Repair\n    400$", Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[2] ? 10 : 5),
-			Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] - 67.500 * First Of(Global.ShopPosAngle), 2.500, Do Not Clip,
-			Visible To String and Color, Global.AutoRepair < 5 ? Color(Green) : Color(Gray), Default Visibility);
+			"+5 Auto-Repair\n    400$"), Global.ShopBasePos - 47.500 * Global.ShopPosAngle[1] - 67.500 * Global.ShopPosAngle[0], 2.500,
+			Do Not Clip, Visible To String and Color, Global.AutoRepair < 5 ? Color(Green) : Color(Gray), Default Visibility);
 		"Use Update Every Frame to avoid showing the String when the cursor is out of bounds, resulting in 0\r\n	ROW 0"
 		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) + 11.250) < 47.500 ? Local Player : Empty Array),
@@ -7743,9 +8379,8 @@ rule("Create Shop Buttons")
 		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) - 133) < 99.250 ? Local Player : Empty Array),
 			Update Every Frame(Vertical Facing Angle Of(Local Player) < 56.250 ? Array(Custom String(
-			"Increase your auto-repair by {0}/5s\n", Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[2] ? 10 : 5),
-			Custom String("{0}", Local Player.HeroTalentText[2][1]), Custom String("{0}", Local Player.HeroTalentText[1][1]),
-			Local Player.Abilities[4] ? Custom String(
+			"Increase your auto-repair by 5/5s\n"), Custom String("{0}", Local Player.HeroTalentText[2][1]), Custom String("{0}",
+			Local Player.HeroTalentText[1][1]), Local Player.Abilities[4] ? Custom String(
 			"Heavyweight II: Your knock back attacks deal 50% more damage and knock back\n            You receive 33% less knock back")
 			: Custom String(
 			"Heavyweight I: Your knock back attacks deal 25% more damage and knock back\n            You receive 20% less knock back"))
@@ -7765,16 +8400,18 @@ rule("Toggle Shop")
 
 	conditions
 	{
-		Is Dummy Bot(Event Player) == False;
+		!Is Dummy Bot(Event Player) == True;
 		Is Button Held(Event Player, Button(Reload)) == True;
-		Is Communicating Any Emote(Event Player) == False;
+		!Is Communicating Any Emote(Event Player) == True;
 	}
 
 	actions
 	{
 		If(Event Player.isInMenu == False);
 			Wait Until(!Is Button Held(Event Player, Button(Reload)), 0.500);
-			Abort If(!Is Button Held(Event Player, Button(Reload)));
+			If(!Is Button Held(Event Player, Button(Reload)));
+				Abort;
+			End;
 		End;
 		Event Player.isInMenu = !Event Player.isInMenu;
 	}
@@ -7887,8 +8524,8 @@ rule("Buy Ability")
 	{
 		Event Player.isInMenu == True;
 		Is Button Held(Event Player, Button(Primary Fire)) == True;
-		Absolute Value(Horizontal Facing Angle Of(Event Player)) < 90;
-		Absolute Value(Vertical Facing Angle Of(Event Player)) + 11.250 < 67;
+		(Absolute Value(Horizontal Facing Angle Of(Event Player)) < 90 && Absolute Value(Vertical Facing Angle Of(Event Player))
+			+ 11.250 < 67) == True;
 	}
 
 	actions
@@ -7898,28 +8535,31 @@ rule("Buy Ability")
 			"LEAVE SHOP"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
 				Event Player.isInMenu = !Event Player.isInMenu;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"REFUND"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Money[1] != 0);
 					Call Subroutine(Refund);
 				Else;
 					Small Message(Local Player, Custom String("You don't have anything to refund!"));
 				End;
 			End;
+		"ROW 1"
 		Else If(Vertical Facing Angle Of(Event Player) < -11.250);
 			"+5% DAMAGE"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
-				If(First Of(Event Player.Money) >= 400);
+				If(Event Player.Money[0] >= 400);
 					Event Player.Money[0] -= 400;
 					Event Player.Money[1] += 400;
 					Event Player.Abilities[13] += 1;
-					Event Player.DamageDealt = 100 + Global.DamageDone + Event Player.Abilities[13] * 5;
+					Event Player.DamageDealt = 100 + Event Player.Abilities[13] * 5;
 					Set Damage Dealt(Event Player, Event Player.DamageDealt);
 				Else;
 					Small Message(Event Player, Custom String("Not enough money!"));
 				End;
+			"SECOND WIND"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[9] != 2);
-					If(First Of(Event Player.Money) >= 900);
+					If(Event Player.Money[0] >= 900);
 						Event Player.Money[0] -= 900;
 						Event Player.Money[1] += 900;
 						Event Player.Abilities[9] += 1;
@@ -7927,9 +8567,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
+			"CHARGED"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[5] != 2);
-					If(First Of(Event Player.Money) >= 700);
+					If(Event Player.Money[0] >= 700);
 						Event Player.Money[0] -= 700;
 						Event Player.Money[1] += 700;
 						Event Player.Abilities[5] += 1;
@@ -7937,9 +8578,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"HEADHUNTER"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[1] != 2);
-					If(First Of(Event Player.Money) >= 800);
+					If(Event Player.Money[0] >= 800);
 						Event Player.Money[0] -= 800;
 						Event Player.Money[1] += 800;
 						Event Player.Abilities[1] += 1;
@@ -7948,10 +8590,11 @@ rule("Buy Ability")
 					End;
 				End;
 			End;
+		"ROW 2"
 		Else If(Vertical Facing Angle Of(Event Player) < 11.250);
 			"+5% HEALTH"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
-				If(First Of(Event Player.Money) >= 400);
+				If(Event Player.Money[0] >= 400);
 					Event Player.Money[0] -= 400;
 					Event Player.Money[1] += 400;
 					Event Player.Abilities[14] += 1;
@@ -7960,9 +8603,10 @@ rule("Buy Ability")
 				Else;
 					Small Message(Event Player, Custom String("Not enough money!"));
 				End;
+			"BINDING HEAL"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[10] != 2);
-					If(First Of(Event Player.Money) >= 700);
+					If(Event Player.Money[0] >= 700);
 						Event Player.Money[0] -= 700;
 						Event Player.Money[1] += 700;
 						Event Player.Abilities[10] += 1;
@@ -7970,9 +8614,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
+			"HASTE"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[6] != 2);
-					If(First Of(Event Player.Money) >= 700);
+					If(Event Player.Money[0] >= 700);
 						Event Player.Money[0] -= 700;
 						Event Player.Money[1] += 700;
 						Event Player.Abilities[6] += 1;
@@ -7980,9 +8625,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"AMBUSH"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[2] != 2);
-					If(First Of(Event Player.Money) >= 800);
+					If(Event Player.Money[0] >= 800);
 						Event Player.Money[0] -= 800;
 						Event Player.Money[1] += 800;
 						Event Player.Abilities[2] += 1;
@@ -7991,10 +8637,11 @@ rule("Buy Ability")
 					End;
 				End;
 			End;
+		"ROW 3"
 		Else If(Vertical Facing Angle Of(Event Player) < 33.750);
 			"+5% HEALING"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
-				If(First Of(Event Player.Money) >= 400);
+				If(Event Player.Money[0] >= 400);
 					Event Player.Money[0] -= 400;
 					Event Player.Money[1] += 400;
 					Event Player.Abilities[15] += 1;
@@ -8002,9 +8649,10 @@ rule("Buy Ability")
 				Else;
 					Small Message(Event Player, Custom String("Not enough money!"));
 				End;
+			"RESILIENCE"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[11] != 2);
-					If(First Of(Event Player.Money) >= 800);
+					If(Event Player.Money[0] >= 800);
 						Event Player.Money[0] -= 800;
 						Event Player.Money[1] += 800;
 						Event Player.Abilities[11] += 1;
@@ -8012,9 +8660,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
+			"HEAVY IMPACT"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[7] != 2);
-					If(First Of(Event Player.Money) >= 1000);
+					If(Event Player.Money[0] >= 1000);
 						Event Player.Money[0] -= 1000;
 						Event Player.Money[1] += 1000;
 						Event Player.Abilities[7] += 1;
@@ -8022,9 +8671,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"QUICK FIX"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[3] != 2);
-					If(First Of(Event Player.Money) >= 700);
+					If(Event Player.Money[0] >= 700);
 						Event Player.Money[0] -= 700;
 						Event Player.Money[1] += 700;
 						Event Player.Abilities[3] += 1;
@@ -8033,11 +8683,12 @@ rule("Buy Ability")
 					End;
 				End;
 			End;
+		"ROW 4"
 		Else If(Vertical Facing Angle Of(Event Player) < 56.250);
 			"+5 AUTO-REPAIR"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
 				If(Global.AutoRepair != 5);
-					If(First Of(Event Player.Money) >= 400);
+					If(Event Player.Money[0] >= 400);
 						Event Player.Money[0] -= 400;
 						Event Player.Money[1] += 400;
 						Global.AutoRepair += 1;
@@ -8046,9 +8697,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
+			"HERO TALENT 2"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[12] != 1);
-					If(First Of(Event Player.Money) >= 1200);
+					If(Event Player.Money[0] >= 1200);
 						Event Player.Money[0] -= 1200;
 						Event Player.Money[1] += 1200;
 						Event Player.Abilities[12] += 1;
@@ -8056,9 +8708,10 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
+			"HERO TALENT 1"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[8] != 1);
-					If(First Of(Event Player.Money) >= 1200);
+					If(Event Player.Money[0] >= 1200);
 						Event Player.Money[0] -= 1200;
 						Event Player.Money[1] += 1200;
 						Event Player.Abilities[8] += 1;
@@ -8066,14 +8719,19 @@ rule("Buy Ability")
 						Small Message(Event Player, Custom String("Not enough money!"));
 					End;
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"HEAVYWEIGHT"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[4] != 2);
-					If(First Of(Event Player.Money) >= 1000);
+					If(Event Player.Money[0] >= 1000);
 						Event Player.Money[0] -= 1000;
 						Event Player.Money[1] += 1000;
 						Event Player.Abilities[4] += 1;
 					Else;
 						Small Message(Event Player, Custom String("Not enough money!"));
+					End;
+				End;
+			End;
+		End;
 	}
 }
 
@@ -8090,8 +8748,8 @@ rule("Refund Single Ability")
 	{
 		Event Player.isInMenu == True;
 		Is Button Held(Event Player, Button(Secondary Fire)) == True;
-		Absolute Value(Horizontal Facing Angle Of(Event Player)) < 90;
-		Absolute Value(Vertical Facing Angle Of(Event Player)) + 11.250 < 67;
+		(Absolute Value(Horizontal Facing Angle Of(Event Player)) < 90 && Absolute Value(Vertical Facing Angle Of(Event Player))
+			+ 11.250 < 67) == True;
 	}
 
 	actions
@@ -8100,8 +8758,10 @@ rule("Refund Single Ability")
 		If(Vertical Facing Angle Of(Event Player) < -33.750);
 			"LEAVE SHOP"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"REFUND"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 			End;
+		"ROW 1"
 		Else If(Vertical Facing Angle Of(Event Player) < -11.250);
 			"+5% DAMAGE"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
@@ -8109,11 +8769,12 @@ rule("Refund Single Ability")
 					Event Player.Money[0] += 400;
 					Event Player.Money[1] -= 400;
 					Event Player.Abilities[13] -= 1;
-					Event Player.DamageDealt = 100 + Global.DamageDone + Event Player.Abilities[13] * 5;
+					Event Player.DamageDealt = 100 + Event Player.Abilities[13] * 5;
 					Set Damage Dealt(Event Player, Event Player.DamageDealt);
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"SECOND WIND"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[9] != 0);
 					Event Player.Money[0] += 900;
@@ -8122,6 +8783,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"CHARGED"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[5] != 0);
 					Event Player.Money[0] += 700;
@@ -8130,7 +8792,8 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"HEADHUNTER"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[1] != 0);
 					Event Player.Money[0] += 800;
 					Event Player.Money[1] -= 800;
@@ -8139,6 +8802,7 @@ rule("Refund Single Ability")
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
 			End;
+		"ROW 2"
 		Else If(Vertical Facing Angle Of(Event Player) < 11.250);
 			"+5% HEALTH"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
@@ -8151,6 +8815,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"BINDING HEAL"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[10] != 0);
 					Event Player.Money[0] += 700;
@@ -8159,6 +8824,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"HASTE"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[6] != 0);
 					Event Player.Money[0] += 700;
@@ -8167,7 +8833,8 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"AMBUSH"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[2] != 0);
 					Event Player.Money[0] += 800;
 					Event Player.Money[1] -= 800;
@@ -8176,6 +8843,7 @@ rule("Refund Single Ability")
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
 			End;
+		"ROW 3"
 		Else If(Vertical Facing Angle Of(Event Player) < 33.750);
 			"+5% HEALING"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
@@ -8187,6 +8855,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"RESILIENCE"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[11] != 0);
 					Event Player.Money[0] += 800;
@@ -8195,6 +8864,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"HEAVY IMPACT"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[7] != 0);
 					Event Player.Money[0] += 1000;
@@ -8203,7 +8873,8 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"QUICK FIX"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[3] != 0);
 					Event Player.Money[0] += 700;
 					Event Player.Money[1] -= 700;
@@ -8212,6 +8883,7 @@ rule("Refund Single Ability")
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
 			End;
+		"ROW 4"
 		Else If(Vertical Facing Angle Of(Event Player) < 56.250);
 			"+5 AUTO-REPAIR"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
@@ -8223,6 +8895,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"HERO TALENT 2"
 			Else If(Horizontal Facing Angle Of(Event Player) + 22.500 < 22.500);
 				If(Event Player.Abilities[12] != 0);
 					Event Player.Money[0] += 1200;
@@ -8231,6 +8904,7 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
+			"HERO TALENT 1"
 			Else If(Horizontal Facing Angle Of(Event Player) + 11.250 < 56);
 				If(Event Player.Abilities[8] != 0);
 					Event Player.Money[0] += 1200;
@@ -8239,13 +8913,17 @@ rule("Refund Single Ability")
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
-			Else If(Horizontal Facing Angle Of(Event Player) > 45);
+			"HEAVYWEIGHT"
+			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.Abilities[4] != 0);
 					Event Player.Money[0] += 1000;
 					Event Player.Money[1] -= 1000;
 					Event Player.Abilities[4] -= 1;
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
+				End;
+			End;
+		End;
 	}
 }
 
@@ -8273,57 +8951,57 @@ rule("Create Player HUD")
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)), Is Dead(Event Player) ? Color(
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)),
 			Visible To Sort Order String and Color, Default Visibility);
-		Create HUD Text(Event Player.Abilities[13] || Global.DamageDone ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
-			Global.DamageDone + Event Player.Abilities[13] * 5), Left, 913, Null, Null, Color(Turquoise), Visible To and String,
+		Create HUD Text(Event Player.Abilities[13] ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
+			Event Player.Abilities[13] * 5), Left, 913, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
 		Create HUD Text(Event Player.Abilities[9] ? Event Player : Null, Null, Null, Custom String("Second Wind {0}",
-			Event Player.Abilities[9] == 1 ? Custom String("I") : Custom String("II")), Left, 908, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[9] == 1 ? Custom String("I") : Custom String("II")), Left, 908, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[5] ? Event Player : Null, Null, Null, Custom String("Charged {0}",
-			Event Player.Abilities[5] == 1 ? Custom String("I") : Custom String("II")), Left, 905, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[5] == 1 ? Custom String("I") : Custom String("II")), Left, 905, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[1] ? Event Player : Null, Null, Null, Custom String("Headhunter {0}",
-			Event Player.Abilities[1] == 1 ? Custom String("I") : Custom String("II")), Left, 901, Null, Null, Color(Turquoise),
+			Event Player.Abilities[1] == 1 ? Custom String("I") : Custom String("II")), Left, 901, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.Abilities[14] ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
+			Global.MaxHealthDone + Event Player.Abilities[14] * 5), Left, 914, Color(White), Color(White), Color(Turquoise),
 			Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.Abilities[14] || Global.MaxHealthDone ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
-			Global.MaxHealthDone + Event Player.Abilities[14] * 5), Left, 914, Null, Null, Color(Turquoise), Visible To and String,
-			Default Visibility);
 		Create HUD Text(Event Player.Abilities[10] ? Event Player : Null, Null, Null, Custom String("Binding Heal {0}",
-			Event Player.Abilities[10] == 1 ? Custom String("I") : Custom String("II")), Left, 909, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[10] == 1 ? Custom String("I") : Custom String("II")), Left, 909, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[6] ? Event Player : Null, Null, Null, Custom String("Haste {0}",
-			Event Player.Abilities[6] == 1 ? Custom String("I") : Custom String("II")), Left, 906, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[6] == 1 ? Custom String("I") : Custom String("II")), Left, 906, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[2] ? Event Player : Null, Null, Null, Custom String("Ambush {0}",
-			Event Player.Abilities[2] == 1 ? Custom String("I") : Custom String("II")), Left, 902, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[2] == 1 ? Custom String("I") : Custom String("II")), Left, 902, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[15] ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
-			Event Player.Abilities[15] * 5), Left, 915, Null, Null, Color(Turquoise), Visible To and String, Default Visibility);
+			Event Player.Abilities[15] * 5), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
+			Default Visibility);
 		Create HUD Text(Event Player.Abilities[11] ? Event Player : Null, Null, Null, Custom String("Resilience {0}",
-			Event Player.Abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[7] ? Event Player : Null, Null, Null, Custom String("Heavy Impact {0}",
-			Event Player.Abilities[7] == 1 ? Custom String("I") : Custom String("II")), Left, 907, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[7] == 1 ? Custom String("I") : Custom String("II")), Left, 907, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.Abilities[3] ? Event Player : Null, Null, Null, Custom String("Quick Fix {0}",
-			Event Player.Abilities[3] == 1 ? Custom String("I") : Custom String("II")), Left, 903, Null, Null, Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.Abilities[3] == 1 ? Custom String("I") : Custom String("II")), Left, 903, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Global.AutoRepair ? Event Player : Null, Null, Null, Custom String("{0} total Auto-Repair/5s",
-			Global.AutoRepair * (Global.UpgradeGateMaxHealthValue >= Global.UpgradeGateMaxHealthMaxValue[2] ? 10 : 5)), Left, 916, Null,
-			Null, Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.Abilities[12] ? Event Player : Null, Null, Null, Custom String("{0} {1}", First Of(
-			Event Player.HeroTalentText[2]), Event Player.HeroTalentText[2][1]), Top, 902, Null, Null, Color(Green), Visible To and String,
-			Default Visibility);
-		Create HUD Text(Event Player.Abilities[12] ? Event Player : Null, Null, Null, Custom String("Hero Talent 2"), Left, 912, Null,
-			Null, Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.Abilities[8] ? Event Player : Null, Null, Null, Custom String("{0} {1}", First Of(
-			Event Player.HeroTalentText[1]), Event Player.HeroTalentText[1][1]), Top, 901, Null, Null, Color(Green), Visible To and String,
-			Default Visibility);
-		Create HUD Text(Event Player.Abilities[8] ? Event Player : Null, Null, Null, Custom String("Hero Talent 1"), Left, 911, Null, Null,
-			Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.Abilities[4] ? Event Player : Null, Null, Null, Custom String("Heavyweight {0}",
-			Event Player.Abilities[4] == 1 ? Custom String("I") : Custom String("II")), Left, 904, Null, Null, Color(Turquoise),
+			Global.AutoRepair * 5), Left, 916, Color(White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.Abilities[12] ? Event Player : Null, Null, Null, Custom String("{0} {1}",
+			Event Player.HeroTalentText[2][0], Event Player.HeroTalentText[2][1]), Top, 902, Color(White), Color(White), Color(Green),
 			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.Abilities[12] ? Event Player : Null, Null, Null, Custom String("Hero Talent 2"), Left, 912, Color(
+			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.Abilities[8] ? Event Player : Null, Null, Null, Custom String("{0} {1}",
+			Event Player.HeroTalentText[1][0], Event Player.HeroTalentText[1][1]), Top, 901, Color(White), Color(White), Color(Green),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.Abilities[8] ? Event Player : Null, Null, Null, Custom String("Hero Talent 1"), Left, 911, Color(
+			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.Abilities[4] ? Event Player : Null, Null, Null, Custom String("Heavyweight {0}",
+			Event Player.Abilities[4] == 1 ? Custom String("I") : Custom String("II")), Left, 904, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
 	}
 }
 
@@ -8374,6 +9052,7 @@ rule("Boss Rotation")
 		Else If(Global.bossRotation == 2);
 			Global.bossRotation = 3;
 			Global.lastBoss[3] = Hero Of(Global.activeBoss);
+		End;
 	}
 }
 
@@ -8393,154 +9072,7 @@ rule("15 minutes hud")
 	actions
 	{
 		Create HUD Text(All Players(Team 1), Global.activeBoss ? Custom String("Boss: {0}, HP:  {1}/{2}", Hero Of(Global.activeBoss),
-			Health(Global.activeBoss), Max Health(Global.activeBoss)) : Custom String(""), Null, Null, Top, 900, Color(Red), Null, Null,
-			Visible To and String, Default Visibility);
-	}
-}
-
-rule("debug")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Global.IsDebug == True;
-		Is Button Held(Event Player, Button(Primary Fire)) == True;
-		Is Button Held(Event Player, Button(Crouch)) == True;
-	}
-
-	actions
-	{
-		Global.TimeSec = 59;
-	}
-}
-
-rule("ending 1 part 1")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.challengeCount == 12;
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("Exfiltration available! (optional - ends the mode)"));
-		Create In-World Text(All Players(Team 1), Custom String(
-			"Exfiltration available! Gather here!\n{0}/{1} Players ready to exfiltrate!", Count Of(Filtered Array(All Players(Team 1),
-			Distance Between(Vector(186, 11, -46.500), Current Array Element) <= 9)), Number Of Players(Team 1)), Vector(186, 15, -46.500),
-			1.200, Do Not Clip, Visible To and String, Color(Green), Default Visibility);
-	}
-}
-
-rule("ending 1 part 2")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.challengeCount == 12;
-		Distance Between(Vector(186, 11, -46.500), All Players(Team 1)) <= 9;
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("GG! YOU DID IT!"));
-		Destroy All Dummy Bots;
-		Disable Movement Collision With Environment(All Players(Team 1), True);
-		Start Accelerating(All Players(Team 1), Up, 100, 5, To World, Direction Rate and Max Speed);
-		Wait(5, Ignore Condition);
-		Declare Team Victory(Team 1);
-	}
-}
-
-rule("Team 1 (Ability): Second Wind save life")
-{
-	event
-	{
-		Player Took Damage;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Event Player.Abilities[9] == True;
-		Event Player.secondWindActive == True;
-		Health(Event Player) == 1;
-	}
-
-	actions
-	{
-		Small Message(All Players(All Teams), Custom String("{0} received a second wind!", Event Player));
-		Play Effect(All Players(All Teams), Good Pickup Effect, Color(Green), Event Player, 1);
-		Clear Status(Event Player, Unkillable);
-		Set Player Health(Event Player, Max Health(Event Player));
-		Event Player.lastSecondWind = 30;
-		Event Player.secondWindActive = 0;
-	}
-}
-
-rule("Team 1 (Ability): Second Wind after buying")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Event Player.Abilities[9] == True;
-		Event Player.secondWindActive == False;
-		Event Player.lastSecondWind == 0;
-	}
-
-	actions
-	{
-		If(Random Integer(1, 100) > Event Player.Abilities[9] * 30);
-			Wait(30, Ignore Condition);
-			Loop;
-		End;
-		Set Status(Event Player, Null, Unkillable, 9999);
-		Event Player.secondWindActive = 1;
-	}
-}
-
-rule("Team 1 (Ability): Second Wind counter")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Event Player.lastSecondWind > 0;
-	}
-
-	actions
-	{
-		Wait(1, Ignore Condition);
-		Event Player.lastSecondWind -= 1;
-		Loop If Condition Is True;
+			Health(Global.activeBoss), Max Health(Global.activeBoss)) : Custom String(""), Null, Null, Top, 900, Color(Red), Color(White),
+			Color(White), Visible To and String, Default Visibility);
 	}
 }
