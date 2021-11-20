@@ -5,3 +5,9 @@ c121:
 -> Reduced amount of Zens in team 2
 
 c122:
+-> Added new workshop setting: Money Multiplicator
+-> Increased money on kill by 5 for the following enemies:
+    -> Zenyatta
+    -> Reinhardt
+    -> Wrecking Ball
+    -> Widowmaker
