@@ -2,8 +2,8 @@ settings
 {
 	main
 	{
-		Description: "Defend Castle Extended v0.6.c123 by HuKuTa94#2589 modified by ShuriZma#2349 - J1K6F (Code Version: v090) - Defend the gate, kill enemies and don't allow them to damage the gate! Torb, Brig and Rein can repair the gate but beware! You never know what the enemy might be hiding until now! Special Thanks to: Shingen#21859 for the Abilities, LemonAid#11644 for the Hero Talents & Josbird for teaching me about Menus! Find the Original Mode on: workshop.codes/BQEGS PS: SHINGEN PLS COME BACK"
-		Mode Name: "Defend Castle Extended v0.6.c123"
+		Description: "Defend The Castle Extended v0.6.c123 by ShuriZma#2349 - J1K6F (Code Version: v123) (Original mode by HuKuTa94#2589) - Defend the gate, kill enemies and don't allow them to damage the gate! Torb, Brig and Rein can repair the gate but beware! You never know what the enemy might be hiding until now! Special Thanks to: Shingen#21859 for the Abilities, LemonAid#11644 for the Hero Talents & Josbird for teaching me about Menus! Find the Original Mode on: workshop.codes/BQEGS PS: SHINGEN PLS COME BACK"
+		Mode Name: "Defend The Castle Extended"
 	}
 
 	lobby
@@ -626,10 +626,10 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 	{
 		Global.IsDebug = False;
 		Global.IsDebugAINavigation = False;
-		Global.GateMaxHealth = Workshop Setting Integer(Custom String("Defend Castle Extended"), Custom String("GATE MAX HEALTH"), 500, 100, 1000,
+		Global.GateMaxHealth = Workshop Setting Integer(Custom String("Defend The Castle Extended"), Custom String("GATE MAX HEALTH"), 500, 100, 1000,
 			0);
-		Global.MoneyMult = Workshop Setting Real(Custom String("Defend Castle Extended"), Custom String("Money Multiplicator"), 1, 0.500, 2, 0);
-		Global.IsStoryHeroes = Workshop Setting Toggle(Custom String("Defend Castle Extended"), Custom String("Story Heroes"), True, 0);
+		Global.MoneyMult = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"), 1, 0.500, 2, 0);
+		Global.IsStoryHeroes = Workshop Setting Toggle(Custom String("Defend The Castle Extended"), Custom String("Story Heroes"), True, 0);
 		Global.SelfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
 	}
@@ -645,9 +645,9 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend Castle Extended v0.6.c123 BY HUKUTA94#2589\r\nmodified by ShuriZma#2349\r\nDiscord: discord.shurizma.de\r\n{0}", Custom String(
+			"Defend The Castle Extended v0.6.c123 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}", Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
-			Custom String("{0}", Custom String("   \nPS: SHINGEN PLS COME BACK")))), Right, -1000, Null, Null, Color(White), Visible To,
+			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To,
 			Default Visibility);
 		Global.GateRepairPosition = Vector(153, 8, -46.500);
 		Global.GatePosition = Vector(148.800, 6, -46.400);
