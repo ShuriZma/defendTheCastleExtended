@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c123 by ShuriZma#2349 - J1K6F (Code Version: v123) (Original mode by HuKuTa94#2589) - Defend the gate, kill enemies and don't allow them to damage the gate! Torb, Brig and Rein can repair the gate but beware! You never know what the enemy might be hiding until now! Special Thanks to: Shingen#21859 for the Abilities, LemonAid#11644 for the Hero Talents & Josbird for teaching me about Menus! Find the Original Mode on: workshop.codes/BQEGS PS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended v0.6.c126\nby ShuriZma#2349\nJ1K6F (Code Version: c126)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -48,10 +48,10 @@ settings
 	extensions
 	{
 		Beam Effects
-		Kinetic Explosion Effects
-		Explosion Sounds
-		Play More Effects
-		Spawn More Dummy Bots
+        Kinetic Explosion Effects
+        Explosion Sounds
+        Play More Effects
+        Spawn More Dummy Bots
 	}
 }
 
@@ -121,6 +121,7 @@ variables
 		60: MoneyMult
 		61: challengeCount
 		62: UpgradeBossHealthValue
+		63: GlobalHuds
 		112: AllPos
 		113: AllDir
 		114: firstpos
@@ -645,7 +646,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend The Castle Extended v0.6.c123 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}", Custom String(
+			"Defend The Castle Extended v0.6.c126 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}", Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To,
 			Default Visibility);
@@ -670,6 +671,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 		Global.GameLogicCountOfUniqueHeroes = 5;
 		Global.lastBoss = Array(Null, Null, Null, Null);
 		Create Effect(All Players(Team 1), Ring, Color(Sky Blue), Vector(186, 11, -46.500), 9, Visible To Position and Radius);
+		Create Effect(All Players(Team 1), Ring, Color(Yellow), Vector(149.000, 10, -62.000), 2, Visible To Position and Radius);
 	}
 }
 
@@ -1429,7 +1431,14 @@ rule("GLOBAL: SETUP PHASE")
 		If(Global.IsDebug);
 			Set Match Time(1);
 		Else;
+			Pause Match Time;
+			Create HUD Text(All Players(Team 1), Custom String("PRESS {0} TO START", Button(Interact)), Null, Null, Top, 50, Color(Red), Color(
+				White), Color(White), Visible To and String, Default Visibility);
+			Global.GlobalHuds[0] = Last Text ID;
 			Set Match Time(20);
+			Wait Until(Is True For Any(All Players(Team 1), Is Button Held(Current Array Element, Button(Interact))), 99999);
+			Destroy HUD Text(Global.GlobalHuds[0]);
+			Unpause Match Time;
 		End;
 		Set Objective Description(All Players(All Teams), Custom String("DEFEND GATE"), Visible To and String);
 	}
@@ -1606,8 +1615,8 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 		If(Hero Of(Event Player) == Hero(Zenyatta));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 30);
-				Set Max Health(Event Player, 5 * (100 + Global.TimeMin * 10) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 10 * (100 + 10 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 1.500, False);
 			Else;
 				If(20 + 3 * Number Of Players(Team 1) + 3 * Global.TimeMin > 75);
@@ -1615,13 +1624,13 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 				Else;
 					Set Move Speed(Event Player, 20 + 3 * Count Of(All Players(Team 1)) + 3 * Global.TimeMin);
 				End;
-				Set Max Health(Event Player, 100 + Global.TimeMin * 10);
+				Set Max Health(Event Player, 100 + 10 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 20);
-				Set Max Health(Event Player, 5 * (70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				If(30 + Global.TimeMin + 2.500 * Global.Time5Min > 40);
@@ -1630,43 +1639,43 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					Set Move Speed(Event Player, 30 + Global.TimeMin + 2.500 * Global.Time5Min);
 				End;
 				Set Ultimate Charge(Event Player, 0);
-				Set Max Health(Event Player, 70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.TimeMin);
+				Set Max Health(Event Player, 70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Widowmaker));
 			If(Event Player.isBoss == 1);
-				Set Damage Dealt(Event Player, 2 * (85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.Time5Min));
+				Set Damage Dealt(Event Player, 2 * (85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.Time5Min + 50 * Global.Time10Min));
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 5 * (100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.TimeMin + 15 * Global.Time5Min + 40 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Event Player.BotCounter = 0;
-				Set Damage Dealt(Event Player, 85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.Time5Min + 50 * Global.Time10Min);
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.TimeMin);
+				Set Max Health(Event Player, 100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.TimeMin + 15 * Global.Time5Min + 40 * Global.Time10Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Bastion));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 50);
-				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min + 10 * Global.Time10Min);
 				Start Scaling Player(Event Player, 3, False);
-				Set Max Health(Event Player, 5 * (155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.TimeMin + 40 * Global.Time5Min + 65 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
 				Set Move Speed(Event Player, 80);
-				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min + 10 * Global.Time10Min);
 				Start Scaling Player(Event Player, 2, False);
-				Set Max Health(Event Player, 155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.TimeMin);
+				Set Max Health(Event Player, 155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.TimeMin + 40 * Global.Time5Min + 65 * Global.Time10Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Orisa));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 5 * (220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.Time5Min) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.Time5Min + 100 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Set Move Speed(Event Player, 30 + 5 * Global.Time5Min);
 			Else;
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.Time5Min);
+				Set Max Health(Event Player, 220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.Time5Min + 100 * Global.Time10Min);
 				Set Move Speed(Event Player, 90 + 5 * Global.Time5Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Echo));
@@ -1674,29 +1683,29 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 				Set Gravity(Event Player, 40);
 				Set Move Speed(Event Player, 70 + 5 * Global.Time5Min);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 5 * (90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Set Gravity(Event Player, 40);
 				Set Move Speed(Event Player, 130 + 5 * Global.Time5Min);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin);
+				Set Max Health(Event Player, 90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.500, False);
 				Set Move Speed(Event Player, 70);
-				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min + 10 * Global.Time10Min);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 5 * (55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin) / (
-					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.100 : 1));
+				Set Max Health(Event Player, 5 * (55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min) * (
+					Global.UpgradeBossHealthValue >= Global.UpgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
 				disabled Start Scaling Player(Event Player, 0.850, False);
 				Set Move Speed(Event Player, 110);
-				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min);
+				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.Time5Min + 10 * Global.Time10Min);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin);
+				Set Max Health(Event Player, 55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.TimeMin + 25 * Global.Time5Min + 50 * Global.Time10Min);
 			End;
 		End;
 		Wait(0.250, Ignore Condition);
@@ -2067,6 +2076,7 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 		Set Status(Event Player, Null, Phased Out, 3);
 		Set Facing(Event Player, Vector(-1, 0, 0), To World);
 		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= 29);
+		    Wait(0.250, Ignore Condition);
 			Teleport(Event Player, Event Player.deathPosition);
 		Else;
 			Teleport(Event Player, Global.PlayerSpawnPositions[Slot Of(Event Player) == Count Of(Global.PlayerSpawnPositions) ? Random Integer(
@@ -3463,7 +3473,7 @@ rule("BOT: WIDOW - TELEPORT TO NEW POSITION")
 	actions
 	{
 		Event Player.BotWidowTeleportTime = Total Time Elapsed + 28;
-		Event Player.BotWidowShotTime = Total Time Elapsed + Random Real(1, 1.600);
+		Event Player.BotWidowShotTime = Total Time Elapsed + (Global.TimeMin >= 9 ? Random Real(1, 3) : Random Real(3, 6));
 		Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Event Player, 1);
 		Wait(0.016, Ignore Condition);
 		Teleport(Event Player, Filtered Array(Global.SniperPositions, Distance Between(Event Player.BotEventPosition,
@@ -3473,7 +3483,6 @@ rule("BOT: WIDOW - TELEPORT TO NEW POSITION")
 		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Objective Position(2)), To World);
 		Play Effect(All Players(All Teams), Good Pickup Effect, Color(White), Event Player, 2);
 		Play Effect(All Players(All Teams), Debuff Impact Sound, Color(White), Event Player, 100);
-		Event Player.BotWidowShotTime = Total Time Elapsed + (Global.TimeMin >= 9 ? Random Real(2, 5) : Random Real(5, 10));
 	}
 }
 
@@ -4439,10 +4448,10 @@ rule("money on kill")
 	actions
 	{
 		If(Hero Of(Victim) == Hero(Zenyatta));
-			All Players(Team 1).Money[0] += 10 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
+			All Players(Team 1).Money[0] += 5 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
 			Global.StartMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
-			All Players(Team 1).Money[0] += 20 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
+			All Players(Team 1).Money[0] += 15 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
 			Global.StartMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
 		Else If(Hero Of(Victim) == Hero(Wrecking Ball));
 			All Players(Team 1).Money[0] += 25 * (Victim.isBoss ? 3 : 1) * Global.MoneyMult;
@@ -4479,9 +4488,6 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 		If(Custom String("{0}", Event Player) == Custom String("ShuriZma"));
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
 				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
-				Default Visibility);
-			disabled Create HUD Text(Event Player, Custom String("Last SW: {0}, SW Active {1}", Event Player.lastSecondWind,
-				Event Player.secondWindActive), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
 				Default Visibility);
 		End;
 	}
@@ -9000,14 +9006,9 @@ rule("Create Player HUD")
 {
 	event
 	{
-		Ongoing - Each Player;
+		Player Joined Match;
 		Team 1;
 		All;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
 	}
 
 	actions
@@ -9206,11 +9207,15 @@ rule("ending 1 part 1")
 
 	actions
 	{
-		Big Message(All Players(Team 1), Custom String("Exfiltration available! (optional - ends the mode)"));
-		Create In-World Text(All Players(Team 1), Custom String(
-			"Exfiltration available! Gather here!\n{0}/{1} Players ready to exfiltrate!", Count Of(Filtered Array(All Players(Team 1),
-			Distance Between(Vector(186, 11, -46.500), Current Array Element) <= 9)), Count Of(All Players(Team 1))), Vector(186, 15,
-			-46.500), 1.200, Do Not Clip, Visible To and String, Color(Green), Default Visibility);
+		Create HUD Text(All Players(Team 1), Custom String("Exfiltration available! (optional - ends the mode)"), Null, Null, Top, 50,
+        	Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
+        Global.GlobalHuds[1] = Last Text ID;
+        Create In-World Text(All Players(Team 1), Custom String(
+        	"Exfiltration available! Gather here!\n{0}/{1} Players ready to exfiltrate!", Count Of(Filtered Array(All Players(Team 1),
+        	Distance Between(Vector(186, 11, -46.500), Current Array Element) <= 9)), Count Of(All Players(Team 1))), Vector(186, 15,
+        	-46.500), 1.200, Do Not Clip, Visible To and String, Color(Green), Default Visibility);
+        Wait(3, Ignore Condition);
+        Destroy HUD Text(Global.GlobalHuds[1]);
 	}
 }
 
@@ -9314,4 +9319,37 @@ rule("Team 1 (Ability): Second Wind counter")
 		Event Player.lastSecondWind -= 1;
 		Loop If Condition Is True;
 	}
+}
+
+rule("Team 1: Change Hero")
+{
+    event
+    {
+        Ongoing - Each Player;
+        Team 1;
+        All;
+    }
+
+    conditions
+    {
+        Distance Between(Vector(149.000, 10, -62.000), All Players(Team 1)) <= 2;
+        Is Button Held(Event Player, Button(Interact)) == True;
+    }
+
+    actions
+    {
+        Set Player Allowed Heroes(Event Player, Hero(Pharah));
+        Set Player Allowed Heroes(Event Player, Hero(Ana));
+        If(Global.IsStoryHeroes);
+            Reset Player Hero Availability(Event Player);
+            Set Player Allowed Heroes(Event Player, Array(Hero(Ana), Hero(Brigitte), Hero(Mercy), Hero(Lúcio), Hero(Moira), Hero(Baptiste),
+                Hero(Ashe), Hero(D.Va), Hero(Genji), Hero(Hanzo), Hero(Widowmaker), Hero(Cassidy), Hero(Reinhardt), Hero(Soldier: 76), Hero(
+            	Torbjörn), Hero(Tracer), Hero(Winston), Hero(Pharah)));
+        Else;
+            Reset Player Hero Availability(Event Player);
+        End;
+        Wait(0.500, Ignore Condition);
+        Wait Until(Has Spawned(Event Player), 99999);
+        Teleport(Event Player, Vector(149.000, 10, -62.000));
+    }
 }

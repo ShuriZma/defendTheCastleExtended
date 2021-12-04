@@ -16,3 +16,17 @@ c123:
 -> Widow can't shoot right after teleporting
 -> Reduced amount of needed Echo & Boss kills from 10 to 5
 -> Fixed Mercy rez respawn position
+
+c124:
+-> Game now starts after 1 Player pressed Interact
+-> Changed the notification of the unlocked optional ending from a big message to a hud text, that stays for 3 seconds
+
+c125:
+-> Decreased money on kill by 5 for reinhardt and zenyatta
+-> Damage and health of all enemies increases all 5 + 10 Minutes (means all 10 minutes it actually increases twice)
+-> Made widow shoot faster again
+-> Added a circle at the spawn where you can change your hero anytime by pressing Interact
+
+c126:
+-> Fixed Huds being added when player switches hero using the circle at spawn
+-> Fixed player spawn position when player switches hero using the circle at the spawn
