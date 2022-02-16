@@ -1534,7 +1534,7 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 			Global.time5Min = Round To Integer(Global.timeMin / 5, Down);
 			Global.time10Min = Round To Integer(Global.timeMin / 10, Down);
 			Global.spawnPositionMaxId += 1;
-			disabled Start Rule(GameLogicAddNextHeroInGame, Restart Rule);
+			disabled Start Rule(gameLogicAddNextHeroInGame, Restart Rule);
 		Else If(Global.timeSec == 30);
 			Global.spawnPositionMaxId += 1;
 		End;
@@ -1547,7 +1547,7 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 	event
 	{
 		Subroutine;
-		GameLogicAddNextHeroInGame;
+		gameLogicAddNextHeroInGame;
 	}
 
 	actions
@@ -1592,7 +1592,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 	event
 	{
 		Subroutine;
-		GameLogicSetBotProperties;
+		gameLogicSetBotProperties;
 	}
 
 	actions
@@ -2035,21 +2035,21 @@ rule("SUBROUTINE: BOT - RESPAWN")
 		Enable Nameplates(Event Player, All Players(Team 1));
 		Call Subroutine(BotResetPathFinding);
 		disabled If(Hero Of(Event Player) != Event Player.currentHero);
-		Call Subroutine(GameLogicSetBotProperties);
+		Call Subroutine(gameLogicSetBotProperties);
 		disabled End;
 		"INDIVIDUAL HERO'S RESPAWN SCRIPTS"
 		If(Hero Of(Event Player) == Hero(Bastion));
-			Call Subroutine(BotBastionRespawn);
+			Call Subroutine(botBastionRespawn);
 		Else If(Hero Of(Event Player) == Hero(Zenyatta));
-			Call Subroutine(BotZenyattaRespawn);
+			Call Subroutine(botZenyattaRespawn);
 		Else If(Hero Of(Event Player) == Hero(Widowmaker));
-			Call Subroutine(BotWidowRespawn);
+			Call Subroutine(botWidowRespawn);
 		Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
-			Call Subroutine(BotBallRespawn);
+			Call Subroutine(botBallRespawn);
 		Else If(Hero Of(Event Player) == Hero(Orisa));
-			Call Subroutine(BotOrisaRespawn);
+			Call Subroutine(botOrisaRespawn);
 		Else If(Hero Of(Event Player) == Hero(Echo));
-			Call Subroutine(BotEchoRespawn);
+			Call Subroutine(botEchoRespawn);
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			Call Subroutine(BotReinRespawn);
 		End;
@@ -2200,7 +2200,7 @@ rule("SUBROUTINE: BOT - LANDING FROM SKY")
 	event
 	{
 		Subroutine;
-		BotLandingFromSky;
+		botLandingFromSky;
 	}
 
 	actions
@@ -2234,7 +2234,7 @@ rule("SUBROUTINE: BOT - APPEAR FROM UNDERGROUND")
 	event
 	{
 		Subroutine;
-		BotAppearFromUnderground;
+		botAppearFromUnderground;
 	}
 
 	actions
@@ -2453,12 +2453,12 @@ rule("SUBROUTINE: ZEN - RESPAWN")
 	event
 	{
 		Subroutine;
-		BotZenyattaRespawn;
+		botZenyattaRespawn;
 	}
 
 	actions
 	{
-		Call Subroutine(BotAppearFromUnderground);
+		Call Subroutine(botAppearFromUnderground);
 		Event Player.botTargetPosition = Global.gatePosition;
 		Event Player.botIsPathFinding = True;
 		Start Rule(BotStartPathFinding, Do Nothing);
@@ -2564,7 +2564,7 @@ rule("SUBROUTINE: BALL - RESPAWN")
 	event
 	{
 		Subroutine;
-		BotBallRespawn;
+		botBallRespawn;
 	}
 
 	actions
@@ -2674,7 +2674,7 @@ rule("BOT: ECHO - BAD STATUS - RESET BEAM")
 	actions
 	{
 		If(Event Player.botDoesUniqueBehaviour);
-			Call Subroutine(BotEchoDetachPlayer);
+			Call Subroutine(botEchoDetachPlayer);
 		End;
 		Wait Until(Event Player.hasBadStatus, 7);
 	}
@@ -2765,7 +2765,7 @@ disabled rule("BOT: ECHO - MAIN LOGIC - BACKUP")
 			Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Global.botEchoRespawnPosition, 1);
 			Teleport(Event Player.botSeePlayer, Random Value In Array(Global.botEchoTeleportPositions));
 			Set Status(Event Player.botSeePlayer, Event Player, Knocked Down, 1);
-			Call Subroutine(BotEchoDetachPlayer);
+			Call Subroutine(botEchoDetachPlayer);
 		"BEGIN TO FLY TO THE PORTAL"
 		Else If(Event Player.botDoesUniqueBehaviour == True);
 			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Global.botEchoRespawnPosition), 100, To World,
@@ -2820,7 +2820,7 @@ rule("BOT: ECHO - MAIN LOGIC - LOOP")
 			Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Global.botEchoRespawnPosition, 1);
 			Teleport(Event Player.botEchoCapturedPlayer, Random Value In Array(Global.botEchoTeleportPositions));
 			Set Status(Event Player.botEchoCapturedPlayer, Event Player, Knocked Down, 1);
-			Call Subroutine(BotEchoDetachPlayer);
+			Call Subroutine(botEchoDetachPlayer);
 		End;
 		"BEGIN TO FLY TO THE PORTAL WITH A PLAYER"
 		If(Event Player.botDoesUniqueBehaviour);
@@ -2868,7 +2868,7 @@ rule("BOT: ECHO - DEFEND PORTAL")
 
 	actions
 	{
-		Call Subroutine(BotEchoFlyToPortal);
+		Call Subroutine(botEchoFlyToPortal);
 	}
 }
 
@@ -2897,7 +2897,7 @@ rule("BOT: ECHO - CAN SEE PLAYER")
 		If(Event Player.botIsPathFinding);
 			Call Subroutine(BotResetPathFinding);
 		End;
-		Call Subroutine(BotEchoFlyToPlayer);
+		Call Subroutine(botEchoFlyToPlayer);
 	}
 }
 
@@ -2985,12 +2985,12 @@ rule("BOT: ECHO - PLAYER DEAD")
 	actions
 	{
 		If(Event Player.botDoesUniqueBehaviour);
-			Call Subroutine(BotEchoDetachPlayer);
+			Call Subroutine(botEchoDetachPlayer);
 		End;
 		If(Event Player.botIsPathFinding);
 			Call Subroutine(BotResetPathFinding);
 		End;
-		Call Subroutine(BotEchoFlyToPortal);
+		Call Subroutine(botEchoFlyToPortal);
 	}
 }
 
@@ -3005,7 +3005,7 @@ rule("BOT: ECHO - DEATH")
 
 	actions
 	{
-		Call Subroutine(BotEchoDetachPlayer);
+		Call Subroutine(botEchoDetachPlayer);
 		Stop Holding Button(Event Player, Button(Jump));
 		Wait(5, Ignore Condition);
 		Teleport(Event Player, Vector(0, 999, 0));
@@ -3018,7 +3018,7 @@ rule("SUBROUTINE: ECHO - RESPAWN")
 	event
 	{
 		Subroutine;
-		BotEchoRespawn;
+		botEchoRespawn;
 	}
 
 	actions
@@ -3048,7 +3048,7 @@ rule("SUBROUTINE: ECHO - FLY TO PLAYER")
 	event
 	{
 		Subroutine;
-		BotEchoFlyToPlayer;
+		botEchoFlyToPlayer;
 	}
 
 	actions
@@ -3066,7 +3066,7 @@ rule("SUBROUTINE: ECHO - FLY TO PORTAL")
 	event
 	{
 		Subroutine;
-		BotEchoFlyToPortal;
+		botEchoFlyToPortal;
 	}
 
 	actions
@@ -3084,7 +3084,7 @@ rule("SUBROUTINE: ECHO - DETACH PLAYER")
 	event
 	{
 		Subroutine;
-		BotEchoDetachPlayer;
+		botEchoDetachPlayer;
 	}
 
 	actions
@@ -3355,7 +3355,7 @@ rule("SUBROUTINE: REIN - RESPAWN")
 
 	actions
 	{
-		Call Subroutine(BotAppearFromUnderground);
+		Call Subroutine(botAppearFromUnderground);
 		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 360, To World,
 			Direction and Turn Rate);
 	}
@@ -3512,7 +3512,7 @@ rule("SUBROUTINE: WIDOW - RESPAWN")
 	event
 	{
 		Subroutine;
-		BotWidowRespawn;
+		botWidowRespawn;
 	}
 
 	actions
@@ -3593,7 +3593,7 @@ disabled rule("BOT: BASTION - FLAME GUN")
 		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Update Every Frame(Eye Position(Event Player) + World Vector Of(
 			Vector(-1, -1.200, 1.800), Event Player, Rotation)), 1, Visible To Position and Radius);
 		Event Player.botEffects = Last Created Entity;
-		Start Rule(BotBastionFlameGunDamage, Do Nothing);
+		Start Rule(botBastionFlameGunDamage, Do Nothing);
 		Wait(1.100, Ignore Condition);
 		Destroy Effect(Event Player.botEffects);
 		Wait(4, Ignore Condition);
@@ -3799,7 +3799,7 @@ rule("BOT: BASTION - ARTILLERY")
 		Start Throttle In Direction(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 1,
 			To World, Replace existing throttle, Direction and Magnitude);
 		Wait(1.500, Ignore Condition);
-		Start Rule(BotBastionArtilleryDamage, Do Nothing);
+		Start Rule(botBastionArtilleryDamage, Do Nothing);
 		Wait(4, Ignore Condition);
 	}
 }
@@ -3859,13 +3859,13 @@ rule("SUBROUTINE: BASTION - RESPAWN")
 	event
 	{
 		Subroutine;
-		BotBastionRespawn;
+		botBastionRespawn;
 	}
 
 	actions
 	{
 		Abort If(Event Player.botIsOrisaChild == True);
-		Call Subroutine(BotLandingFromSky);
+		Call Subroutine(botLandingFromSky);
 		Set Ammo(Event Player, 0, 0);
 		Wait Until(!Is Reloading(Event Player), 99999);
 		Event Player.botTargetPosition = Objective Position(2);
@@ -3877,7 +3877,7 @@ rule("SUBROUTINE: BASTION - ARTILLERY DAMAGE")
 	event
 	{
 		Subroutine;
-		BotBastionArtilleryDamage;
+		botBastionArtilleryDamage;
 	}
 
 	actions
@@ -3905,7 +3905,7 @@ disabled rule("SUBROUTINE: BASTION - FLAME GUN DAMAGE")
 	event
 	{
 		Subroutine;
-		BotBastionFlameGunDamage;
+		botBastionFlameGunDamage;
 	}
 
 	actions
@@ -4088,7 +4088,7 @@ rule("SUBROUTINE: ORISA - RESPAWN")
 	event
 	{
 		Subroutine;
-		BotOrisaRespawn;
+		botOrisaRespawn;
 	}
 
 	actions
@@ -4118,7 +4118,7 @@ rule("SUBROUTINE: ORISA - RESPAWN")
 		disabled Wait(1, Ignore Condition);
 		disabled Stop Holding Button(Global.botOrisaChild, Button(Primary Fire));
 		disabled Wait(0.250, Ignore Condition);
-		Call Subroutine(BotLandingFromSky);
+		Call Subroutine(botLandingFromSky);
 		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 360, To World,
 			Direction and Turn Rate);
 		Event Player.botTargetPosition = Global.botOrisaTargetPosition;
@@ -8516,7 +8516,7 @@ rule("Open Shop")
 		Event Player.playerFacing = Facing Direction Of(Event Player);
 		Start Camera(Event Player, Global.shopCamPosition, Global.shopCamPosition + Forward, 0);
 		Disable Hero HUD(Event Player);
-		Call Subroutine(DisablePlayer);
+		Call Subroutine(disablePlayer);
 		Set Aim Speed(Event Player, 200);
 	}
 }
@@ -8551,7 +8551,7 @@ rule("Subroutine: Disable Player")
 	event
 	{
 		Subroutine;
-		DisablePlayer;
+		disablePlayer;
 	}
 
 	actions
