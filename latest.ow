@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c128\nby ShuriZma#2349\nJ1K6F (Code Version: c126)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended v0.6.c129\nby ShuriZma#2349\nJ1K6F (Code Version: c129)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -646,7 +646,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend The Castle Extended v0.6.c128 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
+			"Defend The Castle Extended v0.6.c129 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To, Default Visibility);
@@ -658,7 +658,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 		Global.zenSpawnPositions = Array(Vector(79.500, 5, -100), Vector(90, 4, -88), Vector(65, 11, -70), Vector(85, 4, -68), Vector(96,
 			2, -73), Vector(84, 7, -47), Vector(95, 9, -34), Vector(108, 1.700, -28), Vector(113, 7, -37), Vector(123, 5, -19), Vector(144,
 			5, -19), Vector(123, 6, -39), Vector(123, 6, -61), Vector(129, 6, -30.500), Vector(135, 6, -63));
-		Global.playerSpawnPositions = Array(Vector(160, 10, -53), Vector(158, 10, -53), Vector(160, 10, -39), Vector(158, 10, -39));
+		Global.playerSpawnPositions = Array(Vector(160, 11, -53), Vector(158, 11, -53), Vector(160, 11, -39), Vector(158, 11, -39));
 		Global.bigBossSpawnPositions = Array(Vector(78, 4, -84), Vector(95, 4, -82));
 		Global.bastionTargetPositions = Array(Vector(131, 12, -62), Vector(115, 7, -46), Objective Position(2), Vector(136, 10, -27));
 		Global.spawnPositionMaxId = 2;
@@ -800,7 +800,7 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 		Global.upgradeMaxAmmoMaxValue[2] = 1000;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
-		Global.upgradeCriticalDamageMaxValue[2] = 5;
+		Global.upgradeCriticalDamageMaxValue[2] = 10;
 		Global.upgradePlayerMaxHealthMaxValue[0] = 2500;
 		Global.upgradePlayerMaxHealthMaxValue[1] = 5000;
 		Global.upgradePlayerMaxHealthMaxValue[2] = 10000;
@@ -2085,8 +2085,7 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 		"PLAYER RESPAWN"
 		Set Status(Event Player, Null, Phased Out, 3);
 		Set Facing(Event Player, Vector(-1, 0, 0), To World);
-		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= (1 - 0.250 * Players On Hero(Hero(Mercy), Team 1)
-			.abilities[6]) * Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) - 1);
+		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= 29);
 			Wait(0.250, Ignore Condition);
 			Teleport(Event Player, Event Player.deathPosition);
 		Else;
@@ -2441,7 +2440,7 @@ rule("BOT: ZEN - DEATH")
 			If(Event Player.isBoss == 1);
 				Global.gateHealth -= 125;
 			Else;
-				Global.gateHealth -= 25;
+				Global.gateHealth -= 25 + 5 * Global.time5Minutes;
 			End;
 			Start Rule(GateProgressBarColor, Restart Rule);
 			Respawn(Event Player);
@@ -2518,7 +2517,7 @@ rule("BOT: BALL - REACHED THE GATE")
 			If(Event Player.isBoss == 1);
 				Global.gateHealth -= 300;
 			Else;
-				Global.gateHealth -= 150;
+				Global.gateHealth -= 150 + 10 * Global.time5Minutes;
 			End;
 			Start Rule(GateProgressBarColor, Restart Rule);
 		End;
@@ -3242,9 +3241,9 @@ rule("BOT: REIN - ATTACK TARGET")
 		Abort If(Event Player.botTargetPlayer != -1);
 		If(Event Player.isBoss == 1);
 			"TARGET IS GATE"
-			Global.gateHealth -= 25;
+			Global.gateHealth -= 25 + 10 * Global.time10Minutes;
 		Else;
-			Global.gateHealth -= 5;
+			Global.gateHealth -= 5 + 5 * Global.time5Minutes;
 		End;
 		Start Rule(GateProgressBarColor, Restart Rule);
 		Wait(0.900, Ignore Condition);
@@ -4008,9 +4007,9 @@ rule("BOT: ORISA-BASTION - SHOOT")
 		While(Is Alive(Event Player));
 			disabled Create Effect(All Players(All Teams), Bad Aura, Color(Purple), Eye Position(Event Player) - Vector(0, 0.700, 0)
 				+ Facing Direction Of(Event Player) * 3.200, 1, Visible To Position and Radius);
-			disabled Event Player.botEffects = Last Created Entity;
+			Event Player.botEffects = Last Created Entity;
 			Wait(1.500, Ignore Condition);
-			disabled Destroy Effect(Event Player.botEffects);
+			Destroy Effect(Event Player.botEffects);
 			Abort If(Is Dead(Event Player));
 			Press Button(Event Player, Button(Primary Fire));
 			Press Button(Event Player, Button(Reload));
@@ -4030,7 +4029,7 @@ rule("BOT: ORISA-BASTION - SHOOT")
 			Play Effect(All Players(All Teams), Sombra EMP Explosion Sound, Color(Purple), Eye Position(Event Player), 170);
 			If(Distance Between(Event Player.botRayCastHitPosition, Global.gatePosition) < 4 && Is In Line of Sight(
 				Event Player.botRayCastHitPosition, Global.gatePosition, Enemy Barriers Block LOS));
-				Global.gateHealth -= 80;
+				Global.gateHealth -= 80 + 10 * Global.time5Minutes;
 				Start Rule(GateProgressBarColor, Restart Rule);
 			End;
 			Wait(0.150, Ignore Condition);
