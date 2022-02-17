@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c127\nby ShuriZma#2349\nJ1K6F (Code Version: c126)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended v0.6.c127\nby ShuriZma#2349\nJ1K6F (Code Version: c126)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -48,11 +48,6 @@ settings
 	extensions
 	{
 		Beam Effects
-        Beam Sounds
-        Buff Status Effects
-        Debuff Status Effects
-        Buff and Debuff Sounds
-        Energy Explosion Effects
         Kinetic Explosion Effects
         Explosion Sounds
         Play More Effects
@@ -79,12 +74,12 @@ variables
 		13: sniperPositions
 		14: ballSpawnPositions
 		15: zenRespawnTime
-		16: timeSec
-		17: timeMin
-		18: time5Min
-		19: time10Min
-		20: isDebug
-		21: isDebugAINavigation
+		16: timeSeconds
+		17: timeMinutes
+		18: defaultCurrentBot
+		19: defaultHeroBotsPool
+		20: defaultHeroBotsPoolCurrentId
+		21: isDebug
 		22: botOrisaParent
 		23: isStoryHeroes
 		24: botOrisaChild
@@ -105,16 +100,16 @@ variables
 		39: upgradeCriticalDamageMaxValue
 		40: upgradeGateMaxHealthMaxValue
 		41: damageDealt
-		42: selfNanoWorkshopSetting
+		42: isDebugAINavigation
 		43: gameLogicCountOfUniqueHeroes
 		44: isNewWaveGameLogicProcessing
-		45: autoRepair
+		45: automaticRepair
 		46: upgradePerkSharpshooterValue
 		47: perk
 		48: maxHealthDone
-		49: defaultCurrentBot
-		50: defaultHeroBotsPool
-		51: defaultHeroBotsPoolCurrentId
+		49: startMoney
+		50: time5Minutes
+		51: selfNanoWorkshopSetting
 		52: shopCamPosition
 		53: shopBasePosition
 		54: shopPositionAngle
@@ -122,23 +117,23 @@ variables
 		56: bossTrigger
 		57: bossRotation
 		58: lastBoss
-		59: startMoney
+		59: time10Minutes
 		60: moneyMultiplier
 		61: challengeCount
 		62: upgradeBossHealthValue
 		63: globalHUDs
 		112: allPositions
 		113: allDirections
-		114: wallFirstPosition
-		115: wallSecondPosition
-		116: wallFirstPoint
-		117: wallSecondPoint
+		114: firstPosition
+		115: secondPosition
+		116: firstPoint
+		117: secondPoint
 		118: second
 		119: z
 		120: wallId
 		121: showWalls
 		122: isGrounded
-		123: BeamType
+		123: beamType
 		124: x
 		125: nodePositions
 		126: nodeConnections
@@ -151,7 +146,7 @@ variables
 		3: botRayCastHitPosition
 		4: botEventPosition
 		5: currentHero
-		6: modificationDamage
+		6: isDead
 		7: isRespawning
 		8: botBastionArtilleryDidShotsCount
 		9: botCounter
@@ -161,45 +156,46 @@ variables
 		13: botIsOrisaChild
 		14: botEchoCapturedPlayer
 		15: botPlayersInRadius
-		16: botWidowShotTime
-		17: botWidowTeleportTime
-		18: effects_
-		19: anaEntityID
-		20: money
+		16: botLoopIterator2
+		17: botWidowShotTime
+		18: botWidowTeleportTime
+		19: isNanoed
+		20: abilityHUD
 		21: lucioDashActive
 		22: lucioDashIcon
-		23: heroTalentText
-		24: damageDealt
-		25: hpPool
-		26: playerHealth
-		27: abilities
-		28: abilityCountdown
-		29: abilityHUD
-		30: abilityProjectile1
-		31: abilityProjectile2
-		32: abilityEnd
-		33: abilityPosition
-		34: abilityActive
-		35: abilityResource
-		36: abilityPlayer
+		23: anaEntityID
+		24: abilities
+		25: money
+		26: heroTalentText
+		27: damageDealt
+		28: playerHealth
+		29: abilityCountdown
+		30: hpPool
+		31: effects_
+		32: abilityProjectile1
+		33: abilityEnd
+		34: stormProjectile
+		35: stormEndPoint
+		36: stormEffects
 		37: fearedUntil
-		38: stormEffects
-		39: stormProjectile
-		40: stormEndPoint
+		38: modificationDamage
+		39: abilityProjectile2
+		40: abilityPosition
 		41: chainReactionOn
 		42: chainReactionImmune
-		43: isDead
-		44: isNanoed
-		45: isInMenu
-		46: isBoss
+		43: abilityActive
+		44: abilityResource
+		45: secondWindActive
+		46: isInMenu
 		47: reinPin
 		48: playerFacing
-		49: genDirection
-		50: genAvailable
-		51: secondWindActive
-		52: lastSecondWind
-		53: deathPosition
-		104: x
+		49: isBoss
+		50: genDirection
+		51: genAvailable
+		52: abilityPlayer
+		53: abilityCountdown
+		54: lastSecondWind
+		55: deathPosition
 		105: filterPosition
 		106: lastSavedPosition
 		107: closestBodyPosition
@@ -207,11 +203,11 @@ variables
 		109: previousPositionIntersection
 		110: activeWall
 		111: closestWall
-		112: intersectionLength
-		113: thickness
-		114: botCancelPathFinding
-		115: botLoopIterator1
-		116: botLoopIterator2
+		112: x
+		113: intersectionLength
+		114: thickness
+		115: botCancelPathFinding
+		116: botLoopIterator1
 		117: botTempArray
 		118: botTargetPlayer
 		119: botTargetPosition
@@ -227,7 +223,7 @@ variables
 
 subroutines
 {
-    0: BotBastionArtilleryDamage
+	0: BotBastionArtilleryDamage
 	1: BotBastionFlameGunDamage
 	2: BotBastionRespawn
 	3: GateProgressBarColor
@@ -631,9 +627,9 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 	{
 		Global.isDebug = False;
 		Global.isDebugAINavigation = False;
-		Global.gateMaxHealth = Workshop Setting Integer(Custom String("Defend The Castle Extended"), Custom String("Gate Max Health"), 500, 100, 1000,
+		Global.gateMaxHealth = Workshop Setting Integer(Custom String("Defend The Castle Extended"), Custom String("GATE MAX HEALTH"), 500, 100, 1000,
 			0);
-		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("money Multiplicator"), 1, 0.500, 2, 0);
+		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"), 1, 0.500, 2, 0);
 		Global.isStoryHeroes = Workshop Setting Toggle(Custom String("Defend The Castle Extended"), Custom String("Story Heroes"), True, 0);
 		Global.selfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
@@ -651,7 +647,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	{
 		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
 			"Defend The Castle Extended v0.6.c127 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}", Custom String(
-			"Special Thanks to:\nShingen#21859 for the abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
+			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To,
 			Default Visibility);
 		Global.gateRepairPosition = Vector(153, 8, -46.500);
@@ -699,7 +695,7 @@ disabled rule("PLAYER: DEBUG - PRESS  INTERACT")
 		disabled Modify Player Score(Event Player, 10);
 		disabled Global.gateHealth -= 5;
 		disabled Start Rule(GateProgressBarColor, Restart Rule);
-		Global.timeSec = 59;
+		Global.timeSeconds = 59;
 		Set Status(Event Player, Null, Phased Out, 9999);
 		disabled Set Ultimate Charge(Event Player, 100);
 		disabled Kill(Event Player, Null);
@@ -1476,8 +1472,8 @@ rule("GLOBAL: GAME IN PROGRESS")
 		Create Progress Bar HUD Text(All Players(Team 1), Global.gateHealthChase * 100 / Global.gateMaxHealth, Custom String(
 			"GATE {0}/{1}", Global.gateHealth, Global.gateMaxHealth), Top, 1, Global.gateProgressBarColorCurrent, Color(White),
 			Visible To Values and Color, Default Visibility);
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.timeMin,
-			Global.timeSec < 10 ? Custom String("0{0}", Global.timeSec) : Global.timeSec), Top, 2, Color(White), Color(White), Color(
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.timeMinutes,
+			Global.timeSeconds < 10 ? Custom String("0{0}", Global.timeSeconds) : Global.timeSeconds), Top, 2, Color(White), Color(White), Color(
 			White), Visible To and String, Default Visibility);
 		Start Rule(GameLogicWave0, Do Nothing);
 	}
@@ -1527,15 +1523,15 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 	actions
 	{
 		Wait(1, Ignore Condition);
-		Global.timeSec += 1;
-		If(Global.timeSec == 60);
-			Global.timeSec = 0;
-			Global.timeMin += 1;
-			Global.time5Min = Round To Integer(Global.timeMin / 5, Down);
-			Global.time10Min = Round To Integer(Global.timeMin / 10, Down);
+		Global.timeSeconds += 1;
+		If(Global.timeSeconds == 60);
+			Global.timeSeconds = 0;
+			Global.timeMinutes += 1;
+			Global.time5Minutes = Round To Integer(Global.timeMinutes / 5, Down);
+			Global.time10Minutes = Round To Integer(Global.timeMinutes / 10, Down);
 			Global.spawnPositionMaxId += 1;
 			disabled Start Rule(GameLogicAddNextHeroInGame, Restart Rule);
-		Else If(Global.timeSec == 30);
+		Else If(Global.timeSeconds == 30);
 			Global.spawnPositionMaxId += 1;
 		End;
 		Loop If Condition Is True;
@@ -1598,11 +1594,11 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 	actions
 	{
 		Abort If(Event Player.botIsOrisaChild == True);
-		If(Global.timeMin >= 10);
+		If(Global.timeMinutes >= 10);
 			If(Filtered Array(Global.lastBoss, Current Array Element == Hero Of(Event Player)) == False);
 				If(Global.activeBoss == False);
-					If(Global.bossTrigger < Global.timeMin);
-						Global.bossTrigger = Global.timeMin;
+					If(Global.bossTrigger < Global.timeMinutes);
+						Global.bossTrigger = Global.timeMinutes;
 						Global.activeBoss = Event Player;
 						Event Player.isBoss = 1;
 						Big Message(All Players(Team 1), Custom String("BOSS SPAWNED - {0}", Hero Of(Event Player)));
@@ -1619,97 +1615,97 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 		If(Hero Of(Event Player) == Hero(Zenyatta));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 30);
-				Set Max Health(Event Player, 10 * (100 + 10 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min) * (
+				Set Max Health(Event Player, 10 * (100 + 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 1.500, False);
 			Else;
-				If(20 + 3 * Number Of Players(Team 1) + 3 * Global.timeMin > 75);
+				If(20 + 3 * Number Of Players(Team 1) + 3 * Global.timeMinutes > 75);
 					Set Move Speed(Event Player, 75);
 				Else;
-					Set Move Speed(Event Player, 20 + 3 * Count Of(All Players(Team 1)) + 3 * Global.timeMin);
+					Set Move Speed(Event Player, 20 + 3 * Count Of(All Players(Team 1)) + 3 * Global.timeMinutes);
 				End;
-				Set Max Health(Event Player, 100 + 10 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min);
+				Set Max Health(Event Player, 100 + 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 20);
-				Set Max Health(Event Player, 5 * (70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min) * (
+				Set Max Health(Event Player, 5 * (70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
-				If(30 + Global.timeMin + 2.500 * Global.time5Min > 40);
+				If(30 + Global.timeMinutes + 2.500 * Global.time5Minutes > 40);
 					Set Move Speed(Event Player, 40);
 				Else;
-					Set Move Speed(Event Player, 30 + Global.timeMin + 2.500 * Global.time5Min);
+					Set Move Speed(Event Player, 30 + Global.timeMinutes + 2.500 * Global.time5Minutes);
 				End;
 				Set Ultimate Charge(Event Player, 0);
-				Set Max Health(Event Player, 70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min);
+				Set Max Health(Event Player, 70 + 20 * Count Of(All Players(Team 1)) + 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Widowmaker));
 			If(Event Player.isBoss == 1);
-				Set Damage Dealt(Event Player, 2 * (85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.time5Min + 50 * Global.time10Min));
+				Set Damage Dealt(Event Player, 2 * (85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.time5Minutes + 50 * Global.time10Minutes));
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 5 * (100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.timeMin + 15 * Global.time5Min + 40 * Global.time10Min) * (
+				Set Max Health(Event Player, 5 * (100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.timeMinutes + 15 * Global.time5Minutes + 40 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Event Player.botCounter = 0;
-				Set Damage Dealt(Event Player, 85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.time5Min + 50 * Global.time10Min);
+				Set Damage Dealt(Event Player, 85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.timeMin + 15 * Global.time5Min + 40 * Global.time10Min);
+				Set Max Health(Event Player, 100 + 25 * Count Of(All Players(Team 1)) + 5 * Global.timeMinutes + 15 * Global.time5Minutes + 40 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Bastion));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 50);
-				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Min + 10 * Global.time10Min);
+				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
 				Start Scaling Player(Event Player, 3, False);
-				Set Max Health(Event Player, 5 * (155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.timeMin + 40 * Global.time5Min + 65 * Global.time10Min) * (
+				Set Max Health(Event Player, 5 * (155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.timeMinutes + 40 * Global.time5Minutes + 65 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
 				Set Move Speed(Event Player, 80);
-				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Min + 10 * Global.time10Min);
+				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
 				Start Scaling Player(Event Player, 2, False);
-				Set Max Health(Event Player, 155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.timeMin + 40 * Global.time5Min + 65 * Global.time10Min);
+				Set Max Health(Event Player, 155 + 150 * Count Of(All Players(Team 1)) + 20 * Global.timeMinutes + 40 * Global.time5Minutes + 65 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Orisa));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 5 * (220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.time5Min + 100 * Global.time10Min) * (
+				Set Max Health(Event Player, 5 * (220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.time5Minutes + 100 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
-				Set Move Speed(Event Player, 30 + 5 * Global.time5Min);
+				Set Move Speed(Event Player, 30 + 5 * Global.time5Minutes);
 			Else;
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.time5Min + 100 * Global.time10Min);
-				Set Move Speed(Event Player, 90 + 5 * Global.time5Min);
+				Set Max Health(Event Player, 220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.time5Minutes + 100 * Global.time10Minutes);
+				Set Move Speed(Event Player, 90 + 5 * Global.time5Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Echo));
 			If(Event Player.isBoss == 1);
 				Set Gravity(Event Player, 40);
-				Set Move Speed(Event Player, 70 + 5 * Global.time5Min);
+				Set Move Speed(Event Player, 70 + 5 * Global.time5Minutes);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 5 * (90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min) * (
+				Set Max Health(Event Player, 5 * (90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Set Gravity(Event Player, 40);
-				Set Move Speed(Event Player, 130 + 5 * Global.time5Min);
+				Set Move Speed(Event Player, 130 + 5 * Global.time5Minutes);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min);
+				Set Max Health(Event Player, 90 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.500, False);
 				Set Move Speed(Event Player, 70);
-				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Min + 10 * Global.time10Min);
+				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 5 * (55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min) * (
+				Set Max Health(Event Player, 5 * (55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
 				disabled Start Scaling Player(Event Player, 0.850, False);
 				Set Move Speed(Event Player, 110);
-				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Min + 10 * Global.time10Min);
+				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMin + 25 * Global.time5Min + 50 * Global.time10Min);
+				Set Max Health(Event Player, 55 + 25 * Count Of(All Players(Team 1)) + 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
 			End;
 		End;
 		Wait(0.250, Ignore Condition);
@@ -2243,7 +2239,7 @@ rule("SUBROUTINE: BOT - APPEAR FROM UNDERGROUND")
 		Wait(0.200, Ignore Condition);
 		Set Gravity(Event Player, 20);
 		Disable Movement Collision With Environment(Event Player, True);
-		Teleport(Event Player, Global.zenSpawnPositions[Random Integer(Min(Global.timeMin, Count Of(Global.zenSpawnPositions) - 10), Min(
+		Teleport(Event Player, Global.zenSpawnPositions[Random Integer(Min(Global.timeMinutes, Count Of(Global.zenSpawnPositions) - 10), Min(
 			Global.spawnPositionMaxId, Count Of(Global.zenSpawnPositions) - 4))] + Vector(0, -1.500, 0));
 		Wait(0.016, Ignore Condition);
 		Play Effect(All Players(All Teams), Sigma Accretion Impact Effect, Custom Color(220, 175, 100, 255), Eye Position(Event Player),
@@ -3396,7 +3392,7 @@ rule("BOT: WIDOW - SEE PLAYER")
 		Event Player.botSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
 			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
 			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
-		Event Player.botWidowShotTime = Total Time Elapsed + (Global.timeMin >= 9 ? Random Real(2, 5) : Random Real(5, 10));
+		Event Player.botWidowShotTime = Total Time Elapsed + (Global.timeMinutes >= 9 ? Random Real(2, 5) : Random Real(5, 10));
 		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.botSeePlayer)), 9999, To World,
 			Direction and Turn Rate);
 	}
@@ -3477,7 +3473,7 @@ rule("BOT: WIDOW - TELEPORT TO NEW POSITION")
 	actions
 	{
 		Event Player.botWidowTeleportTime = Total Time Elapsed + 28;
-		Event Player.botWidowShotTime = Total Time Elapsed + (Global.timeMin >= 9 ? Random Real(1, 3) : Random Real(3, 6));
+		Event Player.botWidowShotTime = Total Time Elapsed + (Global.timeMinutes >= 9 ? Random Real(1, 3) : Random Real(3, 6));
 		Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Event Player, 1);
 		Wait(0.016, Ignore Condition);
 		Teleport(Event Player, Filtered Array(Global.sniperPositions, Distance Between(Event Player.botEventPosition,
@@ -4136,7 +4132,7 @@ rule("GLOBAL: GAME LOGIC - MIN 0 - ZENS, REINS, BALL")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 0;
+		Global.timeMinutes == 0;
 	}
 
 	actions
@@ -4177,7 +4173,7 @@ rule("GLOBAL: GAME LOGIC - MIN 1 - WIDOW")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 1;
+		Global.timeMinutes == 1;
 	}
 
 	actions
@@ -4209,7 +4205,7 @@ rule("GLOBAL: GAME LOGIC - MIN 3 - BALL")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 3;
+		Global.timeMinutes == 3;
 	}
 
 	actions
@@ -4247,7 +4243,7 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 5;
+		Global.timeMinutes == 5;
 	}
 
 	actions
@@ -4311,7 +4307,7 @@ rule("GLOBAL: GAME LOGIC - MIN 7 - BASTION")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 7;
+		Global.timeMinutes == 7;
 	}
 
 	actions
@@ -4345,7 +4341,7 @@ rule("GLOBAL: GAME LOGIC - MIN 9 - ECHO, +1 BASTION")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 9;
+		Global.timeMinutes == 9;
 	}
 
 	actions
@@ -4475,7 +4471,7 @@ rule("money on kill")
 	}
 }
 
-rule("abilities and Hero Talents by Shingen and LemonAid")
+rule("Abilities and Hero Talents by Shingen and LemonAid")
 {
 	event
 	{
@@ -4819,18 +4815,18 @@ rule("Auto Repair")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.autoRepair == True;
+		Global.automaticRepair == True;
 		Global.gateHealth < Global.gateMaxHealth;
 	}
 
 	actions
 	{
 		If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2]);
-			Global.gateHealth += 10 * Global.autoRepair;
-			Global.upgradeGateMaxHealthValue += 10 * Global.autoRepair;
+			Global.gateHealth += 10 * Global.automaticRepair;
+			Global.upgradeGateMaxHealthValue += 10 * Global.automaticRepair;
 		Else;
-			Global.gateHealth += 5 * Global.autoRepair;
-			Global.upgradeGateMaxHealthValue += 5 * Global.autoRepair;
+			Global.gateHealth += 5 * Global.automaticRepair;
+			Global.upgradeGateMaxHealthValue += 5 * Global.automaticRepair;
 		End;
 		If(Global.gateHealth > Global.gateMaxHealth);
 			Global.gateHealth = Global.gateMaxHealth;
@@ -7806,7 +7802,7 @@ rule("Remove Auto Repair when Player leaves")
 
 	actions
 	{
-		Global.autoRepair -= Event Player.abilities[16];
+		Global.automaticRepair -= Event Player.abilities[16];
 	}
 }
 
@@ -7820,7 +7816,7 @@ rule("Refund")
 
 	actions
 	{
-		"Refund money"
+		"Refund Money"
 		Event Player.money[0] += Event Player.money[1];
 		Event Player.money[1] = 0;
 		"Reset Headhunter"
@@ -7860,8 +7856,8 @@ rule("Refund")
 		"Reset Healing"
 		Event Player.abilities[15] = 0;
 		Set Healing Dealt(Event Player, 100 + Event Player.abilities[15] * 5);
-		"Reset autoRepair"
-		Global.autoRepair -= Event Player.abilities[16];
+		"Reset automaticRepair"
+		Global.automaticRepair -= Event Player.abilities[16];
 		Event Player.abilities[16] = 0;
 	}
 }
@@ -8022,14 +8018,14 @@ rule("Initial Global")
 	{
 		Global.allPositions = Empty Array;
 		Global.allDirections = Empty Array;
-		Global.wallFirstPosition = Empty Array;
-		Global.wallSecondPosition = Empty Array;
-		Global.wallFirstPoint = Empty Array;
-		Global.wallSecondPoint = Empty Array;
+		Global.firstPosition = Empty Array;
+		Global.secondPosition = Empty Array;
+		Global.firstPoint = Empty Array;
+		Global.secondPoint = Empty Array;
 		Global.second = Empty Array;
 		Global.z = Empty Array;
 		Global.wallId = Empty Array;
-		Global.BeamType = Empty Array;
+		Global.beamType = Empty Array;
 	}
 }
 
@@ -8073,19 +8069,19 @@ rule("Collision Logic")
 		Event Player.lastSavedPosition = (Eye Position(Event Player) + Position Of(Event Player)) / 2;
 		Wait(0.016, Ignore Condition);
 		Event Player.closestWall = Filtered Array(Global.allPositions, Distance Between(Global.allPositions[Current Array Index], Event Player)
-			<= Distance Between(Global.allPositions[Current Array Index], Global.wallFirstPosition[Current Array Index])
+			<= Distance Between(Global.allPositions[Current Array Index], Global.firstPosition[Current Array Index])
 			|| Event Player.activeWall[Current Array Index] == 1 || (Dot Product(Direction Towards(Current Array Element,
 			Event Player.lastSavedPosition), Global.allDirections[Current Array Index]) > 0) != (Dot Product(Direction Towards(Current Array Element,
 			Event Player), Global.allDirections[Current Array Index]) > 0));
 		For Player Variable(Event Player, x, 0, Count Of(Event Player.closestWall), 1);
 			Global.z = Index Of Array Value(Global.allPositions, Event Player.closestWall[Event Player.x]);
 			If(Global.wallId[Global.z] == 1 || Global.wallId[Global.z] == 3 || Global.wallId[Global.z] == 5);
-				If(Y Component Of(Global.wallFirstPosition[Global.z]) >= Y Component Of(Position Of(Event Player)) && Y Component Of(
-					Global.wallFirstPosition[Global.z]) <= Y Component Of(Eye Position(Event Player) + Vector(Empty Array, 0.200, Empty Array)));
-					Event Player.closestBodyPosition = Global.wallFirstPosition[Global.z];
-				Else If(Y Component Of(Global.wallSecondPosition[Global.z]) >= Y Component Of(Position Of(Event Player)) && Y Component Of(
-						Global.wallSecondPosition[Global.z]) <= Y Component Of(Eye Position(Event Player) + Vector(Empty Array, 0.200, Empty Array)));
-					Event Player.closestBodyPosition = Global.wallSecondPosition[Global.z];
+				If(Y Component Of(Global.firstPosition[Global.z]) >= Y Component Of(Position Of(Event Player)) && Y Component Of(
+					Global.firstPosition[Global.z]) <= Y Component Of(Eye Position(Event Player) + Vector(Empty Array, 0.200, Empty Array)));
+					Event Player.closestBodyPosition = Global.firstPosition[Global.z];
+				Else If(Y Component Of(Global.secondPosition[Global.z]) >= Y Component Of(Position Of(Event Player)) && Y Component Of(
+						Global.secondPosition[Global.z]) <= Y Component Of(Eye Position(Event Player) + Vector(Empty Array, 0.200, Empty Array)));
+					Event Player.closestBodyPosition = Global.secondPosition[Global.z];
 				Else;
 					Event Player.closestBodyPosition = Position Of(Event Player);
 				End;
@@ -8101,16 +8097,16 @@ rule("Collision Logic")
 							/ Dot Product(Direction Towards(Event Player.lastSavedPosition, Event Player.fullBodyPosition), Global.allDirections[Global.z]);
 						Event Player.previousPositionIntersection = Event Player.fullBodyPosition + Direction Towards(Event Player.lastSavedPosition,
 							Event Player.fullBodyPosition) * Vector(1, Empty Array, 1) * Event Player.intersectionLength;
-						If(Dot Product(Direction Towards(Global.wallFirstPosition[Global.z], Vector(X Component Of(Global.wallSecondPosition[Global.z]), Y Component Of(
-							Global.wallFirstPosition[Global.z]), Z Component Of(Global.wallSecondPosition[Global.z]))), Direction Towards(Global.wallFirstPosition[Global.z],
-							Event Player.previousPositionIntersection)) >= 0 && Dot Product(Direction Towards(Global.wallFirstPosition[Global.z], Vector(X Component Of(
-							Global.wallFirstPosition[Global.z]), Y Component Of(Global.wallSecondPosition[Global.z]), Z Component Of(Global.wallFirstPosition[Global.z]))),
-							Direction Towards(Global.wallFirstPosition[Global.z], Event Player.previousPositionIntersection)) >= 0 && Dot Product(Direction Towards(
-							Global.wallSecondPosition[Global.z], Vector(X Component Of(Global.wallSecondPosition[Global.z]), Y Component Of(Global.wallFirstPosition[Global.z]),
-							Z Component Of(Global.wallSecondPosition[Global.z]))), Direction Towards(Global.wallSecondPosition[Global.z], Event Player.previousPositionIntersection))
-							>= 0 && Dot Product(Direction Towards(Global.wallSecondPosition[Global.z], Vector(X Component Of(Global.wallFirstPosition[Global.z]),
-							Y Component Of(Global.wallSecondPosition[Global.z]), Z Component Of(Global.wallFirstPosition[Global.z]))), Direction Towards(
-							Global.wallSecondPosition[Global.z], Event Player.previousPositionIntersection)) >= 0);
+						If(Dot Product(Direction Towards(Global.firstPosition[Global.z], Vector(X Component Of(Global.secondPosition[Global.z]), Y Component Of(
+							Global.firstPosition[Global.z]), Z Component Of(Global.secondPosition[Global.z]))), Direction Towards(Global.firstPosition[Global.z],
+							Event Player.previousPositionIntersection)) >= 0 && Dot Product(Direction Towards(Global.firstPosition[Global.z], Vector(X Component Of(
+							Global.firstPosition[Global.z]), Y Component Of(Global.secondPosition[Global.z]), Z Component Of(Global.firstPosition[Global.z]))),
+							Direction Towards(Global.firstPosition[Global.z], Event Player.previousPositionIntersection)) >= 0 && Dot Product(Direction Towards(
+							Global.secondPosition[Global.z], Vector(X Component Of(Global.secondPosition[Global.z]), Y Component Of(Global.firstPosition[Global.z]),
+							Z Component Of(Global.secondPosition[Global.z]))), Direction Towards(Global.secondPosition[Global.z], Event Player.previousPositionIntersection))
+							>= 0 && Dot Product(Direction Towards(Global.secondPosition[Global.z], Vector(X Component Of(Global.firstPosition[Global.z]),
+							Y Component Of(Global.secondPosition[Global.z]), Z Component Of(Global.firstPosition[Global.z]))), Direction Towards(
+							Global.secondPosition[Global.z], Event Player.previousPositionIntersection)) >= 0);
 							Cancel Primary Action(Event Player);
 							Teleport(Event Player, Event Player.previousPositionIntersection + Direction Towards(Event Player.previousPositionIntersection,
 								Event Player.lastSavedPosition) * Vector(1, Empty Array, 1) * 2);
@@ -8124,15 +8120,15 @@ rule("Collision Logic")
 					Event Player.thickness = 1;
 				End;
 				If(Distance Between(Event Player.fullBodyPosition, Event Player.filterPosition) <= Event Player.thickness && Dot Product(Direction Towards(
-					Global.wallFirstPosition[Global.z], Vector(X Component Of(Global.wallSecondPosition[Global.z]), Y Component Of(Global.wallFirstPosition[Global.z]),
-					Z Component Of(Global.wallSecondPosition[Global.z]))), Direction Towards(Global.wallFirstPosition[Global.z], Event Player.filterPosition))
-					>= 0 && Dot Product(Direction Towards(Global.wallFirstPosition[Global.z], Vector(X Component Of(Global.wallFirstPosition[Global.z]),
-					Y Component Of(Global.wallSecondPosition[Global.z]), Z Component Of(Global.wallFirstPosition[Global.z]))), Direction Towards(
-					Global.wallFirstPosition[Global.z], Event Player.filterPosition)) >= 0 && Dot Product(Direction Towards(Global.wallSecondPosition[Global.z], Vector(
-					X Component Of(Global.wallSecondPosition[Global.z]), Y Component Of(Global.wallFirstPosition[Global.z]), Z Component Of(
-					Global.wallSecondPosition[Global.z]))), Direction Towards(Global.wallSecondPosition[Global.z], Event Player.filterPosition)) >= 0 && Dot Product(
-					Direction Towards(Global.wallSecondPosition[Global.z], Vector(X Component Of(Global.wallFirstPosition[Global.z]), Y Component Of(
-					Global.wallSecondPosition[Global.z]), Z Component Of(Global.wallFirstPosition[Global.z]))), Direction Towards(Global.wallSecondPosition[Global.z],
+					Global.firstPosition[Global.z], Vector(X Component Of(Global.secondPosition[Global.z]), Y Component Of(Global.firstPosition[Global.z]),
+					Z Component Of(Global.secondPosition[Global.z]))), Direction Towards(Global.firstPosition[Global.z], Event Player.filterPosition))
+					>= 0 && Dot Product(Direction Towards(Global.firstPosition[Global.z], Vector(X Component Of(Global.firstPosition[Global.z]),
+					Y Component Of(Global.secondPosition[Global.z]), Z Component Of(Global.firstPosition[Global.z]))), Direction Towards(
+					Global.firstPosition[Global.z], Event Player.filterPosition)) >= 0 && Dot Product(Direction Towards(Global.secondPosition[Global.z], Vector(
+					X Component Of(Global.secondPosition[Global.z]), Y Component Of(Global.firstPosition[Global.z]), Z Component Of(
+					Global.secondPosition[Global.z]))), Direction Towards(Global.secondPosition[Global.z], Event Player.filterPosition)) >= 0 && Dot Product(
+					Direction Towards(Global.secondPosition[Global.z], Vector(X Component Of(Global.firstPosition[Global.z]), Y Component Of(
+					Global.secondPosition[Global.z]), Z Component Of(Global.firstPosition[Global.z]))), Direction Towards(Global.secondPosition[Global.z],
 					Event Player.filterPosition)) >= 0);
 					If(!Global.isGrounded);
 						Set Gravity(Event Player, 100);
@@ -8185,74 +8181,6 @@ rule("Reset")
 	}
 }
 
-disabled rule("Effect Creation")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Wait(5, Ignore Condition);
-		If(Global.showWalls);
-			For Global Variable(x, 0, Count Of(Global.allPositions), 1);
-				If(Global.wallId[Global.x] == 5);
-					Create Beam Effect(All Players(Team 1), Good Beam, Global.wallFirstPosition[Global.x], Vector(X Component Of(Global.wallSecondPosition[Global.x]),
-						Y Component Of(Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Color(Red), None);
-					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.wallSecondPosition[Global.x]), Y Component Of(
-						Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Red), None);
-					Create Beam Effect(All Players(Team 1), Good Beam, Global.wallFirstPosition[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
-						X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(Global.wallSecondPosition[Global.x]), Z Component Of(
-						Global.wallFirstPosition[Global.x])), Color(Red), None);
-					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(
-						Global.wallSecondPosition[Global.x]), Z Component Of(Global.wallFirstPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Red), None);
-				Else;
-					Skip(Array(14, 0, 5, 10)[Index Of Array Value(Array(1, 2, 3), Global.BeamType[Global.x]) + 1]);
-					Create Beam Effect(All Players(Team 1), Grapple Beam, Global.wallFirstPosition[Global.x], Vector(X Component Of(Global.wallSecondPosition[Global.x]),
-						Y Component Of(Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Grapple Beam, Vector(X Component Of(Global.wallSecondPosition[Global.x]), Y Component Of(
-						Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Grapple Beam, Global.wallFirstPosition[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
-						X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(Global.wallSecondPosition[Global.x]), Z Component Of(
-						Global.wallFirstPosition[Global.x])), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Grapple Beam, Vector(X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(
-						Global.wallSecondPosition[Global.x]), Z Component Of(Global.wallFirstPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Aqua), None);
-					Skip(9);
-					Create Beam Effect(All Players(Team 1), Good Beam, Global.wallFirstPosition[Global.x], Vector(X Component Of(Global.wallSecondPosition[Global.x]),
-						Y Component Of(Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.wallSecondPosition[Global.x]), Y Component Of(
-						Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Good Beam, Global.wallFirstPosition[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
-						X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(Global.wallSecondPosition[Global.x]), Z Component Of(
-						Global.wallFirstPosition[Global.x])), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Good Beam, Vector(X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(
-						Global.wallSecondPosition[Global.x]), Z Component Of(Global.wallFirstPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Aqua), None);
-					Skip(4);
-					Create Beam Effect(All Players(Team 1), Bad Beam, Global.wallFirstPosition[Global.x], Vector(X Component Of(Global.wallSecondPosition[Global.x]),
-						Y Component Of(Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Bad Beam, Vector(X Component Of(Global.wallSecondPosition[Global.x]), Y Component Of(
-						Global.wallFirstPosition[Global.x]), Z Component Of(Global.wallSecondPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Bad Beam, Global.wallFirstPosition[Global.x] + Vector(0.001, Empty Array, Empty Array), Vector(
-						X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(Global.wallSecondPosition[Global.x]), Z Component Of(
-						Global.wallFirstPosition[Global.x])), Color(Aqua), None);
-					Create Beam Effect(All Players(Team 1), Bad Beam, Vector(X Component Of(Global.wallFirstPosition[Global.x]), Y Component Of(
-						Global.wallSecondPosition[Global.x]), Z Component Of(Global.wallFirstPosition[Global.x])), Global.wallSecondPosition[Global.x] + Vector(Empty Array,
-						Empty Array, 0.001), Color(Aqua), None);
-				End;
-				Wait(0.016, Ignore Condition);
-			End;
-		End;
-	}
-}
-
 rule("Wall Data")
 {
 	event
@@ -8265,16 +8193,16 @@ rule("Wall Data")
 		Global.allPositions = Array(Vector(155.968, 12.470, -30.507), Vector(155.962, 12.472, -62.500), Vector(81.153, 6.453, -103.851), Vector(
 			69.148, 6.474, -104.548));
 		Global.allDirections = Array(Vector(-1, 0, -0.002), Vector(1, 0, -0.001), Vector(0, 0, 1), Vector(0.001, 0, 1));
-		Global.wallFirstPosition = Array(Vector(155.971, 11.047, -31.771), Vector(155.964, 11.050, -61.229), Vector(79.761, 5.030, -103.852),
+		Global.firstPosition = Array(Vector(155.971, 11.047, -31.771), Vector(155.964, 11.050, -61.229), Vector(79.761, 5.030, -103.852),
 			Vector(67.738, 5.022, -104.547));
-		Global.wallSecondPosition = Array(Vector(155.965, 13.894, -29.242), Vector(155.960, 13.894, -63.771), Vector(82.544, 7.876, -103.851),
+		Global.secondPosition = Array(Vector(155.965, 13.894, -29.242), Vector(155.960, 13.894, -63.771), Vector(82.544, 7.876, -103.851),
 			Vector(70.558, 7.925, -104.550));
-		Global.wallFirstPoint = Array(Vector(155.971, 13.894, -31.771), Vector(155.964, 13.894, -61.229), Vector(79.761, 7.876, -103.852),
+		Global.firstPoint = Array(Vector(155.971, 13.894, -31.771), Vector(155.964, 13.894, -61.229), Vector(79.761, 7.876, -103.852),
 			Vector(67.738, 7.925, -104.547));
-		Global.wallSecondPoint = Array(Vector(155.965, 11.047, -29.242), Vector(155.960, 11.050, -63.771), Vector(82.544, 5.030, -103.851),
+		Global.secondPoint = Array(Vector(155.965, 11.047, -29.242), Vector(155.960, 11.050, -63.771), Vector(82.544, 5.030, -103.851),
 			Vector(70.558, 5.022, -104.550));
 		Global.z = 3;
-		Global.BeamType = Array(1, 1, 1, 1);
+		Global.beamType = Array(1, 1, 1, 1);
 		Global.showWalls = True;
 		Global.wallId = Array(5, 5, 5, 5);
 	}
@@ -8407,7 +8335,7 @@ rule("Create Shop Buttons")
 		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
 			"+{0} Auto-Repair\n    400$", Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5),
 			Global.shopBasePosition - 47.500 * Global.shopPositionAngle[1] - 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
-			Visible To String and Color, Global.autoRepair < 5 ? Color(Green) : Color(Gray), Default Visibility);
+			Visible To String and Color, Global.automaticRepair < 5 ? Color(Green) : Color(Gray), Default Visibility);
 		"Use Update Every Frame to avoid showing the String when the cursor is out of bounds, resulting in 0\r\n	ROW 0"
 		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) + 11.250) < 47.500 ? Local Player : Empty Array),
@@ -8766,11 +8694,11 @@ rule("Buy Ability")
 		Else If(Vertical Facing Angle Of(Event Player) < 56.250);
 			"+5 AUTO-REPAIR"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
-				If(Global.autoRepair != 5);
+				If(Global.automaticRepair != 5);
 					If(Event Player.money[0] >= 400);
 						Event Player.money[0] -= 400;
 						Event Player.money[1] += 400;
-						Global.autoRepair += 1;
+						Global.automaticRepair += 1;
 						Event Player.abilities[16] += 1;
 					Else;
 						Small Message(Event Player, Custom String("Not enough money!"));
@@ -8969,7 +8897,7 @@ rule("Refund Single Ability")
 				If(Event Player.abilities[16] != 0);
 					Event Player.money[0] += 400;
 					Event Player.money[1] -= 400;
-					Global.autoRepair -= 1;
+					Global.automaticRepair -= 1;
 					Event Player.abilities[16] -= 1;
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
@@ -9061,8 +8989,8 @@ rule("Create Player HUD")
 		Create HUD Text(Event Player.abilities[3] ? Event Player : Null, Null, Null, Custom String("Quick Fix {0}",
 			Event Player.abilities[3] == 1 ? Custom String("I") : Custom String("II")), Left, 903, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Global.autoRepair ? Event Player : Null, Null, Null, Custom String("{0} total Auto-Repair/5s",
-			Global.autoRepair * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5)), Left, 916, Color(
+		Create HUD Text(Global.automaticRepair ? Event Player : Null, Null, Null, Custom String("{0} total Auto-Repair/5s",
+			Global.automaticRepair * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5)), Left, 916, Color(
 			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.abilities[12] ? Event Player : Null, Null, Null, Custom String("{0} {1}",
 			Event Player.heroTalentText[2][0], Event Player.heroTalentText[2][1]), Top, 902, Color(White), Color(White), Color(Green),
@@ -9141,7 +9069,7 @@ rule("BOSS HUD")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.timeMin == 10;
+		Global.timeMinutes == 10;
 	}
 
 	actions
@@ -9169,7 +9097,7 @@ rule("DEBUG - SKIP TIME")
 
 	actions
 	{
-		Global.timeSec = 59;
+		Global.timeSeconds = 59;
 	}
 }
 

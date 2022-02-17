@@ -12,7 +12,7 @@ abilityResource
 allDirections
 allPositions
 anaEntityID
-autoRepair
+automaticRepair
 ballSpawnPositions
 bastionTargetPositions
 bigBossSpawnPositions
@@ -22,6 +22,11 @@ BotBastionArtilleryDamage
 botBastionArtilleryDidShotsCount
 BotBastionFlameGunDamage
 BotBastionRespawn
+firstPosition
+secondPosition
+firstPoint
+secondPoint
+beamType
 botCancelPathFinding
 botClosestNodeIdToBot
 botClosestNodeIdToTarget
@@ -135,10 +140,10 @@ startMoney
 stormEffects
 stormEndPoint
 stormProjectile
-time10Min
-time5Min
-timeMin
-timeSec
+time10Minutes
+time5Minutes
+timeMinutes
+timeSeconds
 upgradeBossHealthValue
 upgradeCriticalDamageHudId
 upgradeCriticalDamageMaxValue

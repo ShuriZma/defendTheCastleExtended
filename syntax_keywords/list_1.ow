@@ -227,3 +227,8 @@ Set Healing Dealt
 Destroy All Dummy Bots
 Start Accelerating
 Workshop Setting Real
+Disable Inspector Recording
+Pause Match Time
+Disable Built-In Game Mode Scoring
+Disable Built-In Game Mode Announcer
+Disable Built-In Game Mode Completion
