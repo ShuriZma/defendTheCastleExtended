@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c129\nby ShuriZma#2349\nJ1K6F (Code Version: c129)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+xD		Description: "Defend The Castle Extended v0.6.c131\nby ShuriZma#2349\nJ1K6F (Code Version: c129)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -37,11 +37,6 @@ settings
 			Game Mode Start: Immediately
 			Spawn Health Packs: Disabled
 		}
-	}
-
-	workshop
-	{
-		Story Heroes: Off
 	}
 
 	extensions
@@ -81,7 +76,6 @@ variables
 		20: defaultHeroBotsPoolCurrentId
 		21: isDebug
 		22: botOrisaParent
-		23: isStoryHeroes
 		24: botOrisaChild
 		25: gateRepairPosition
 		26: botOrisaTargetPosition
@@ -629,8 +623,6 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 			100, 1000, 0);
 		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"),
 			1, 0.500, 2, 0);
-		Global.isStoryHeroes = Workshop Setting Toggle(Custom String("Defend The Castle Extended"), Custom String("Story Heroes"), True,
-			0);
 		Global.selfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
 	}
@@ -646,7 +638,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend The Castle Extended v0.6.c129 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
+			"Defend The Castle Extended v0.6.c131 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To, Default Visibility);
@@ -674,110 +666,6 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	}
 }
 
-disabled rule("PLAYER: DEBUG - PRESS  INTERACT")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Host Player == True;
-		Is Button Held(Event Player, Button(Interact)) == True;
-	}
-
-	actions
-	{
-		disabled Modify Player Score(Event Player, 10);
-		disabled Global.gateHealth -= 5;
-		disabled Start Rule(GateProgressBarColor, Restart Rule);
-		Global.timeSeconds = 59;
-		Set Status(Event Player, Null, Phased Out, 9999);
-		disabled Set Ultimate Charge(Event Player, 100);
-		disabled Kill(Event Player, Null);
-		disabled Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
-	}
-}
-
-rule("GLOBAL: DEBUG - AI NAVIGATION")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Global.isDebugAINavigation == True;
-	}
-
-	actions
-	{
-		For Global Variable(loopIterator1, 0, Count Of(Global.nodePositions), 1);
-			Create Effect(All Players(All Teams), Sphere, Color(Red), Global.nodePositions[Global.loopIterator1], 0.850, Visible To);
-			Create In-World Text(All Players(All Teams), Custom String("NODE {0}", Global.loopIterator1),
-				Global.nodePositions[Global.loopIterator1], 1.200, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
-		End;
-	}
-}
-
-disabled rule("GLOBAL: DEBUG - CREATE BOTS")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is In Setup == True;
-	}
-
-	actions
-	{
-		Create Dummy Bot(Hero(Bastion), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Orisa), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
-	}
-}
-
-disabled rule("PLAYER: DEBUG - INFOS")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Global.isDebug == True;
-		Host Player == Event Player;
-		Has Spawned(Event Player) == True;
-		Is Dummy Bot(Event Player) == False;
-	}
-
-	actions
-	{
-		Create HUD Text(Event Player, Custom String("POS {0}\r\nFACING {1}", Position Of(Event Player), Facing Direction Of(Event Player)),
-			Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player, Custom String("SERVER PERFORMANCE\r\nLOAD {0}%\r\nPEAK {1}%\r\nAVG {2}%", Server Load,
-			Server Load Peak, Server Load Average), Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		disabled Create Progress Bar HUD Text(Event Player, 45, Custom String("45 / 100 KILLS"), Left, -99, Color(Blue), Color(White),
-			Visible To Values and Color, Default Visibility);
-		disabled Create HUD Text(Event Player, Custom String("{0}", Hero Icon String(Hero Of(Event Player))), Null, Custom String(
-			"LEVEL 1 - 50 AMMO CLIP"), Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		"ЭФФЕКТ С ОФФСЕТОМ ОТ ПОЗИЦИИ ГЛАЗ"
-		disabled Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player) - Vector(0, 0.700, 0) + Facing Direction Of(
-			Event Player) * 3, Eye Position(Event Player) + Facing Direction Of(Event Player) * 50, Color(Purple),
-			Visible To Position and Radius);
-	}
-}
-
 disabled rule("=== TEAM UPGRADES ===")
 {
 	event
@@ -795,16 +683,16 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.upgradeMaxAmmoMaxValue[0] = 250;
-		Global.upgradeMaxAmmoMaxValue[1] = 500;
-		Global.upgradeMaxAmmoMaxValue[2] = 1000;
+		Global.upgradeMaxAmmoMaxValue[0] = 150;
+		Global.upgradeMaxAmmoMaxValue[1] = 300;
+		Global.upgradeMaxAmmoMaxValue[2] = 500;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
 		Global.upgradeCriticalDamageMaxValue[2] = 10;
-		Global.upgradePlayerMaxHealthMaxValue[0] = 2500;
-		Global.upgradePlayerMaxHealthMaxValue[1] = 5000;
-		Global.upgradePlayerMaxHealthMaxValue[2] = 10000;
-		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth + Global.gateMaxHealth * 0.500, Up);
+		Global.upgradePlayerMaxHealthMaxValue[0] = 4000;
+		Global.upgradePlayerMaxHealthMaxValue[1] = 9000;
+		Global.upgradePlayerMaxHealthMaxValue[2] = 15000;
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth + Global.gateMaxHealth * 0.750, Up);
 		Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
 		Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
 		Abort If(Global.isDebug == False);
@@ -1180,30 +1068,6 @@ rule("GLOBAL: UPGRADE - PERK SHARPSHOOTER - DONE")
 	}
 }
 
-disabled rule("PLAYER: UPGRADE - -10% BOSS HEALTH - DEALT KILL")
-{
-	event
-	{
-		Player Dealt Final Blow;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.upgradePerkSharpshooterValue >= Global.upgradeCriticalDamageMaxValue[1];
-		Global.upgradeBossHealthValue < Global.upgradeCriticalDamageMaxValue[2];
-		Victim.isBoss == 1;
-	}
-
-	actions
-	{
-		Global.upgradeBossHealthValue += 1;
-		Small Message(All Players(Team 1), Custom String("-10% BOSS HEALTH CHALLENGE +1"));
-	}
-}
-
 rule("GLOBAL: UPGRADE - -10% BOSS HEALTH - DONE")
 {
 	event
@@ -1228,32 +1092,6 @@ rule("GLOBAL: UPGRADE - -10% BOSS HEALTH - DONE")
 	}
 }
 
-rule("PLAYER: UPGRADE - MAX AMMO - DEALT KILL")
-{
-	event
-	{
-		Player Dealt Final Blow;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Hero Of(Victim) == Hero(Zenyatta);
-		Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2];
-	}
-
-	actions
-	{
-		If(Event Player.isBoss == 1);
-			Global.upgradeMaxAmmoValue += 10;
-		Else;
-			Global.upgradeMaxAmmoValue += 1;
-		End;
-	}
-}
-
 rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 {
 	event
@@ -1274,9 +1112,9 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
 			"MAX AMMO 200%"), Right, 10, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
-			Custom String("KILL {2}: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1], Hero(Zenyatta)), Left, 15,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL {2}: {0}/{1}",
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
+			White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		For Global Variable(loopIterator1, 0, Count Of(All Players(Team 1)), 1);
 			Set Max Ammo(All Players(Team 1)[Global.loopIterator1], 0, Max Ammo(All Players(Team 1)[Global.loopIterator1], 0) * 2);
@@ -1284,38 +1122,6 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 			Set Ammo(All Players(Team 1)[Global.loopIterator1], 0, Max Ammo(All Players(Team 1)[Global.loopIterator1], 0));
 			Set Ammo(All Players(Team 1)[Global.loopIterator1], 1, Max Ammo(All Players(Team 1)[Global.loopIterator1], 1));
 		End;
-		Global.challengeCount += 1;
-	}
-}
-
-rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		(Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[1]) == True;
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("BULLETSTORM UNLOCKED!"));
-		Destroy HUD Text(Global.upgradeMaxAmmoHudId[1]);
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"Bulletstorm"), Right, 11, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL {2}: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
-			White), Visible To and String, Default Visibility);
-		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
-		Global.perk[1] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		All Players(Team 1).abilityHUD[19] = Last Text ID;
 		Global.challengeCount += 1;
 	}
 }
@@ -1336,13 +1142,45 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 	actions
 	{
 		Big Message(All Players(Team 1), Custom String("+50% DAMAGE UNLOCKED!"));
-		Destroy HUD Text(Global.upgradeMaxAmmoHudId[2]);
+		Destroy HUD Text(Global.upgradeMaxAmmoHudId[1]);
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
 			"+50% DAMAGE"), Right, 12, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
+			Custom String("KILL {2}: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2], Hero(Zenyatta)), Left, 15,
+			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
 		Global.damageDealt = 50;
 		All Players(Team 1).damageDealt = 100 + Global.damageDealt + All Players(Team 1).abilities[13] * 5;
 		Set Damage Dealt(All Players(Team 1), All Players(Team 1).damageDealt);
+		Global.challengeCount += 1;
+	}
+}
+
+rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		(Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[2]) == True;
+	}
+
+	actions
+	{
+		Big Message(All Players(Team 1), Custom String("BULLETSTORM UNLOCKED!"));
+		Destroy HUD Text(Global.upgradeMaxAmmoHudId[2]);
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
+			"Bulletstorm"), Right, 11, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
+		Global.perk[1] = 1;
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
+		All Players(Team 1).abilityHUD[19] = Last Text ID;
 		Global.challengeCount += 1;
 	}
 }
@@ -1355,7 +1193,7 @@ disabled rule("=== GAME PHASES ===")
 	}
 }
 
-rule("GLOBAL: ASEMBLING PHASE - MAKE CHALLENGES HUDS")
+rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 {
 	event
 	{
@@ -1378,8 +1216,8 @@ rule("GLOBAL: ASEMBLING PHASE - MAKE CHALLENGES HUDS")
 		Create In-World Text(All Players(Team 1), Custom String("  {0}\r\nREPAIR\r\n  {1}", Hero Icon String(Hero(Torbjörn)),
 			Ability Icon String(Hero(Bastion), Button(Secondary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES"), Left, 11, Color(White), Color(Blue), Color(
-			White), Visible To, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Left, 11, Color(
+			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
 		"UPGRADE - GATE'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String(
 			"GATE'S MAX HEALTH: {0} HP", Global.upgradeGateMaxHealthMaxValue[0]), Custom String("REPAIR GATE {0}/{1} HP",
@@ -1745,124 +1583,62 @@ rule("Subroutine: GATE REPAIR")
 		Small Message(Event Player, Custom String("REPAIR +2% ULTIMATE"));
 		"UPGRADE - GATE'S MAX HEALTH"
 		If(Global.upgradeGateMaxHealthValue < Global.upgradeGateMaxHealthMaxValue[2]);
-			If(Event Player.isNanoed == 1);
-				If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-					Global.upgradeGateMaxHealthValue += 100 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 20;
-				Else;
-					Global.upgradeGateMaxHealthValue += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-				End;
+			If(Global.gateMaxHealth - Global.gateHealth > 10 * (
+				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
+				Global.upgradeGateMaxHealthValue += 10 * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+					Event Player.isNanoed == 1 ? 2 : 1);
 			Else;
-				If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-					Global.upgradeGateMaxHealthValue += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-				Else;
-					Global.upgradeGateMaxHealthValue += 25 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 5;
-				End;
+				Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
 			End;
 		End;
 		"HEAL GATE"
-		If(Event Player.isNanoed == 1);
-			If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-				Global.gateHealth += 100 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 20;
-			Else;
-				Global.gateHealth += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-			End;
+		If(Global.gateMaxHealth - Global.gateHealth > 10 * (
+			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
+			Global.gateHealth += 10 * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+				Event Player.isNanoed == 1 ? 2 : 1);
 		Else;
-			If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-				Global.gateHealth += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-			Else;
-				Global.gateHealth += 25 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 5;
-			End;
-			If(Global.gateHealth > Global.gateMaxHealth);
-				Global.gateHealth = Global.gateMaxHealth;
-			"CHARGE ULTIMATE"
-			Else;
-				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
-			End;
+			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
 		End;
+		"CHARGE ULTIMATE"
+		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
 		"UPDATE GATE'S HEALTH BAR"
 		Start Rule(GateProgressBarColor, Restart Rule);
 	}
 }
 
-rule("TORB: GATE REPAIR")
+rule("GATE REPAIR")
 {
 	event
 	{
 		Ongoing - Each Player;
 		Team 1;
-		Torbjörn;
+		All;
 	}
 
 	conditions
 	{
-		Has Spawned(Event Player) == True;
-		Weapon(Event Player) == 2;
+		Is Game In Progress == True;
+		((Hero Of(Event Player) == Hero(Torbjörn) && Weapon(Event Player) == 2) || (Hero Of(Event Player) == Hero(Reinhardt) || Hero Of(
+			Event Player) == Hero(Brigitte))) == True;
 		Is Firing Primary(Event Player) == True;
 		Global.gateHealth < Global.gateMaxHealth;
 		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < 3.500;
-		Is Game In Progress == True;
+		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : 3.500);
 	}
 
 	actions
 	{
+		If(Hero Of(Event Player) == Hero(Reinhardt));
+			Wait(0.100, Ignore Condition);
+		End;
 		Call Subroutine(GateRepair);
-		Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
-		Loop If Condition Is True;
-	}
-}
-
-rule("Brig: GATE REPAIR")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Brigitte;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
-		Is Firing Primary(Event Player) == True;
-		Global.gateHealth < Global.gateMaxHealth;
-		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < 5;
-		Is Game In Progress == True;
-	}
-
-	actions
-	{
-		Call Subroutine(GateRepair);
-		Wait(0.500, Ignore Condition);
-		Loop If Condition Is True;
-	}
-}
-
-rule("Rein: GATE REPAIR")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Reinhardt;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
-		Is Firing Primary(Event Player) == True;
-		Global.gateHealth < Global.gateMaxHealth;
-		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < 3;
-		Is Game In Progress == True;
-	}
-
-	actions
-	{
-		Wait(0.100, Ignore Condition);
-		Call Subroutine(GateRepair);
-		Wait(0.850, Ignore Condition);
+		If(Hero Of(Event Player) == Hero(Torbjörn));
+			Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
+		Else If(Hero Of(Event Player) == Hero(Reinhardt));
+			Wait(0.850, Ignore Condition);
+		Else;
+			Wait(0.500, Ignore Condition);
+		End;
 		Loop If Condition Is True;
 	}
 }
@@ -1973,13 +1749,6 @@ rule("SUBROUTINE: PLAYER - INIT")
 
 	actions
 	{
-		"STORY HEROES"
-		If(Global.isStoryHeroes);
-			Reset Player Hero Availability(Event Player);
-			Set Player Allowed Heroes(Event Player, Array(Hero(Ana), Hero(Brigitte), Hero(Mercy), Hero(Lúcio), Hero(Moira), Hero(Baptiste),
-				Hero(Ashe), Hero(D.Va), Hero(Genji), Hero(Hanzo), Hero(Widowmaker), Hero(Cassidy), Hero(Reinhardt), Hero(Soldier: 76), Hero(
-				Torbjörn), Hero(Tracer), Hero(Winston), Hero(Pharah)));
-		End;
 		"TEAM CHALLENGE - PLAYER'S MAX HEALTH"
 		If(Global.upgradePlayerMaxHealthValue >= Global.upgradePlayerMaxHealthMaxValue[0]);
 			Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
@@ -2085,7 +1854,8 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 		"PLAYER RESPAWN"
 		Set Status(Event Player, Null, Phased Out, 3);
 		Set Facing(Event Player, Vector(-1, 0, 0), To World);
-		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= 29);
+		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= 30 * (Players On Hero(Hero(Mercy), Team 1)
+			.abilities[6] ? Players On Hero(Hero(Mercy), Team 1).abilities[6] * 0.250 : 1) - 1);
 			Wait(0.250, Ignore Condition);
 			Teleport(Event Player, Event Player.deathPosition);
 		Else;
@@ -4267,8 +4037,7 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 			Wait(0.500, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
 		End;
-		"BOSS WAVE"
-		Big Message(All Players(All Teams), Custom String("BOSS WAVE - {1} {0}", Hero Icon String(Hero(Reinhardt)), Hero(Reinhardt)));
+		"FAKE BOSS WAVE"
 		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Reinhardt))) < 6);
 			Wait Until(Is True For Any(All Players(Team 2), Distance Between(Position Of(Current Array Element), Global.gatePosition)
 				> 13 && Hero Of(Current Array Element) == Hero(Zenyatta)), 99999);
@@ -4303,7 +4072,6 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Zenyatta), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
-		Big Message(All Players(All Teams), Custom String("BOSS WAVE FINISHED!"));
 	}
 }
 
@@ -4460,6 +4228,9 @@ rule("money on kill")
 		If(Hero Of(Victim) == Hero(Zenyatta));
 			All Players(Team 1).money[0] += 5 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
+				Global.upgradeMaxAmmoValue += (Victim.isBoss == 1 ? 10 : 1);
+			End;
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
 			All Players(Team 1).money[0] += 15 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
@@ -4831,15 +4602,14 @@ rule("Auto Repair")
 
 	actions
 	{
-		If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2]);
-			Global.gateHealth += 10 * Global.automaticRepair;
-			Global.upgradeGateMaxHealthValue += 10 * Global.automaticRepair;
-		Else;
-			Global.gateHealth += 5 * Global.automaticRepair;
+		If(Global.gateMaxHealth - Global.gateHealth > 5 * Global.automaticRepair * (
+			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 2 : 1));
+			Global.gateHealth += 5 * Global.automaticRepair * (
+				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 2 : 1);
 			Global.upgradeGateMaxHealthValue += 5 * Global.automaticRepair;
-		End;
-		If(Global.gateHealth > Global.gateMaxHealth);
-			Global.gateHealth = Global.gateMaxHealth;
+		Else;
+			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
+			Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
 		End;
 		"UPDATE GATE'S HEALTH BAR"
 		Start Rule(GateProgressBarColor, Restart Rule);
@@ -7800,7 +7570,7 @@ rule("Team 1 Challenges")
 	}
 }
 
-rule("Remove Auto Repair when Player leaves")
+rule("Stuff to do when Player leaves")
 {
 	event
 	{
@@ -9295,14 +9065,7 @@ rule("Team 1: Change Hero")
 	{
 		Set Player Allowed Heroes(Event Player, Hero(Pharah));
 		Set Player Allowed Heroes(Event Player, Hero(Ana));
-		If(Global.isStoryHeroes);
-			Reset Player Hero Availability(Event Player);
-			Set Player Allowed Heroes(Event Player, Array(Hero(Ana), Hero(Brigitte), Hero(Mercy), Hero(Lúcio), Hero(Moira), Hero(Baptiste),
-				Hero(Ashe), Hero(D.Va), Hero(Genji), Hero(Hanzo), Hero(Widowmaker), Hero(Cassidy), Hero(Reinhardt), Hero(Soldier: 76), Hero(
-				Torbjörn), Hero(Tracer), Hero(Winston), Hero(Pharah)));
-		Else;
-			Reset Player Hero Availability(Event Player);
-		End;
+		Reset Player Hero Availability(Event Player);
 		Wait(0.500, Ignore Condition);
 		Wait Until(Has Spawned(Event Player), 99999);
 		Teleport(Event Player, Vector(159, 11, -46.500));
