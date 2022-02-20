@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c131\nby ShuriZma#2349\nJ1K6F (Code Version: c129)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended Version c131\nby ShuriZma#2349\nJ1K6F (Code Version: c131)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -637,11 +637,10 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend The Castle Extended v0.6.c131 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
-			Custom String(
-			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
-			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To, Default Visibility);
+	    Create In-World Text(All Players(Team 1), Custom String(
+            "Defend The Castle Extended c131\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
+            Custom String("Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
+            Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
 		Global.gateRepairPosition = Vector(153, 8, -46.500);
 		Global.gatePosition = Vector(148.800, 6, -46.400);
 		Global.ballSpawnPositions = Array(Vector(104, 7, -46), Vector(106, 2, -31));
@@ -4625,6 +4624,11 @@ rule("Hero Talent Text")
 		Ongoing - Each Player;
 		Team 1;
 		All;
+	}
+
+	conditions
+	{
+	    Has Spawned(Event Player) == True;
 	}
 
 	actions
