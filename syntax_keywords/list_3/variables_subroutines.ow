@@ -77,7 +77,6 @@ chainReactionImmune
 chainReactionOn
 currentHero
 damageDealt
-damageDealt
 defaultCurrentBot
 defaultHeroBotsPool
 defaultHeroBotsPoolCurrentId

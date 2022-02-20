@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c131\nby ShuriZma#2349\nJ1K6F (Code Version: c129)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended Version c131\nby ShuriZma#2349\nJ1K6F (Code Version: c131)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -637,11 +637,10 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend The Castle Extended v0.6.c131 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
-			Custom String(
-			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
-			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To, Default Visibility);
+	    Create In-World Text(All Players(Team 1), Custom String(
+            "Defend The Castle Extended c131\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
+            Custom String("Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
+            Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
 		Global.gateRepairPosition = Vector(153, 8, -46.500);
 		Global.gatePosition = Vector(148.800, 6, -46.400);
 		Global.ballSpawnPositions = Array(Vector(104, 7, -46), Vector(106, 2, -31));
@@ -4618,578 +4617,182 @@ rule("Auto Repair")
 	}
 }
 
-rule("Ana Hero Talent Text")
+rule("Hero Talent Text")
 {
 	event
 	{
 		Ongoing - Each Player;
 		Team 1;
-		Ana;
+		All;
+	}
+
+	conditions
+	{
+	    Has Spawned(Event Player) == True;
 	}
 
 	actions
 	{
+	If(Hero Of(Event Player) == Hero(Ana));
 		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ana), Button(Ability 1)), Custom String(
 			"Sleep Paralysis: Slept enemies cannot be woken up by damage"));
 		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Ana), Button(Ability 2)), Custom String(
 			"Multinade: Ana throws multiple Biotic Grenades"));
-	}
-}
-
-rule("Brigitte Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Brigitte;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Brigitte), Button(Ability 1)), Custom String(
-			"Heavy Iron: Hitting enemies with Whip Flail will root them in pace"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Brigitte), Button(Ultimate)), Custom String(
-			"Endeavor: Gain a health, damage and speed boost when your barrier breaks"));
-	}
-}
-
-rule("Mercy Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Mercy;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mercy), Button(Ability 2)), Custom String(
-			"Angelic blessing: Healing an ally slowly charges their ultimate"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mercy), Button(Ultimate)), Custom String(
-			"Holy light missiles: Unleash blasts of holy light missiles during valkyrie"));
-	}
-}
-
-rule("Lúcio Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Lúcio;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Lúcio), Button(Secondary Fire)), Custom String(
-			"Healing Wave: Soundwave heals allies for 30% of their max HP"));
+	Else If(Hero Of(Event Player) == Hero(Ashe));
+	    Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ashe), Button(Ability 2)), Custom String(
+    		"Wildfire: Shooting a burning enemy ignites other nearby enemies"));
+    	Event Player.heroTalentText[2] = Array(Icon String(Fire), Custom String(
+    		"Flare trigger: Coach gun instantly damages all burning enemies"));
+	Else If(Hero Of(Event Player) == Hero(Baptiste));
+        Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String(
+    		"Corrode: Regenerative Burst will damage and poison enemies"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
+    		"Breakthrough: Immortality Field HP threshold increased to 100%; allies inside gain ultimate"));
+	Else If(Hero Of(Event Player) == Hero(Bastion));
+	    Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
+    		"Bomblets: Bullets shot during sentry configuration are explosive"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ability 1)), Custom String(
+    		"Tesla: A powerful mounted laser will automatically attack one enemy at a time"));
+	Else If(Hero Of(Event Player) == Hero(Brigitte));
+	    Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Brigitte), Button(Ability 1)), Custom String(
+    	    "Heavy Iron: Hitting enemies with Whip Flail will root them in pace"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Brigitte), Button(Ultimate)), Custom String(
+    		"Endeavor: Gain a health, damage and speed boost when your barrier breaks"));
+    Else If(Hero Of(Event Player) == Hero(Cassidy));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Cassidy), Button(Ability 2)), Custom String(
+    		"Panic: Flashbang puts enemies in fear; deal +120% more damage to enemies in fear"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Cassidy), Button(Ultimate)), Custom String(
+    		"Clocked: Deadeye deals more damage and knocks enemies down"));
+    Else If(Hero Of(Event Player) == Hero(Doomfist));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Jump)), Custom String(
+    		"Phase Shifter: Immune to damage while any ability is active"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Doomfist), Button(Ultimate)), Custom String(
+    		"Fissure: Meteor Strike leaves a large fissure behind that burns enemies over it"));
+    Else If(Hero Of(Event Player) == Hero(D.Va));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(D.Va), Button(Secondary Fire)), Custom String(
+    		"Voltage Grid: Defense Matrix will damage and root enemies it's casted over"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(D.Va), Button(Ability 1)), Custom String(
+    		"Shooting Star: Boosters set enemies on fire"));
+    Else If(Hero Of(Event Player) == Hero(Echo));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
+    		"Focusing Optics: Focusing Beam damage ramp starts at 90% health"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
+    		"Streamline: Fire many more sticky bombs per burst"));
+    Else If(Hero Of(Event Player) == Hero(Genji));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Genji), Button(Ability 1)), Custom String(
+    		"Venomous Strike: Swift Strike poisons enemies; heal for poison damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Genji), Button(Ultimate)), Custom String(
+    		"Dragon's Breath: Dragonblade fires large explosive energy charges"));
+    Else If(Hero Of(Event Player) == Hero(Hanzo));
+        Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
+    		"Stormbreak: Enemies eliminated by hanzo unleash a thundercloud"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Hanzo), Button(Ability 2)), Custom String(
+    		"Punch II: Storm Arrows deal more damage and stun and knockback enemies"));
+    Else If(Hero Of(Event Player) == Hero(Junkrat));
+        Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Pyromania: All explosive attacks inflict fire damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
+    		"Short Fused: Steel Trap sets off violent explosions once triggered"));
+    Else If(Hero Of(Event Player) == Hero(Lúcio));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Lúcio), Button(Secondary Fire)), Custom String(
+			"Healing Wave: Sound wave heals allies for 30% of their max HP"));
 		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Lúcio), Button(Ability 1)), Custom String(
 			"Reverse Amp: Amp It Up inflicts the opposite effect of the currently played song to enemies"));
-	}
-}
-
-rule("Moira Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Moira;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Moira), Button(Secondary Fire)), Custom String(
-			"Hose: Biotic Grasp primary will damage and push enemies back"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Moira), Button(Ability 2)), Custom String(
-			"Flourish: Biotic Orbs are 3x more effective"));
-	}
-}
-
-rule("Baptiste Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Baptiste;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String(
-			"Corrode: Regenerative Burst will damage and poison enemies"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
-			"Breakthrough: Immortality Field HP threshold increased to 100%; allies inside gain ultimate"));
-	}
-}
-
-rule("Ashe Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Ashe;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ashe), Button(Ability 2)), Custom String(
-			"Wildfire: Shooting a burning enemy ignites other nearby enemies"));
-		Event Player.heroTalentText[2] = Array(Icon String(Fire), Custom String(
-			"Flare trigger: Coach gun instantly damages all burning enemies"));
-	}
-}
-
-rule("D.Va Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		D.Va;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(D.Va), Button(Secondary Fire)), Custom String(
-			"Voltage Grid: Defense Matrix will damage and root enemies it's casted over"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(D.Va), Button(Ability 1)), Custom String(
-			"Shooting Star: Boosters set enemies on fire"));
-	}
-}
-
-rule("Genji Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Genji;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Genji), Button(Ability 1)), Custom String(
-			"Venomous Strike: Swift Strike poisons enemies; heal for poison damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Genji), Button(Ultimate)), Custom String(
-			"Dragon's Breath: Dragonblade fires large explosive energy charges"));
-	}
-}
-
-rule("Hanzo Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Hanzo;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
-			"Stormbreak: Enemies eliminated by hanzo unleash a thundercloud"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Hanzo), Button(Ability 2)), Custom String(
-			"Punch II: Storm Arrows deal more damage and stun and knockback enemies"));
-	}
-}
-
-rule("Widowmaker Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Widowmaker;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Widowmaker), Button(Ultimate)), Custom String(
-			"Kiss Of Death: Scoped critical hits against enemies below 30% health explode and instantly die"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Widowmaker), Button(Ability 2)), Custom String(
-			"Epidemic: Enemies hurt by Venom Mine unleash toxic pulses; heal for dealt damage"));
-	}
-}
-
-rule("McCree Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Cassidy;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Cassidy), Button(Ability 2)), Custom String(
-			"Panic: Flashbang puts enemies in fear; deal +120% more damage to enemies in fear"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Cassidy), Button(Ultimate)), Custom String(
-			"Clocked: Deadeye deals more damage and knocks enemies down"));
-	}
-}
-
-rule("Reinhardt Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Reinhardt;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reinhardt), Button(Ability 2)), Custom String(
-			"Fire Blast: Fire Strike explodes as it deals damage, setting enemies on fire"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reinhardt), Button(Ultimate)), Custom String(
-			"Epicenter: Earthshatter travels in all directions"));
-	}
-}
-
-rule("Soldier: 76 Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Soldier: 76;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ultimate)), Custom String(
-			"Triple Threat: 2 more rockets are fired alongside Helix Rockets"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Soldier: 76), Button(Ability 1)), Custom String(
-			"Shoulder Check: Sprinting into enemies will damage and tackle them to the ground"));
-	}
-}
-
-rule("Torbjörn Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Torbjörn;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Torbjörn), Button(Ability 2)), Custom String(
-			"Melting point: Unleash heatwaves during overload and molten core"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Torbjörn), Button(Ultimate)), Custom String(
-			"Roots Of Magma: Enemies trapped in Molten Core blots cannot move"));
-	}
-}
-
-rule("Tracer Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Tracer;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Tracer), Button(Ability 2)), Custom String(
-			"Vortex: Recall pulls and roots enemies towards the activation point"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Tracer), Button(Ultimate)), Custom String(
-			"Chain Reaction: Pulse Bomb creates chain explosions on enemies damaged by it"));
-	}
-}
-
-rule("Winston Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Winston;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Winston), Button(Ability 2)), Custom String(
-			"Blast Barrier: Barrier Projector damages enemies inside the area"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Winston), Button(Ultimate)), Custom String(
-			"Next Generation: Eliminations during Primal Rage add +15% ultimate charge towards the next"));
-	}
-}
-
-rule("Pharah Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Pharah;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ability 2)), Custom String(
-			"Head Trauma: Concussive Blast stuns and damages enemies for 25% of their max health"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Pharah), Button(Ability 1)), Custom String(
-			"Thunderbird: Gain 150 shields and deal 4x the damage to barriers and objects"));
-	}
-}
-
-rule("Bastion Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Bastion;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
-			"Bomblets: Bullets shot during sentry configuration are explosive"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ability 1)), Custom String(
-			"Tesla: A powerful mounted laser will autmotically attack one enemy at a time"));
-	}
-}
-
-rule("Doomfist Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Doomfist;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Jump)), Custom String(
-			"Phase Shifter: Immune to damage while any ability is active"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Doomfist), Button(Ultimate)), Custom String(
-			"Fissure: Meteor Strike leaves a large fissure behind that burns enemies over it"));
-	}
-}
-
-rule("Echo Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Echo;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
-			"Focusing Optics: Focusing Beam damage ramp starts at 90% health"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
-			"Streamline: Fire many more sticky bombs per burst"));
-	}
-}
-
-rule("Junkrat Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Junkrat;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Pyromania: All explosive attacks inflict fire damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
-			"Short Fused: Steel Trap sets off violent explosions once triggered"));
-	}
-}
-
-rule("Mei Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Mei;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mei), Button(Ultimate)), Custom String(
-			"Cold Snap: Instantly freeze neaerby enemies once Cryo-Freeze expires"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mei), Button(Ability 2)), Custom String(
-			"Icebound: While Ice Wall is up, Icicles freeze and deal much more damage"));
-	}
-}
-
-rule("Orisa Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Orisa;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Orisa), Button(Ability 1)), Custom String(
-			"Immovable Object: During Fortify, become immune and convert 50% of taken damage to healing"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Orisa), Button(Secondary Fire)), Custom String(
-			"Unstoppable Force: Halt! is much larger and pushes enemies. When triggered, it explodes violently"));
-	}
-}
-
-rule("Reaper Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Reaper;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reaper), Button(Ability 1)), Custom String(
-			"shadow streak: shadow step creates a beam that damages enemies who cross"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reaper), Button(Ultimate)), Custom String(
-			"Loom: Traumatize enemies in front of you when using Wraith Form"));
-	}
-}
-
-rule("Roadhog Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Roadhog;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String("Stench: Roadhog constantly damages enemies nearby"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Roadhog), Button(Ability 1)), Custom String(
-			"Rusted Anchor: Hook deals more damage; Eliminations will reset hook cooldown"));
-	}
-}
-
-rule("Sigma Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Sigma;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sigma), Button(Ability 1)), Custom String(
-			"Gravity Well: Kinetic Grasp gives invincibility"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sigma), Button(Ultimate)), Custom String(
-			"Gravity Channels: Gravitic Flux damages enemies for 75% of max hp instead of 50%"));
-	}
-}
-
-rule("Sombra Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Sombra;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sombra), Button(Secondary Fire)), Custom String(
-			"Malware: Enemies hacked or in fear take +100% more damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sombra), Button(Ultimate)), Custom String(
-			"Glitch: EMP leaves behind a large hack zone "));
-	}
-}
-
-rule("Symmetra Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Symmetra;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
-			"High Voltage: Enemies eliminated by Symmetra explode and damage other enemies"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ultimate)), Custom String(
-			"Energy Source: While Photon Barrier is active, all players regenerate health and gain ultimate"));
-	}
-}
-
-rule("Wrecking Ball Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Wrecking Ball;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ultimate)), Custom String(
-			"Mirror Ball: Reflect 100% of taken damage to nearby enemies"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ability 2)), Custom String(
-			"Distort: Adaptive Shields damages and hacks nearby enemies"));
-	}
-}
-
-rule("Zarya Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Zarya;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Zarya), Button(Ability 1)), Custom String(
-			"Augment: Health and barrier hp increased by 50%; barrier sized doubled"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
-			"Perpetual Energy: secondary inflicts burn damage that continues to last until the enemy dies"));
-	}
-}
-
-rule("Zenyatta Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Zenyatta;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
-			"Vigor: The ally under the effect of Harmony Orb is immune to damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Zenyatta), Button(Ultimate)), Custom String(
-			"Perfect Balance: Transcendence damages enemies in a large proximity"));
-	}
+    Else If(Hero Of(Event Player) == Hero(Mei));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mei), Button(Ultimate)), Custom String(
+    		"Cold Snap: Instantly freeze nearby enemies once Cryo-Freeze expires"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mei), Button(Ability 2)), Custom String(
+    		"Icebound: While Ice Wall is up, Icicles freeze and deal much more damage"));
+    Else If(Hero Of(Event Player) == Hero(Mercy));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mercy), Button(Ability 2)), Custom String(
+    		"Angelic blessing: Healing an ally slowly charges their ultimate"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mercy), Button(Ultimate)), Custom String(
+    		"Holy light missiles: Unleash blasts of holy light missiles during valkyrie"));
+    Else If(Hero Of(Event Player) == Hero(Moira));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Moira), Button(Secondary Fire)), Custom String(
+    		"Hose: Biotic Grasp primary will damage and push enemies back"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Moira), Button(Ability 2)), Custom String(
+    		"Flourish: Biotic Orbs are 3x more effective"));
+    Else If(Hero Of(Event Player) == Hero(Orisa));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Orisa), Button(Ability 1)), Custom String(
+    		"Immovable Object: During Fortify, become immune and convert 50% of taken damage to healing"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Orisa), Button(Secondary Fire)), Custom String(
+    		"Unstoppable Force: Halt! is much larger and pushes enemies. When triggered, it explodes violently"));
+    Else If(Hero Of(Event Player) == Hero(Pharah));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ability 2)), Custom String(
+    		"Head Trauma: Concussive Blast stuns and damages enemies for 25% of their max health"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Pharah), Button(Ability 1)), Custom String(
+    		"Thunderbird: Gain 150 shields and deal 4x the damage to barriers and objects"));
+    Else If(Hero Of(Event Player) == Hero(Reaper));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reaper), Button(Ability 1)), Custom String(
+    		"shadow streak: shadow step creates a beam that damages enemies who cross"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reaper), Button(Ultimate)), Custom String(
+    		"Loom: Traumatize enemies in front of you when using Wraith Form"));
+    Else If(Hero Of(Event Player) == Hero(Reinhardt));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reinhardt), Button(Ability 2)), Custom String(
+    		"Fire Blast: Fire Strike explodes as it deals damage, setting enemies on fire"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reinhardt), Button(Ultimate)), Custom String(
+    		"Epicenter: Earth shatter travels in all directions"));
+    Else If(Hero Of(Event Player) == Hero(Roadhog));
+        Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String("Stench: Roadhog constantly damages enemies nearby"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Roadhog), Button(Ability 1)), Custom String(
+    		"Rusted Anchor: Hook deals more damage; Eliminations will reset hook cooldown"));
+    Else If(Hero Of(Event Player) == Hero(Sigma));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sigma), Button(Ability 1)), Custom String(
+    		"Gravity Well: Kinetic Grasp gives invincibility"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sigma), Button(Ultimate)), Custom String(
+    		"Gravity Channels: Gravitic Flux damages enemies for 75% of max hp instead of 50%"));
+    Else If(Hero Of(Event Player) == Hero(Soldier: 76));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ultimate)), Custom String(
+    		"Triple Threat: 2 more rockets are fired alongside Helix Rockets"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Soldier: 76), Button(Ability 1)), Custom String(
+    		"Shoulder Check: Sprinting into enemies will damage and tackle them to the ground"));
+    Else If(Hero Of(Event Player) == Hero(Sombra));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sombra), Button(Secondary Fire)), Custom String(
+    		"Malware: Enemies hacked or in fear take +100% more damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sombra), Button(Ultimate)), Custom String(
+    		"Glitch: EMP leaves behind a large hack zone "));
+    Else If(Hero Of(Event Player) == Hero(Symmetra));
+        Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
+    		"High Voltage: Enemies eliminated by Symmetra explode and damage other enemies"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ultimate)), Custom String(
+    		"Energy Source: While Photon Barrier is active, all players regenerate health and gain ultimate"));
+    Else If(Hero Of(Event Player) == Hero(Torbjörn));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Torbjörn), Button(Ability 2)), Custom String(
+    		"Melting point: Unleash heatwaves during overload and molten core"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Torbjörn), Button(Ultimate)), Custom String(
+    		"Roots Of Magma: Enemies trapped in Molten Core blots cannot move"));
+    Else If(Hero Of(Event Player) == Hero(Tracer));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Tracer), Button(Ability 2)), Custom String(
+    		"Vortex: Recall pulls and roots enemies towards the activation point"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Tracer), Button(Ultimate)), Custom String(
+    		"Chain Reaction: Pulse Bomb creates chain explosions on enemies damaged by it"));
+    Else If(Hero Of(Event Player) == Hero(Widowmaker));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Widowmaker), Button(Ultimate)), Custom String(
+    		"Kiss Of Death: Scoped critical hits against enemies below 30% health explode and instantly die"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Widowmaker), Button(Ability 2)), Custom String(
+    		"Epidemic: Enemies hurt by Venom Mine unleash toxic pulses; heal for dealt damage"));
+    Else If(Hero Of(Event Player) == Hero(Winston));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Winston), Button(Ability 2)), Custom String(
+        	"Blast Barrier: Barrier Projector damages enemies inside the area"));
+        Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Winston), Button(Ultimate)), Custom String(
+        	"Next Generation: Eliminations during Primal Rage add +15% ultimate charge towards the next"));
+    Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ultimate)), Custom String(
+    		"Mirror Ball: Reflect 100% of taken damage to nearby enemies"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ability 2)), Custom String(
+    		"Distort: Adaptive Shields damages and hacks nearby enemies"));
+    Else If(Hero Of(Event Player) == Hero(Zarya));
+    	Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Zarya), Button(Ability 1)), Custom String(
+        	"Augment: Health and barrier hp increased by 50%; barrier sized doubled"));
+        Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
+        	"Perpetual Energy: secondary inflicts burn damage that continues to last until the enemy dies"));
+    Else If(Hero Of(Event Player) == Hero(Zenyatta));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
+    		"Vigor: The ally under the effect of Harmony Orb is immune to damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Zenyatta), Button(Ultimate)), Custom String(
+    		"Perfect Balance: Transcendence damages enemies in a large proximity"));
+    End;
+    }
 }
 
 rule("Ana: Sleep Paralysis")
