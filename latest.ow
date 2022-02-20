@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended v0.6.c129\nby ShuriZma#2349\nJ1K6F (Code Version: c129)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended Version c131\nby ShuriZma#2349\nJ1K6F (Code Version: c131)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -37,11 +37,6 @@ settings
 			Game Mode Start: Immediately
 			Spawn Health Packs: Disabled
 		}
-	}
-
-	workshop
-	{
-		Story Heroes: Off
 	}
 
 	extensions
@@ -81,7 +76,6 @@ variables
 		20: defaultHeroBotsPoolCurrentId
 		21: isDebug
 		22: botOrisaParent
-		23: isStoryHeroes
 		24: botOrisaChild
 		25: gateRepairPosition
 		26: botOrisaTargetPosition
@@ -629,8 +623,6 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 			100, 1000, 0);
 		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"),
 			1, 0.500, 2, 0);
-		Global.isStoryHeroes = Workshop Setting Toggle(Custom String("Defend The Castle Extended"), Custom String("Story Heroes"), True,
-			0);
 		Global.selfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
 	}
@@ -645,11 +637,10 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-			"Defend The Castle Extended v0.6.c129 BY ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
-			Custom String(
-			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
-			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Right, -1000, Null, Null, Color(White), Visible To, Default Visibility);
+	    Create In-World Text(All Players(Team 1), Custom String(
+            "Defend The Castle Extended c131\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
+            Custom String("Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
+            Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
 		Global.gateRepairPosition = Vector(153, 8, -46.500);
 		Global.gatePosition = Vector(148.800, 6, -46.400);
 		Global.ballSpawnPositions = Array(Vector(104, 7, -46), Vector(106, 2, -31));
@@ -674,110 +665,6 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	}
 }
 
-disabled rule("PLAYER: DEBUG - PRESS  INTERACT")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Host Player == True;
-		Is Button Held(Event Player, Button(Interact)) == True;
-	}
-
-	actions
-	{
-		disabled Modify Player Score(Event Player, 10);
-		disabled Global.gateHealth -= 5;
-		disabled Start Rule(GateProgressBarColor, Restart Rule);
-		Global.timeSeconds = 59;
-		Set Status(Event Player, Null, Phased Out, 9999);
-		disabled Set Ultimate Charge(Event Player, 100);
-		disabled Kill(Event Player, Null);
-		disabled Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
-	}
-}
-
-rule("GLOBAL: DEBUG - AI NAVIGATION")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Global.isDebugAINavigation == True;
-	}
-
-	actions
-	{
-		For Global Variable(loopIterator1, 0, Count Of(Global.nodePositions), 1);
-			Create Effect(All Players(All Teams), Sphere, Color(Red), Global.nodePositions[Global.loopIterator1], 0.850, Visible To);
-			Create In-World Text(All Players(All Teams), Custom String("NODE {0}", Global.loopIterator1),
-				Global.nodePositions[Global.loopIterator1], 1.200, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
-		End;
-	}
-}
-
-disabled rule("GLOBAL: DEBUG - CREATE BOTS")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is In Setup == True;
-	}
-
-	actions
-	{
-		Create Dummy Bot(Hero(Bastion), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Orisa), Team 2, -1, Objective Position(2), Vector(0, 0, 0));
-	}
-}
-
-disabled rule("PLAYER: DEBUG - INFOS")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Global.isDebug == True;
-		Host Player == Event Player;
-		Has Spawned(Event Player) == True;
-		Is Dummy Bot(Event Player) == False;
-	}
-
-	actions
-	{
-		Create HUD Text(Event Player, Custom String("POS {0}\r\nFACING {1}", Position Of(Event Player), Facing Direction Of(Event Player)),
-			Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player, Custom String("SERVER PERFORMANCE\r\nLOAD {0}%\r\nPEAK {1}%\r\nAVG {2}%", Server Load,
-			Server Load Peak, Server Load Average), Null, Null, Left, -99, Color(White), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		disabled Create Progress Bar HUD Text(Event Player, 45, Custom String("45 / 100 KILLS"), Left, -99, Color(Blue), Color(White),
-			Visible To Values and Color, Default Visibility);
-		disabled Create HUD Text(Event Player, Custom String("{0}", Hero Icon String(Hero Of(Event Player))), Null, Custom String(
-			"LEVEL 1 - 50 AMMO CLIP"), Left, -99, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		"ЭФФЕКТ С ОФФСЕТОМ ОТ ПОЗИЦИИ ГЛАЗ"
-		disabled Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player) - Vector(0, 0.700, 0) + Facing Direction Of(
-			Event Player) * 3, Eye Position(Event Player) + Facing Direction Of(Event Player) * 50, Color(Purple),
-			Visible To Position and Radius);
-	}
-}
-
 disabled rule("=== TEAM UPGRADES ===")
 {
 	event
@@ -795,16 +682,16 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.upgradeMaxAmmoMaxValue[0] = 250;
-		Global.upgradeMaxAmmoMaxValue[1] = 500;
-		Global.upgradeMaxAmmoMaxValue[2] = 1000;
+		Global.upgradeMaxAmmoMaxValue[0] = 150;
+		Global.upgradeMaxAmmoMaxValue[1] = 300;
+		Global.upgradeMaxAmmoMaxValue[2] = 500;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
 		Global.upgradeCriticalDamageMaxValue[2] = 10;
-		Global.upgradePlayerMaxHealthMaxValue[0] = 2500;
-		Global.upgradePlayerMaxHealthMaxValue[1] = 5000;
-		Global.upgradePlayerMaxHealthMaxValue[2] = 10000;
-		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth + Global.gateMaxHealth * 0.500, Up);
+		Global.upgradePlayerMaxHealthMaxValue[0] = 4000;
+		Global.upgradePlayerMaxHealthMaxValue[1] = 9000;
+		Global.upgradePlayerMaxHealthMaxValue[2] = 15000;
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth + Global.gateMaxHealth * 0.750, Up);
 		Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
 		Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
 		Abort If(Global.isDebug == False);
@@ -1180,30 +1067,6 @@ rule("GLOBAL: UPGRADE - PERK SHARPSHOOTER - DONE")
 	}
 }
 
-disabled rule("PLAYER: UPGRADE - -10% BOSS HEALTH - DEALT KILL")
-{
-	event
-	{
-		Player Dealt Final Blow;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Global.upgradePerkSharpshooterValue >= Global.upgradeCriticalDamageMaxValue[1];
-		Global.upgradeBossHealthValue < Global.upgradeCriticalDamageMaxValue[2];
-		Victim.isBoss == 1;
-	}
-
-	actions
-	{
-		Global.upgradeBossHealthValue += 1;
-		Small Message(All Players(Team 1), Custom String("-10% BOSS HEALTH CHALLENGE +1"));
-	}
-}
-
 rule("GLOBAL: UPGRADE - -10% BOSS HEALTH - DONE")
 {
 	event
@@ -1228,32 +1091,6 @@ rule("GLOBAL: UPGRADE - -10% BOSS HEALTH - DONE")
 	}
 }
 
-rule("PLAYER: UPGRADE - MAX AMMO - DEALT KILL")
-{
-	event
-	{
-		Player Dealt Final Blow;
-		Team 1;
-		All;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		Hero Of(Victim) == Hero(Zenyatta);
-		Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2];
-	}
-
-	actions
-	{
-		If(Event Player.isBoss == 1);
-			Global.upgradeMaxAmmoValue += 10;
-		Else;
-			Global.upgradeMaxAmmoValue += 1;
-		End;
-	}
-}
-
 rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 {
 	event
@@ -1274,9 +1111,9 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
 			"MAX AMMO 200%"), Right, 10, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
-			Custom String("KILL {2}: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1], Hero(Zenyatta)), Left, 15,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL {2}: {0}/{1}",
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
+			White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		For Global Variable(loopIterator1, 0, Count Of(All Players(Team 1)), 1);
 			Set Max Ammo(All Players(Team 1)[Global.loopIterator1], 0, Max Ammo(All Players(Team 1)[Global.loopIterator1], 0) * 2);
@@ -1284,38 +1121,6 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 			Set Ammo(All Players(Team 1)[Global.loopIterator1], 0, Max Ammo(All Players(Team 1)[Global.loopIterator1], 0));
 			Set Ammo(All Players(Team 1)[Global.loopIterator1], 1, Max Ammo(All Players(Team 1)[Global.loopIterator1], 1));
 		End;
-		Global.challengeCount += 1;
-	}
-}
-
-rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	conditions
-	{
-		Is Game In Progress == True;
-		(Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[1]) == True;
-	}
-
-	actions
-	{
-		Big Message(All Players(Team 1), Custom String("BULLETSTORM UNLOCKED!"));
-		Destroy HUD Text(Global.upgradeMaxAmmoHudId[1]);
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"Bulletstorm"), Right, 11, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL {2}: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
-			White), Visible To and String, Default Visibility);
-		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
-		Global.perk[1] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		All Players(Team 1).abilityHUD[19] = Last Text ID;
 		Global.challengeCount += 1;
 	}
 }
@@ -1336,13 +1141,45 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 	actions
 	{
 		Big Message(All Players(Team 1), Custom String("+50% DAMAGE UNLOCKED!"));
-		Destroy HUD Text(Global.upgradeMaxAmmoHudId[2]);
+		Destroy HUD Text(Global.upgradeMaxAmmoHudId[1]);
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
 			"+50% DAMAGE"), Right, 12, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
+			Custom String("KILL {2}: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2], Hero(Zenyatta)), Left, 15,
+			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
 		Global.damageDealt = 50;
 		All Players(Team 1).damageDealt = 100 + Global.damageDealt + All Players(Team 1).abilities[13] * 5;
 		Set Damage Dealt(All Players(Team 1), All Players(Team 1).damageDealt);
+		Global.challengeCount += 1;
+	}
+}
+
+rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		(Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[2]) == True;
+	}
+
+	actions
+	{
+		Big Message(All Players(Team 1), Custom String("BULLETSTORM UNLOCKED!"));
+		Destroy HUD Text(Global.upgradeMaxAmmoHudId[2]);
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
+			"Bulletstorm"), Right, 11, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
+		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
+		Global.perk[1] = 1;
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(
+			Turquoise), Visible To and String, Default Visibility);
+		All Players(Team 1).abilityHUD[19] = Last Text ID;
 		Global.challengeCount += 1;
 	}
 }
@@ -1355,7 +1192,7 @@ disabled rule("=== GAME PHASES ===")
 	}
 }
 
-rule("GLOBAL: ASEMBLING PHASE - MAKE CHALLENGES HUDS")
+rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 {
 	event
 	{
@@ -1378,8 +1215,8 @@ rule("GLOBAL: ASEMBLING PHASE - MAKE CHALLENGES HUDS")
 		Create In-World Text(All Players(Team 1), Custom String("  {0}\r\nREPAIR\r\n  {1}", Hero Icon String(Hero(Torbjörn)),
 			Ability Icon String(Hero(Bastion), Button(Secondary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES"), Left, 11, Color(White), Color(Blue), Color(
-			White), Visible To, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Left, 11, Color(
+			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
 		"UPGRADE - GATE'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String(
 			"GATE'S MAX HEALTH: {0} HP", Global.upgradeGateMaxHealthMaxValue[0]), Custom String("REPAIR GATE {0}/{1} HP",
@@ -1745,124 +1582,62 @@ rule("Subroutine: GATE REPAIR")
 		Small Message(Event Player, Custom String("REPAIR +2% ULTIMATE"));
 		"UPGRADE - GATE'S MAX HEALTH"
 		If(Global.upgradeGateMaxHealthValue < Global.upgradeGateMaxHealthMaxValue[2]);
-			If(Event Player.isNanoed == 1);
-				If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-					Global.upgradeGateMaxHealthValue += 100 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 20;
-				Else;
-					Global.upgradeGateMaxHealthValue += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-				End;
+			If(Global.gateMaxHealth - Global.gateHealth > 10 * (
+				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
+				Global.upgradeGateMaxHealthValue += 10 * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+					Event Player.isNanoed == 1 ? 2 : 1);
 			Else;
-				If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-					Global.upgradeGateMaxHealthValue += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-				Else;
-					Global.upgradeGateMaxHealthValue += 25 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 5;
-				End;
+				Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
 			End;
 		End;
 		"HEAL GATE"
-		If(Event Player.isNanoed == 1);
-			If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-				Global.gateHealth += 100 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 20;
-			Else;
-				Global.gateHealth += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-			End;
+		If(Global.gateMaxHealth - Global.gateHealth > 10 * (
+			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
+			Global.gateHealth += 10 * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+				Event Player.isNanoed == 1 ? 2 : 1);
 		Else;
-			If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1]);
-				Global.gateHealth += 50 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 10;
-			Else;
-				Global.gateHealth += 25 - (Number Of Players(Team 1) <= 3 ? Number Of Players(Team 1) : 3) * 5;
-			End;
-			If(Global.gateHealth > Global.gateMaxHealth);
-				Global.gateHealth = Global.gateMaxHealth;
-			"CHARGE ULTIMATE"
-			Else;
-				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
-			End;
+			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
 		End;
+		"CHARGE ULTIMATE"
+		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
 		"UPDATE GATE'S HEALTH BAR"
 		Start Rule(GateProgressBarColor, Restart Rule);
 	}
 }
 
-rule("TORB: GATE REPAIR")
+rule("GATE REPAIR")
 {
 	event
 	{
 		Ongoing - Each Player;
 		Team 1;
-		Torbjörn;
+		All;
 	}
 
 	conditions
 	{
-		Has Spawned(Event Player) == True;
-		Weapon(Event Player) == 2;
+		Is Game In Progress == True;
+		((Hero Of(Event Player) == Hero(Torbjörn) && Weapon(Event Player) == 2) || (Hero Of(Event Player) == Hero(Reinhardt) || Hero Of(
+			Event Player) == Hero(Brigitte))) == True;
 		Is Firing Primary(Event Player) == True;
 		Global.gateHealth < Global.gateMaxHealth;
 		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < 3.500;
-		Is Game In Progress == True;
+		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : 3.500);
 	}
 
 	actions
 	{
+		If(Hero Of(Event Player) == Hero(Reinhardt));
+			Wait(0.100, Ignore Condition);
+		End;
 		Call Subroutine(GateRepair);
-		Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
-		Loop If Condition Is True;
-	}
-}
-
-rule("Brig: GATE REPAIR")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Brigitte;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
-		Is Firing Primary(Event Player) == True;
-		Global.gateHealth < Global.gateMaxHealth;
-		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < 5;
-		Is Game In Progress == True;
-	}
-
-	actions
-	{
-		Call Subroutine(GateRepair);
-		Wait(0.500, Ignore Condition);
-		Loop If Condition Is True;
-	}
-}
-
-rule("Rein: GATE REPAIR")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Reinhardt;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
-		Is Firing Primary(Event Player) == True;
-		Global.gateHealth < Global.gateMaxHealth;
-		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < 3;
-		Is Game In Progress == True;
-	}
-
-	actions
-	{
-		Wait(0.100, Ignore Condition);
-		Call Subroutine(GateRepair);
-		Wait(0.850, Ignore Condition);
+		If(Hero Of(Event Player) == Hero(Torbjörn));
+			Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
+		Else If(Hero Of(Event Player) == Hero(Reinhardt));
+			Wait(0.850, Ignore Condition);
+		Else;
+			Wait(0.500, Ignore Condition);
+		End;
 		Loop If Condition Is True;
 	}
 }
@@ -1973,13 +1748,6 @@ rule("SUBROUTINE: PLAYER - INIT")
 
 	actions
 	{
-		"STORY HEROES"
-		If(Global.isStoryHeroes);
-			Reset Player Hero Availability(Event Player);
-			Set Player Allowed Heroes(Event Player, Array(Hero(Ana), Hero(Brigitte), Hero(Mercy), Hero(Lúcio), Hero(Moira), Hero(Baptiste),
-				Hero(Ashe), Hero(D.Va), Hero(Genji), Hero(Hanzo), Hero(Widowmaker), Hero(Cassidy), Hero(Reinhardt), Hero(Soldier: 76), Hero(
-				Torbjörn), Hero(Tracer), Hero(Winston), Hero(Pharah)));
-		End;
 		"TEAM CHALLENGE - PLAYER'S MAX HEALTH"
 		If(Global.upgradePlayerMaxHealthValue >= Global.upgradePlayerMaxHealthMaxValue[0]);
 			Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
@@ -2085,7 +1853,8 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 		"PLAYER RESPAWN"
 		Set Status(Event Player, Null, Phased Out, 3);
 		Set Facing(Event Player, Vector(-1, 0, 0), To World);
-		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= 29);
+		If(Ability Cooldown(Players On Hero(Hero(Mercy), Team 1), Button(Ability 2)) >= 30 * (Players On Hero(Hero(Mercy), Team 1)
+			.abilities[6] ? Players On Hero(Hero(Mercy), Team 1).abilities[6] * 0.250 : 1) - 1);
 			Wait(0.250, Ignore Condition);
 			Teleport(Event Player, Event Player.deathPosition);
 		Else;
@@ -4267,8 +4036,7 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 			Wait(0.500, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
 		End;
-		"BOSS WAVE"
-		Big Message(All Players(All Teams), Custom String("BOSS WAVE - {1} {0}", Hero Icon String(Hero(Reinhardt)), Hero(Reinhardt)));
+		"FAKE BOSS WAVE"
 		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Reinhardt))) < 6);
 			Wait Until(Is True For Any(All Players(Team 2), Distance Between(Position Of(Current Array Element), Global.gatePosition)
 				> 13 && Hero Of(Current Array Element) == Hero(Zenyatta)), 99999);
@@ -4303,7 +4071,6 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Zenyatta), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
-		Big Message(All Players(All Teams), Custom String("BOSS WAVE FINISHED!"));
 	}
 }
 
@@ -4460,6 +4227,9 @@ rule("money on kill")
 		If(Hero Of(Victim) == Hero(Zenyatta));
 			All Players(Team 1).money[0] += 5 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
+				Global.upgradeMaxAmmoValue += (Victim.isBoss == 1 ? 10 : 1);
+			End;
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
 			All Players(Team 1).money[0] += 15 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
@@ -4831,15 +4601,14 @@ rule("Auto Repair")
 
 	actions
 	{
-		If(Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2]);
-			Global.gateHealth += 10 * Global.automaticRepair;
-			Global.upgradeGateMaxHealthValue += 10 * Global.automaticRepair;
-		Else;
-			Global.gateHealth += 5 * Global.automaticRepair;
+		If(Global.gateMaxHealth - Global.gateHealth > 5 * Global.automaticRepair * (
+			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 2 : 1));
+			Global.gateHealth += 5 * Global.automaticRepair * (
+				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 2 : 1);
 			Global.upgradeGateMaxHealthValue += 5 * Global.automaticRepair;
-		End;
-		If(Global.gateHealth > Global.gateMaxHealth);
-			Global.gateHealth = Global.gateMaxHealth;
+		Else;
+			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
+			Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
 		End;
 		"UPDATE GATE'S HEALTH BAR"
 		Start Rule(GateProgressBarColor, Restart Rule);
@@ -4848,578 +4617,182 @@ rule("Auto Repair")
 	}
 }
 
-rule("Ana Hero Talent Text")
+rule("Hero Talent Text")
 {
 	event
 	{
 		Ongoing - Each Player;
 		Team 1;
-		Ana;
+		All;
+	}
+
+	conditions
+	{
+	    Has Spawned(Event Player) == True;
 	}
 
 	actions
 	{
+	If(Hero Of(Event Player) == Hero(Ana));
 		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ana), Button(Ability 1)), Custom String(
 			"Sleep Paralysis: Slept enemies cannot be woken up by damage"));
 		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Ana), Button(Ability 2)), Custom String(
 			"Multinade: Ana throws multiple Biotic Grenades"));
-	}
-}
-
-rule("Brigitte Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Brigitte;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Brigitte), Button(Ability 1)), Custom String(
-			"Heavy Iron: Hitting enemies with Whip Flail will root them in pace"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Brigitte), Button(Ultimate)), Custom String(
-			"Endeavor: Gain a health, damage and speed boost when your barrier breaks"));
-	}
-}
-
-rule("Mercy Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Mercy;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mercy), Button(Ability 2)), Custom String(
-			"Angelic blessing: Healing an ally slowly charges their ultimate"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mercy), Button(Ultimate)), Custom String(
-			"Holy light missiles: Unleash blasts of holy light missiles during valkyrie"));
-	}
-}
-
-rule("Lúcio Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Lúcio;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Lúcio), Button(Secondary Fire)), Custom String(
-			"Healing Wave: Soundwave heals allies for 30% of their max HP"));
+	Else If(Hero Of(Event Player) == Hero(Ashe));
+	    Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ashe), Button(Ability 2)), Custom String(
+    		"Wildfire: Shooting a burning enemy ignites other nearby enemies"));
+    	Event Player.heroTalentText[2] = Array(Icon String(Fire), Custom String(
+    		"Flare trigger: Coach gun instantly damages all burning enemies"));
+	Else If(Hero Of(Event Player) == Hero(Baptiste));
+        Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String(
+    		"Corrode: Regenerative Burst will damage and poison enemies"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
+    		"Breakthrough: Immortality Field HP threshold increased to 100%; allies inside gain ultimate"));
+	Else If(Hero Of(Event Player) == Hero(Bastion));
+	    Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
+    		"Bomblets: Bullets shot during sentry configuration are explosive"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ability 1)), Custom String(
+    		"Tesla: A powerful mounted laser will automatically attack one enemy at a time"));
+	Else If(Hero Of(Event Player) == Hero(Brigitte));
+	    Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Brigitte), Button(Ability 1)), Custom String(
+    	    "Heavy Iron: Hitting enemies with Whip Flail will root them in pace"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Brigitte), Button(Ultimate)), Custom String(
+    		"Endeavor: Gain a health, damage and speed boost when your barrier breaks"));
+    Else If(Hero Of(Event Player) == Hero(Cassidy));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Cassidy), Button(Ability 2)), Custom String(
+    		"Panic: Flashbang puts enemies in fear; deal +120% more damage to enemies in fear"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Cassidy), Button(Ultimate)), Custom String(
+    		"Clocked: Deadeye deals more damage and knocks enemies down"));
+    Else If(Hero Of(Event Player) == Hero(Doomfist));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Jump)), Custom String(
+    		"Phase Shifter: Immune to damage while any ability is active"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Doomfist), Button(Ultimate)), Custom String(
+    		"Fissure: Meteor Strike leaves a large fissure behind that burns enemies over it"));
+    Else If(Hero Of(Event Player) == Hero(D.Va));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(D.Va), Button(Secondary Fire)), Custom String(
+    		"Voltage Grid: Defense Matrix will damage and root enemies it's casted over"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(D.Va), Button(Ability 1)), Custom String(
+    		"Shooting Star: Boosters set enemies on fire"));
+    Else If(Hero Of(Event Player) == Hero(Echo));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
+    		"Focusing Optics: Focusing Beam damage ramp starts at 90% health"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
+    		"Streamline: Fire many more sticky bombs per burst"));
+    Else If(Hero Of(Event Player) == Hero(Genji));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Genji), Button(Ability 1)), Custom String(
+    		"Venomous Strike: Swift Strike poisons enemies; heal for poison damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Genji), Button(Ultimate)), Custom String(
+    		"Dragon's Breath: Dragonblade fires large explosive energy charges"));
+    Else If(Hero Of(Event Player) == Hero(Hanzo));
+        Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
+    		"Stormbreak: Enemies eliminated by hanzo unleash a thundercloud"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Hanzo), Button(Ability 2)), Custom String(
+    		"Punch II: Storm Arrows deal more damage and stun and knockback enemies"));
+    Else If(Hero Of(Event Player) == Hero(Junkrat));
+        Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Pyromania: All explosive attacks inflict fire damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
+    		"Short Fused: Steel Trap sets off violent explosions once triggered"));
+    Else If(Hero Of(Event Player) == Hero(Lúcio));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Lúcio), Button(Secondary Fire)), Custom String(
+			"Healing Wave: Sound wave heals allies for 30% of their max HP"));
 		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Lúcio), Button(Ability 1)), Custom String(
 			"Reverse Amp: Amp It Up inflicts the opposite effect of the currently played song to enemies"));
-	}
-}
-
-rule("Moira Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Moira;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Moira), Button(Secondary Fire)), Custom String(
-			"Hose: Biotic Grasp primary will damage and push enemies back"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Moira), Button(Ability 2)), Custom String(
-			"Flourish: Biotic Orbs are 3x more effective"));
-	}
-}
-
-rule("Baptiste Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Baptiste;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String(
-			"Corrode: Regenerative Burst will damage and poison enemies"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
-			"Breakthrough: Immortality Field HP threshold increased to 100%; allies inside gain ultimate"));
-	}
-}
-
-rule("Ashe Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Ashe;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ashe), Button(Ability 2)), Custom String(
-			"Wildfire: Shooting a burning enemy ignites other nearby enemies"));
-		Event Player.heroTalentText[2] = Array(Icon String(Fire), Custom String(
-			"Flare trigger: Coach gun instantly damages all burning enemies"));
-	}
-}
-
-rule("D.Va Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		D.Va;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(D.Va), Button(Secondary Fire)), Custom String(
-			"Voltage Grid: Defense Matrix will damage and root enemies it's casted over"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(D.Va), Button(Ability 1)), Custom String(
-			"Shooting Star: Boosters set enemies on fire"));
-	}
-}
-
-rule("Genji Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Genji;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Genji), Button(Ability 1)), Custom String(
-			"Venomous Strike: Swift Strike poisons enemies; heal for poison damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Genji), Button(Ultimate)), Custom String(
-			"Dragon's Breath: Dragonblade fires large explosive energy charges"));
-	}
-}
-
-rule("Hanzo Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Hanzo;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
-			"Stormbreak: Enemies eliminated by hanzo unleash a thundercloud"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Hanzo), Button(Ability 2)), Custom String(
-			"Punch II: Storm Arrows deal more damage and stun and knockback enemies"));
-	}
-}
-
-rule("Widowmaker Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Widowmaker;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Widowmaker), Button(Ultimate)), Custom String(
-			"Kiss Of Death: Scoped critical hits against enemies below 30% health explode and instantly die"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Widowmaker), Button(Ability 2)), Custom String(
-			"Epidemic: Enemies hurt by Venom Mine unleash toxic pulses; heal for dealt damage"));
-	}
-}
-
-rule("McCree Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Cassidy;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Cassidy), Button(Ability 2)), Custom String(
-			"Panic: Flashbang puts enemies in fear; deal +120% more damage to enemies in fear"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Cassidy), Button(Ultimate)), Custom String(
-			"Clocked: Deadeye deals more damage and knocks enemies down"));
-	}
-}
-
-rule("Reinhardt Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Reinhardt;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reinhardt), Button(Ability 2)), Custom String(
-			"Fire Blast: Fire Strike explodes as it deals damage, setting enemies on fire"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reinhardt), Button(Ultimate)), Custom String(
-			"Epicenter: Earthshatter travels in all directions"));
-	}
-}
-
-rule("Soldier: 76 Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Soldier: 76;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ultimate)), Custom String(
-			"Triple Threat: 2 more rockets are fired alongside Helix Rockets"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Soldier: 76), Button(Ability 1)), Custom String(
-			"Shoulder Check: Sprinting into enemies will damage and tackle them to the ground"));
-	}
-}
-
-rule("Torbjörn Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Torbjörn;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Torbjörn), Button(Ability 2)), Custom String(
-			"Melting point: Unleash heatwaves during overload and molten core"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Torbjörn), Button(Ultimate)), Custom String(
-			"Roots Of Magma: Enemies trapped in Molten Core blots cannot move"));
-	}
-}
-
-rule("Tracer Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Tracer;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Tracer), Button(Ability 2)), Custom String(
-			"Vortex: Recall pulls and roots enemies towards the activation point"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Tracer), Button(Ultimate)), Custom String(
-			"Chain Reaction: Pulse Bomb creates chain explosions on enemies damaged by it"));
-	}
-}
-
-rule("Winston Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Winston;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Winston), Button(Ability 2)), Custom String(
-			"Blast Barrier: Barrier Projector damages enemies inside the area"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Winston), Button(Ultimate)), Custom String(
-			"Next Generation: Eliminations during Primal Rage add +15% ultimate charge towards the next"));
-	}
-}
-
-rule("Pharah Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Pharah;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ability 2)), Custom String(
-			"Head Trauma: Concussive Blast stuns and damages enemies for 25% of their max health"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Pharah), Button(Ability 1)), Custom String(
-			"Thunderbird: Gain 150 shields and deal 4x the damage to barriers and objects"));
-	}
-}
-
-rule("Bastion Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Bastion;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
-			"Bomblets: Bullets shot during sentry configuration are explosive"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ability 1)), Custom String(
-			"Tesla: A powerful mounted laser will autmotically attack one enemy at a time"));
-	}
-}
-
-rule("Doomfist Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Doomfist;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Jump)), Custom String(
-			"Phase Shifter: Immune to damage while any ability is active"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Doomfist), Button(Ultimate)), Custom String(
-			"Fissure: Meteor Strike leaves a large fissure behind that burns enemies over it"));
-	}
-}
-
-rule("Echo Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Echo;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
-			"Focusing Optics: Focusing Beam damage ramp starts at 90% health"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Secondary Fire)), Custom String(
-			"Streamline: Fire many more sticky bombs per burst"));
-	}
-}
-
-rule("Junkrat Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Junkrat;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Pyromania: All explosive attacks inflict fire damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
-			"Short Fused: Steel Trap sets off violent explosions once triggered"));
-	}
-}
-
-rule("Mei Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Mei;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mei), Button(Ultimate)), Custom String(
-			"Cold Snap: Instantly freeze neaerby enemies once Cryo-Freeze expires"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mei), Button(Ability 2)), Custom String(
-			"Icebound: While Ice Wall is up, Icicles freeze and deal much more damage"));
-	}
-}
-
-rule("Orisa Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Orisa;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Orisa), Button(Ability 1)), Custom String(
-			"Immovable Object: During Fortify, become immune and convert 50% of taken damage to healing"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Orisa), Button(Secondary Fire)), Custom String(
-			"Unstoppable Force: Halt! is much larger and pushes enemies. When triggered, it explodes violently"));
-	}
-}
-
-rule("Reaper Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Reaper;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reaper), Button(Ability 1)), Custom String(
-			"shadow streak: shadow step creates a beam that damages enemies who cross"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reaper), Button(Ultimate)), Custom String(
-			"Loom: Traumatize enemies in front of you when using Wraith Form"));
-	}
-}
-
-rule("Roadhog Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Roadhog;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String("Stench: Roadhog constantly damages enemies nearby"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Roadhog), Button(Ability 1)), Custom String(
-			"Rusted Anchor: Hook deals more damage; Eliminations will reset hook cooldown"));
-	}
-}
-
-rule("Sigma Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Sigma;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sigma), Button(Ability 1)), Custom String(
-			"Gravity Well: Kinetic Grasp gives invincibility"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sigma), Button(Ultimate)), Custom String(
-			"Gravity Channels: Gravitic Flux damages enemies for 75% of max hp instead of 50%"));
-	}
-}
-
-rule("Sombra Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Sombra;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sombra), Button(Secondary Fire)), Custom String(
-			"Malware: Enemies hacked or in fear take +100% more damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sombra), Button(Ultimate)), Custom String(
-			"Glitch: EMP leaves behind a large hack zone "));
-	}
-}
-
-rule("Symmetra Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Symmetra;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
-			"High Voltage: Enemies eliminated by Symmetra explode and damage other enemies"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ultimate)), Custom String(
-			"Energy Source: While Photon Barrier is active, all players regenerate health and gain ultimate"));
-	}
-}
-
-rule("Wrecking Ball Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Wrecking Ball;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ultimate)), Custom String(
-			"Mirror Ball: Reflect 100% of taken damage to nearby enemies"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ability 2)), Custom String(
-			"Distort: Adaptive Shields damages and hacks nearby enemies"));
-	}
-}
-
-rule("Zarya Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Zarya;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Zarya), Button(Ability 1)), Custom String(
-			"Augment: Health and barrier hp increased by 50%; barrier sized doubled"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
-			"Perpetual Energy: secondary inflicts burn damage that continues to last until the enemy dies"));
-	}
-}
-
-rule("Zenyatta Hero Talent Text")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 1;
-		Zenyatta;
-	}
-
-	actions
-	{
-		Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
-			"Vigor: The ally under the effect of Harmony Orb is immune to damage"));
-		Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Zenyatta), Button(Ultimate)), Custom String(
-			"Perfect Balance: Transcendence damages enemies in a large proximity"));
-	}
+    Else If(Hero Of(Event Player) == Hero(Mei));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mei), Button(Ultimate)), Custom String(
+    		"Cold Snap: Instantly freeze nearby enemies once Cryo-Freeze expires"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mei), Button(Ability 2)), Custom String(
+    		"Icebound: While Ice Wall is up, Icicles freeze and deal much more damage"));
+    Else If(Hero Of(Event Player) == Hero(Mercy));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Mercy), Button(Ability 2)), Custom String(
+    		"Angelic blessing: Healing an ally slowly charges their ultimate"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Mercy), Button(Ultimate)), Custom String(
+    		"Holy light missiles: Unleash blasts of holy light missiles during valkyrie"));
+    Else If(Hero Of(Event Player) == Hero(Moira));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Moira), Button(Secondary Fire)), Custom String(
+    		"Hose: Biotic Grasp primary will damage and push enemies back"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Moira), Button(Ability 2)), Custom String(
+    		"Flourish: Biotic Orbs are 3x more effective"));
+    Else If(Hero Of(Event Player) == Hero(Orisa));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Orisa), Button(Ability 1)), Custom String(
+    		"Immovable Object: During Fortify, become immune and convert 50% of taken damage to healing"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Orisa), Button(Secondary Fire)), Custom String(
+    		"Unstoppable Force: Halt! is much larger and pushes enemies. When triggered, it explodes violently"));
+    Else If(Hero Of(Event Player) == Hero(Pharah));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ability 2)), Custom String(
+    		"Head Trauma: Concussive Blast stuns and damages enemies for 25% of their max health"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Pharah), Button(Ability 1)), Custom String(
+    		"Thunderbird: Gain 150 shields and deal 4x the damage to barriers and objects"));
+    Else If(Hero Of(Event Player) == Hero(Reaper));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reaper), Button(Ability 1)), Custom String(
+    		"shadow streak: shadow step creates a beam that damages enemies who cross"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reaper), Button(Ultimate)), Custom String(
+    		"Loom: Traumatize enemies in front of you when using Wraith Form"));
+    Else If(Hero Of(Event Player) == Hero(Reinhardt));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reinhardt), Button(Ability 2)), Custom String(
+    		"Fire Blast: Fire Strike explodes as it deals damage, setting enemies on fire"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reinhardt), Button(Ultimate)), Custom String(
+    		"Epicenter: Earth shatter travels in all directions"));
+    Else If(Hero Of(Event Player) == Hero(Roadhog));
+        Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String("Stench: Roadhog constantly damages enemies nearby"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Roadhog), Button(Ability 1)), Custom String(
+    		"Rusted Anchor: Hook deals more damage; Eliminations will reset hook cooldown"));
+    Else If(Hero Of(Event Player) == Hero(Sigma));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sigma), Button(Ability 1)), Custom String(
+    		"Gravity Well: Kinetic Grasp gives invincibility"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sigma), Button(Ultimate)), Custom String(
+    		"Gravity Channels: Gravitic Flux damages enemies for 75% of max hp instead of 50%"));
+    Else If(Hero Of(Event Player) == Hero(Soldier: 76));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Pharah), Button(Ultimate)), Custom String(
+    		"Triple Threat: 2 more rockets are fired alongside Helix Rockets"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Soldier: 76), Button(Ability 1)), Custom String(
+    		"Shoulder Check: Sprinting into enemies will damage and tackle them to the ground"));
+    Else If(Hero Of(Event Player) == Hero(Sombra));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Sombra), Button(Secondary Fire)), Custom String(
+    		"Malware: Enemies hacked or in fear take +100% more damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Sombra), Button(Ultimate)), Custom String(
+    		"Glitch: EMP leaves behind a large hack zone "));
+    Else If(Hero Of(Event Player) == Hero(Symmetra));
+        Event Player.heroTalentText[1] = Array(Icon String(Bolt), Custom String(
+    		"High Voltage: Enemies eliminated by Symmetra explode and damage other enemies"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Symmetra), Button(Ultimate)), Custom String(
+    		"Energy Source: While Photon Barrier is active, all players regenerate health and gain ultimate"));
+    Else If(Hero Of(Event Player) == Hero(Torbjörn));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Torbjörn), Button(Ability 2)), Custom String(
+    		"Melting point: Unleash heatwaves during overload and molten core"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Torbjörn), Button(Ultimate)), Custom String(
+    		"Roots Of Magma: Enemies trapped in Molten Core blots cannot move"));
+    Else If(Hero Of(Event Player) == Hero(Tracer));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Tracer), Button(Ability 2)), Custom String(
+    		"Vortex: Recall pulls and roots enemies towards the activation point"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Tracer), Button(Ultimate)), Custom String(
+    		"Chain Reaction: Pulse Bomb creates chain explosions on enemies damaged by it"));
+    Else If(Hero Of(Event Player) == Hero(Widowmaker));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Widowmaker), Button(Ultimate)), Custom String(
+    		"Kiss Of Death: Scoped critical hits against enemies below 30% health explode and instantly die"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Widowmaker), Button(Ability 2)), Custom String(
+    		"Epidemic: Enemies hurt by Venom Mine unleash toxic pulses; heal for dealt damage"));
+    Else If(Hero Of(Event Player) == Hero(Winston));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Winston), Button(Ability 2)), Custom String(
+        	"Blast Barrier: Barrier Projector damages enemies inside the area"));
+        Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Winston), Button(Ultimate)), Custom String(
+        	"Next Generation: Eliminations during Primal Rage add +15% ultimate charge towards the next"));
+    Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ultimate)), Custom String(
+    		"Mirror Ball: Reflect 100% of taken damage to nearby enemies"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Wrecking Ball), Button(Ability 2)), Custom String(
+    		"Distort: Adaptive Shields damages and hacks nearby enemies"));
+    Else If(Hero Of(Event Player) == Hero(Zarya));
+    	Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Zarya), Button(Ability 1)), Custom String(
+        	"Augment: Health and barrier hp increased by 50%; barrier sized doubled"));
+        Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Echo), Button(Ability 2)), Custom String(
+        	"Perpetual Energy: secondary inflicts burn damage that continues to last until the enemy dies"));
+    Else If(Hero Of(Event Player) == Hero(Zenyatta));
+        Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Baptiste), Button(Ability 2)), Custom String(
+    		"Vigor: The ally under the effect of Harmony Orb is immune to damage"));
+    	Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Zenyatta), Button(Ultimate)), Custom String(
+    		"Perfect Balance: Transcendence damages enemies in a large proximity"));
+    End;
+    }
 }
 
 rule("Ana: Sleep Paralysis")
@@ -7800,7 +7173,7 @@ rule("Team 1 Challenges")
 	}
 }
 
-rule("Remove Auto Repair when Player leaves")
+rule("Stuff to do when Player leaves")
 {
 	event
 	{
@@ -9295,14 +8668,7 @@ rule("Team 1: Change Hero")
 	{
 		Set Player Allowed Heroes(Event Player, Hero(Pharah));
 		Set Player Allowed Heroes(Event Player, Hero(Ana));
-		If(Global.isStoryHeroes);
-			Reset Player Hero Availability(Event Player);
-			Set Player Allowed Heroes(Event Player, Array(Hero(Ana), Hero(Brigitte), Hero(Mercy), Hero(Lúcio), Hero(Moira), Hero(Baptiste),
-				Hero(Ashe), Hero(D.Va), Hero(Genji), Hero(Hanzo), Hero(Widowmaker), Hero(Cassidy), Hero(Reinhardt), Hero(Soldier: 76), Hero(
-				Torbjörn), Hero(Tracer), Hero(Winston), Hero(Pharah)));
-		Else;
-			Reset Player Hero Availability(Event Player);
-		End;
+		Reset Player Hero Availability(Event Player);
 		Wait(0.500, Ignore Condition);
 		Wait Until(Has Spawned(Event Player), 99999);
 		Teleport(Event Player, Vector(159, 11, -46.500));
