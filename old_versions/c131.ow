@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended Version c132\nby ShuriZma#2349\nJ1K6F (Code Version: c131)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
+		Description: "Defend The Castle Extended Version c131\nby ShuriZma#2349\nJ1K6F (Code Version: c131)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: discord.shurizma.de\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -377,6 +377,7 @@ rule("SUBROUTINE: BOT - RESET PATH FINDING")
 		Event Player.botIsPathFinding = False;
 		Event Player.botCancelPathFinding = False;
 		Stop Throttle In Direction(Event Player);
+		disabled Stop Facing(Event Player);
 	}
 }
 
@@ -390,7 +391,10 @@ rule("SUBROUTINE: BOT - START PATH FINDING")
 
 	actions
 	{
+		disabled Abort If(Event Player.botIsPathFinding == True);
 		Call Subroutine(BotGetNextNodeIdAndPosition);
+		disabled Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 360, To World,
+			Direction and Turn Rate);
 		Start Throttle In Direction(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 1,
 			To World, Replace existing throttle, Direction and Magnitude);
 		Event Player.botIsPathFinding = True;
@@ -634,7 +638,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 	    Create In-World Text(All Players(Team 1), Custom String(
-            "Defend The Castle Extended c132\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
+            "Defend The Castle Extended c131\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: discord.shurizma.de\r\n{0}",
             Custom String("Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
             Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(White), Default Visibility);
 		Global.gateRepairPosition = Vector(153, 8, -46.500);
@@ -814,6 +818,7 @@ rule("PLAYER: UPGRADE - PLAYER'S MAX HEALTH - DEALT HEALING")
 	conditions
 	{
 		Is Game In Progress == True;
+		disabled Healer != Event Player;
 		Global.upgradePlayerMaxHealthValue < Global.upgradePlayerMaxHealthMaxValue[2];
 	}
 
@@ -981,6 +986,28 @@ rule("GLOBAL: UPGRADE - CRITICAL DAMAGE - DONE")
 			White), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[1] = Last Text ID;
 		Global.challengeCount += 1;
+	}
+}
+
+rule("PLAYER: UPGRADE - CRITICAL DAMAGE - UNLOCKED")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Event Was Critical Hit == True;
+		Global.upgradeCriticalDamageValue >= Global.upgradeCriticalDamageMaxValue[0];
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Damage * 0.500);
 	}
 }
 
@@ -1196,17 +1223,23 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[0]), Left, 12, Color(Orange), Color(White), Color(White),
 			Visible To and String, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[0] = Last Text ID;
+		disabled Create HUD Text(All Players(Team 1), Null, Custom String("  \r\n  "), Null, Left, 2, Color(White), Color(White), Color(White),
+			Visible To, Default Visibility);
 		"UPGRADE - PLAYER'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("PLAYER'S MAX HEALTH +50%"), Custom String(
 			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.upgradePlayerMaxHealthValue, Down),
 			Global.upgradePlayerMaxHealthMaxValue[0]), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
 			Default Visibility);
 		Global.upgradePlayerMaxHealthHudId[0] = Last Text ID;
+		disabled Create HUD Text(All Players(Team 1), Null, Custom String(" \r\n "), Null, Left, 4, Color(White), Color(White), Color(White),
+			Visible To, Default Visibility);
 		"UPGRADE - CRITICAL DAMAGE"
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("CRITICAL DAMAGE 150%"), Custom String(
 			"KILL WIDOW WITH HEADSHOT: {0}/{1}", Global.upgradeCriticalDamageValue, Global.upgradeCriticalDamageMaxValue[0]), Left, 14,
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
+		disabled Create HUD Text(All Players(Team 1), Null, Custom String(" \r\n "), Null, Left, 6, Color(White), Color(White), Color(White),
+			Visible To, Default Visibility);
 		"UPGRADE - MAX AMMO"
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL {2}: {0}/{1}",
 			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
@@ -1320,6 +1353,7 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 	conditions
 	{
 		Is Game In Progress == True;
+		disabled Global.gateHealth > 0;
 	}
 
 	actions
@@ -1332,6 +1366,7 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 			Global.time5Minutes = Round To Integer(Global.timeMinutes / 5, Down);
 			Global.time10Minutes = Round To Integer(Global.timeMinutes / 10, Down);
 			Global.spawnPositionMaxId += 1;
+			disabled Start Rule(GameLogicAddNextHeroInGame, Restart Rule);
 		Else If(Global.timeSeconds == 30);
 			Global.spawnPositionMaxId += 1;
 		End;
@@ -1349,6 +1384,11 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 
 	actions
 	{
+		"REDUCE RESPAWN TIME FOR ZENS"
+		disabled Global.zenRespawnTime -= 1.500;
+		disabled Global.zenRespawnTime = Max(1, Global.zenRespawnTime);
+		disabled Set Respawn Max Time(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Global.defaultHeroBotsPool[0]),
+			Global.zenRespawnTime);
 		"ALL HEROES WAS ADDED IN GAME"
 		Abort If(Global.defaultHeroBotsPoolCurrentId == Count Of(Global.defaultHeroBotsPool) - 1);
 		Global.defaultHeroBotsPoolCurrentId += 1;
@@ -1361,7 +1401,7 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 			Global.defaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
 				== Hero(Wrecking Ball))[0];
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
-			Wait(0.100, Ignore Condition);
+			Wait(0.050, Ignore Condition);
 			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 			Abort;
 		End;
@@ -1374,7 +1414,7 @@ rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
 		Global.defaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
 			== Hero(Zenyatta))[0];
 		Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
-		Wait(0.100, Ignore Condition);
+		Wait(0.050, Ignore Condition);
 		Create Dummy Bot(Global.defaultHeroBotsPool[Global.defaultHeroBotsPoolCurrentId], Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 	}
 }
@@ -1507,6 +1547,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
+				disabled Start Scaling Player(Event Player, 0.850, False);
 				Set Move Speed(Event Player, 110);
 				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
 				Set Respawn Max Time(Event Player, 15);
@@ -1617,16 +1658,16 @@ rule("SUBROUTINE: GATE PROGRESS BAR COLOR")
 		If(Global.gateHealth < Global.gateHealthEvent);
 			For Global Variable(loopIterator1, 0, 3, 1);
 				Global.gateProgressBarColorCurrent = Color(Red);
-				Wait(0.100, Ignore Condition);
+				Wait(0.030, Ignore Condition);
 				Global.gateProgressBarColorCurrent = Color(White);
-				Wait(0.100, Ignore Condition);
+				Wait(0.030, Ignore Condition);
 			End;
 		"GATE WAS REPAIRED"
 		Else;
 			Global.gateProgressBarColorCurrent = Color(Green);
-			Wait(0.100, Ignore Condition);
+			Wait(0.030, Ignore Condition);
 			Global.gateProgressBarColorCurrent = Color(Yellow);
-			Wait(0.100, Ignore Condition);
+			Wait(0.030, Ignore Condition);
 		End;
 		Global.gateHealthEvent = Global.gateHealth;
 		Global.gateProgressBarColorComponent = Global.gateHealth * 255 / Global.gateMaxHealth;
@@ -1767,7 +1808,9 @@ rule("SUBROUTINE: BOT - RESPAWN")
 		Event Player.isRespawning = True;
 		Enable Nameplates(Event Player, All Players(Team 1));
 		Call Subroutine(BotResetPathFinding);
+		disabled If(Hero Of(Event Player) != Event Player.currentHero);
 		Call Subroutine(GameLogicSetBotProperties);
+		disabled End;
 		"INDIVIDUAL HERO'S RESPAWN SCRIPTS"
 		If(Hero Of(Event Player) == Hero(Bastion));
 			Call Subroutine(BotBastionRespawn);
@@ -1805,6 +1848,8 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 			Set Ammo(Event Player, 0, Max Ammo(Event Player, 0));
 			Set Ammo(Event Player, 1, Max Ammo(Event Player, 1));
 		End;
+		"MUST BE AFTER TEAM CHALLENGE MAX AMMO!"
+		disabled Event Player.currentHero = Hero Of(Event Player);
 		"PLAYER RESPAWN"
 		Set Status(Event Player, Null, Phased Out, 3);
 		Set Facing(Event Player, Vector(-1, 0, 0), To World);
@@ -1838,6 +1883,9 @@ rule("PLAYER: DEATH")
 			Event Player.abilities[8] += 1;
 		End;
 		Event Player.deathPosition = Position Of(Event Player);
+		disabled If(Event Player.lastSecondWind > 0);
+		disabled Event Player.lastSecondWind = 0;
+		disabled End;
 		Event Player.isDead = True;
 	}
 }
@@ -1854,8 +1902,11 @@ rule("BOT: DEATH")
 	actions
 	{
 		If(Event Player.isBoss == 1);
-			If(Global.upgradePerkSharpshooterValue >= Global.upgradeCriticalDamageMaxValue[1] && Global.upgradeBossHealthValue < Global.upgradeCriticalDamageMaxValue[2]);
+			If(Global.upgradePerkSharpshooterValue >= Global.upgradeCriticalDamageMaxValue[1]);
+				If(Global.upgradeBossHealthValue < Global.upgradeCriticalDamageMaxValue[2]);
 					Global.upgradeBossHealthValue += 1;
+					Small Message(All Players(Team 1), Custom String("-10% BOSS HEALTH CHALLENGE +1"));
+				End;
 			End;
 			Event Player.isBoss = 0;
 			Global.activeBoss = Null;
@@ -1865,6 +1916,9 @@ rule("BOT: DEATH")
 		Event Player.hasBadStatus = False;
 		Event Player.botDoesUniqueBehaviour = False;
 		Disable Nameplates(Event Player, All Players(Team 1));
+		disabled Stop Holding Button(Event Player, Button(Ability 1));
+		disabled Stop Holding Button(Event Player, Button(Primary Fire));
+		disabled Stop Holding Button(Event Player, Button(Secondary Fire));
 		"BOT HAS 1 EFFECT IN VAR (NOT ARRAY)"
 		Skip If(!Entity Exists(Event Player.botEffects), 1);
 		Destroy Effect(Event Player.botEffects);
@@ -1930,11 +1984,11 @@ rule("SUBROUTINE: BOT - LANDING FROM SKY")
 		"SET RESPAWN POSITION"
 		Event Player.botEventPosition = Random Value In Array(Global.bigBossSpawnPositions);
 		"CREATE EFFECTS"
-		Create Effect(All Players(All Teams), Light Shaft, Color(Red), Event Player.botEventPosition, 3, Visible To);
-		Event Player.botEffects = Last Created Entity;
+		disabled Create Effect(All Players(All Teams), Light Shaft, Color(Red), Event Player.botEventPosition, 3, Visible To);
+		disabled Event Player.botEffects = Last Created Entity;
 		"RESPAWN IN LIGHT SHAFT EFFECT"
 		Teleport(Event Player, Event Player.botEventPosition + Vector(0, 25, 0));
-		Wait(0.100, Ignore Condition);
+		Wait(0.020, Ignore Condition);
 		"SLOW LANDING"
 		Set Gravity(Event Player, 50);
 		While(Is In Air(Event Player) == True);
@@ -1942,7 +1996,7 @@ rule("SUBROUTINE: BOT - LANDING FROM SKY")
 			Wait(0.250, Ignore Condition);
 		End;
 		Set Gravity(Event Player, 100);
-		Destroy Effect(Event Player.botEffects);
+		disabled Destroy Effect(Event Player.botEffects);
 		"LANDING EFFECTS"
 		Play Effect(All Players(All Teams), Wrecking Ball Piledriver Impact Effect, Custom Color(105, 87, 46, 255), Position Of(
 			Event Player), 8);
@@ -1966,7 +2020,7 @@ rule("SUBROUTINE: BOT - APPEAR FROM UNDERGROUND")
 		Disable Movement Collision With Environment(Event Player, True);
 		Teleport(Event Player, Global.zenSpawnPositions[Random Integer(Min(Global.timeMinutes, Count Of(Global.zenSpawnPositions) - 10),
 			Min(Global.spawnPositionMaxId, Count Of(Global.zenSpawnPositions) - 4))] + Vector(0, -1.500, 0));
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Play Effect(All Players(All Teams), Sigma Accretion Impact Effect, Custom Color(220, 175, 100, 255), Eye Position(Event Player),
 			3);
 		Play Effect(All Players(All Teams), Sigma Accretion Impact Sound, Color(Gray), Eye Position(Event Player), 50);
@@ -1983,6 +2037,35 @@ disabled rule("=== PLAYER MECHANICS ===")
 	event
 	{
 		Ongoing - Global;
+	}
+}
+
+disabled rule("PLAYER: DARKNESS")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+		!Entity Exists(Event Player.botEffects) == True;
+	}
+
+	actions
+	{
+		Disable Nameplates(Event Player, All Players(All Teams));
+		Start Forcing Player Outlines(Event Player, All Players(All Teams), False, Color(White), Default);
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + Vector(0, 2, 0)
+			+ Facing Direction Of(Event Player) * 14), 25, Visible To Position and Radius);
+		Event Player.botEffects = Last Created Entity;
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + World Vector Of(Vector(-5, 0,
+			3), Event Player, Rotation) + Facing Direction Of(Event Player) * 10), 25, Visible To Position and Radius);
+		Create Effect(Event Player, Bad Aura, Color(Black), Update Every Frame(Eye Position(Event Player) + World Vector Of(Vector(5, 0,
+			3), Event Player, Rotation) + Facing Direction Of(Event Player) * 10), 25, Visible To Position and Radius);
 	}
 }
 
@@ -2004,6 +2087,59 @@ rule("PLAYER: HEALTH REGEN")
 		Loop If(Is Alive(Event Player) && Event Player.eventHealth > Health(Event Player));
 		Start Heal Over Time(Event Player, Null, 3, Max Health(Event Player) / 3);
 		Event Player.healOverTimeId = Last Heal Over Time ID;
+	}
+}
+
+disabled rule("=== NERFS ===")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("REINHARDT: ANTI-CHARGE FOR BASTION & ORISA")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Using Ability 1(Event Player) == True;
+		Hero Of(Ray Cast Hit Player(Eye Position(Event Player) + Vector(0, 2, 0), Eye Position(Event Player) + Vector(0, 2, 0)
+			+ Facing Direction Of(Event Player) * 2, All Living Players(Team 2), Event Player, True)) == (Hero(Bastion) == True || Hero(
+			Orisa) == True);
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Knocked Down, 1.500);
+	}
+}
+
+rule("HOG: ANTI-HOOK FOR BASTION & ORISA")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Roadhog;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 1);
+		(Hero Of(Victim) == Hero(Bastion) || Hero Of(Victim) == Hero(Orisa)) == True;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Stunned, 0.005);
 	}
 }
 
@@ -2037,6 +2173,7 @@ rule("BOT: ZEN - REACHED THE GATE")
 	{
 		Set Ammo(Event Player, 0, 0);
 		Communicate(Event Player, Hello);
+		disabled Call Subroutine(BotResetPathFinding);
 		Wait(1.500, Ignore Condition);
 		Abort If(Is Dead(Event Player) == True);
 		Kill(Event Player, Null);
@@ -2129,6 +2266,7 @@ rule("BOT: BALL - REACHED THE GATE")
 		Is Alive(Event Player) == True;
 		Event Player.isRespawning == False;
 		Event Player.botIsPathFinding == False;
+		disabled Distance Between(Position Of(Event Player), Global.gatePosition) < 3;
 	}
 
 	actions
@@ -2304,6 +2442,8 @@ rule("BOT: ECHO - BAD STATUS - RESET BEAM")
 		Is Alive(Event Player) == True;
 		Event Player.isRespawning == False;
 		Event Player.hasBadStatus == True;
+		disabled (Has Status(Event Player, Hacked) || Has Status(Event Player, Frozen) || Has Status(Event Player, Knocked Down) || Has Status(
+			Event Player, Asleep) || Has Status(Event Player, Stunned)) == True;
 	}
 
 	actions
@@ -2345,6 +2485,82 @@ rule("BOT: ECHO - CAN'T SEE PORTAL - APPLY IMPULSE")
 		Else;
 			Call Subroutine(BotResetPathFinding);
 		End;
+		Loop If Condition Is True;
+	}
+}
+
+disabled rule("BOT: ECHO - MAIN LOGIC - BACKUP")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Echo;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.isRespawning == False;
+	}
+
+	actions
+	{
+		If(!Event Player.botIsPathFinding);
+			Event Player.botSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Is In Line of Sight(Eye Position(Event Player),
+				Eye Position(Current Array Element), Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player),
+				Position Of(Current Array Element)))[0];
+		End;
+		"NO PLAYERS IN VIEW RANGE"
+		disabled If(Event Player.botSeePlayer == Null);
+		disabled Stop Throttle In Direction(Event Player);
+		disabled End;
+		"FLY TO PLAYER"
+		If(Event Player.botSeePlayer != Null && Distance Between(Position Of(Event Player), Position Of(Event Player.botSeePlayer))
+			> 4 && Event Player.botDoesUniqueBehaviour == False);
+			Event Player.botTargetPlayer = Event Player.botSeePlayer;
+			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.botSeePlayer)), 300, To World,
+				Direction and Turn Rate);
+			Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.botSeePlayer)),
+				1, To World, Replace existing throttle, Direction and Magnitude);
+			Start Holding Button(Event Player, Button(Jump));
+		"ACTIVATE FOCUS BEAM"
+		Else If(Event Player.botSeePlayer != Null && Distance Between(Position Of(Event Player), Position Of(Event Player.botSeePlayer))
+				< 4 && Event Player.botDoesUniqueBehaviour == False && Event Player.hasBadStatus == False);
+			Event Player.botDoesUniqueBehaviour = True;
+			Set Status(Event Player.botSeePlayer, Event Player, Stunned, 1);
+			Set Status(Event Player.botSeePlayer, Event Player, Hacked, 99999);
+			Attach Players(Event Player.botSeePlayer, Event Player, Vector(0, 0, 2));
+			Press Button(Event Player, Button(Ability 2));
+		"TELEPORT PLAYER TO AWAY"
+		Else If(Event Player.botDoesUniqueBehaviour && Distance Between(Position Of(Event Player.botSeePlayer),
+				Global.botEchoRespawnPosition) < 4);
+			Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Global.botEchoRespawnPosition, 1);
+			Teleport(Event Player.botSeePlayer, Random Value In Array(Global.botEchoTeleportPositions));
+			Set Status(Event Player.botSeePlayer, Event Player, Knocked Down, 1);
+			Call Subroutine(BotEchoDetachPlayer);
+		"BEGIN TO FLY TO THE PORTAL"
+		Else If(Event Player.botDoesUniqueBehaviour == True);
+			Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Global.botEchoRespawnPosition), 100, To World,
+				Direction and Turn Rate);
+			"BOT SEES THE PORTAL"
+			If(Is In Line of Sight(Position Of(Event Player), Global.botEchoRespawnPosition, Barriers Do Not Block LOS));
+				"RESET PATH FINDING"
+				If(Event Player.botIsPathFinding);
+					Call Subroutine(BotResetPathFinding);
+				End;
+				Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), Global.botEchoRespawnPosition), 1,
+					To World, Replace existing throttle, Direction and Magnitude);
+			"BOT DOES NOT SEE THE PORTAL"
+			Else If(!Event Player.botIsPathFinding);
+				Event Player.botTargetPlayer = Event Player.botSeePlayer;
+				Stop Holding Button(Event Player, Button(Jump));
+				Start Rule(BotStartPathFinding, Restart Rule);
+			End;
+		End;
+		Wait(0.500, Ignore Condition);
 		Loop If Condition Is True;
 	}
 }
@@ -2682,6 +2898,10 @@ rule("BOT: REIN - SET PLAYER AS TARGET")
 		Has Spawned(Event Player) == True;
 		Is Alive(Event Player) == True;
 		Event Player.isRespawning == False;
+		disabled Event Player.botIsPathFinding == False;
+		"BOT IS FAR FROM GATES"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Global.gatePosition), 0, Z Component Of(Global.gatePosition))) > 20;
 		"CAN SEE PLAYER"
 		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
 			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
@@ -2717,6 +2937,9 @@ rule("BOT: REIN - SET GATE AS TARGET")
 		Event Player.isRespawning == False;
 		"BOT DOESN'T FOLLOW PLAYER"
 		Event Player.botTargetPlayer == -1;
+		"CAN'T SEE ANY PLAYER"
+		disabled Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), !Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
 	}
 
 	actions
@@ -2773,6 +2996,10 @@ rule("BOT: REIN - ATTACK TARGET")
 		"CAN ATTACK TARGET"
 		Distance Between(Position Of(Event Player), Event Player.botTargetPlayer != -1 ? Position Of(Event Player.botTargetPlayer)
 			: Global.gatePosition) < 4;
+		"CAN ATTACK TARGET (2D DISTANCE)"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Event Player.botTargetPlayer != -1 ? Position Of(Event Player.botTargetPlayer) : Global.gatePosition), 0,
+			Z Component Of(Event Player.botTargetPlayer != -1 ? Position Of(Event Player.botTargetPlayer) : Global.gatePosition))) < 4;
 	}
 
 	actions
@@ -2811,6 +3038,10 @@ rule("BOT: REIN - STOP ATTACK TARGET")
 		"CAN ATTACK TARGET"
 		Distance Between(Position Of(Event Player), Event Player.botTargetPlayer != -1 ? Position Of(Event Player.botTargetPlayer)
 			: Global.gatePosition) > 4;
+		"CAN'T ATTACK TARGET (2D DISTANCE)"
+		disabled Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Vector(
+			X Component Of(Event Player.botTargetPlayer != -1 ? Position Of(Event Player.botTargetPlayer) : Global.gatePosition), 0,
+			Z Component Of(Event Player.botTargetPlayer != -1 ? Position Of(Event Player.botTargetPlayer) : Global.gatePosition))) > 4;
 	}
 
 	actions
@@ -2866,6 +3097,7 @@ rule("BOT: REIN - CHARGE IN GATE")
 
 	actions
 	{
+		disabled Wait(0.800, Abort When False);
 		Start Holding Button(Event Player, Button(Ability 1));
 		Wait Until(Is Using Ability 1(Event Player), 1);
 		Stop Holding Button(Event Player, Button(Ability 1));
@@ -3022,10 +3254,10 @@ rule("BOT: WIDOW - TELEPORT TO NEW POSITION")
 		Event Player.botWidowTeleportTime = Total Time Elapsed + 28;
 		Event Player.botWidowShotTime = Total Time Elapsed + (Global.timeMinutes >= 9 ? Random Real(1, 3) : Random Real(3, 6));
 		Play Effect(All Players(All Teams), Bad Pickup Effect, Color(White), Event Player, 1);
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Teleport(Event Player, Filtered Array(Global.sniperPositions, Distance Between(Event Player.botEventPosition,
 			Current Array Element) > 5)[Random Integer(0, Count Of(Global.sniperPositions) - 2)]);
-		Wait(0.100, Ignore Condition);
+		Wait(0.020, Ignore Condition);
 		Event Player.botEventPosition = Position Of(Event Player);
 		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Objective Position(2)), To World);
 		Play Effect(All Players(All Teams), Good Pickup Effect, Color(White), Event Player, 2);
@@ -3063,7 +3295,7 @@ rule("SUBROUTINE: WIDOW - RESPAWN")
 		"RESPAWN ON RANDOM SNIPER POSITION"
 		Teleport(Event Player, Filtered Array(Global.sniperPositions, Distance Between(Event Player.botEventPosition,
 			Current Array Element) > 5)[Random Integer(0, Count Of(Global.sniperPositions) - 2)]);
-		Wait(0.100, Ignore Condition);
+		Wait(0.020, Ignore Condition);
 		Event Player.botEventPosition = Position Of(Event Player);
 		Play Effect(All Players(All Teams), Good Pickup Effect, Color(White), Event Player, 2);
 		Play Effect(All Players(All Teams), Debuff Impact Sound, Color(White), Event Player, 100);
@@ -3107,6 +3339,129 @@ disabled rule("=== BASTION ===")
 	}
 }
 
+disabled rule("BOT: BASTION - FLAME GUN")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.botIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.botSeePlayer == True;
+		Is Reloading(Event Player) == False;
+		Event Player.botDoesUniqueBehaviour == False;
+		Is In View Angle(Event Player, Position Of(Event Player.botSeePlayer), 50) == True;
+		Distance Between(Position Of(Event Player), Position Of(Event Player.botSeePlayer)) < 8;
+	}
+
+	actions
+	{
+		Event Player.botDoesUniqueBehaviour = True;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Update Every Frame(Eye Position(Event Player) + World Vector Of(
+			Vector(-1, -1.200, 1.800), Event Player, Rotation)), 1, Visible To Position and Radius);
+		Event Player.botEffects = Last Created Entity;
+		Start Rule(BotBastionFlameGunDamage, Do Nothing);
+		Wait(1.100, Ignore Condition);
+		Destroy Effect(Event Player.botEffects);
+		Wait(4, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+disabled rule("BOT: BASTION - CAN SEE PLAYER")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.botIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		disabled Event Player.botSeePlayer == Null;
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == True;
+	}
+
+	actions
+	{
+		Event Player.botSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
+			== True && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)
+			== True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
+		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.botSeePlayer)), 100, To World,
+			Direction and Turn Rate);
+	}
+}
+
+disabled rule("BOT: BASTION - CAN'T SEE PLAYER")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.botIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.botSeePlayer != Null;
+		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)), Is In Line of Sight(Eye Position(
+			Event Player), Eye Position(Current Array Element), Barriers Do Not Block LOS)) == False;
+	}
+
+	actions
+	{
+		Event Player.botSeePlayer = Null;
+		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 100, To World,
+			Direction and Turn Rate);
+	}
+}
+
+disabled rule("BOT: BASTION - MOVE TO BASTION'S TARGET (POSITION)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Bastion;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Event Player.botIsOrisaChild == False;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.isRespawning == False;
+		Event Player.botIsPathFinding == False;
+		Event Player.botDoesUniqueBehaviour == False;
+	}
+
+	actions
+	{
+		Event Player.botTargetPosition = Random Value In Array(Filtered Array(Global.bastionTargetPositions, Distance Between(Position Of(
+			Event Player), Current Array Element) > 3.500));
+		Start Rule(BotStartPathFinding, Do Nothing);
+	}
+}
+
 rule("BOT: BASTION - MAIN LOGIC - LOOP")
 {
 	event
@@ -3140,6 +3495,18 @@ rule("BOT: BASTION - MAIN LOGIC - LOOP")
 		Else If(!Is Firing Secondary(Event Player) && Health(Event Player) < Max Health(Event Player));
 			Start Holding Button(Event Player, Button(Secondary Fire));
 		End;
+		"START FOLLOW PATH"
+		disabled If(!Event Player.botIsPathFinding && !Event Player.botDoesUniqueBehaviour);
+		disabled Start Rule(BotResetPathFinding, Do Nothing);
+		disabled Wait(0.050, Ignore Condition);
+		disabled Event Player.botTargetPosition = Random Value In Array(Global.bastionTargetPositions);
+		disabled Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Event Player.botTargetPosition + Vector(0, 2, 0)), 100,
+			To World, Direction and Turn Rate);
+		disabled Start Rule(BotStartPathFinding, Do Nothing);
+		"REACHED PATH TARGET"
+		disabled Else If(Distance Between(Position Of(Event Player), Event Player.botTargetPosition) <= 3);
+		disabled Start Rule(BotResetPathFinding, Do Nothing);
+		disabled End;
 		Wait(1, Ignore Condition);
 		Loop If Condition Is True;
 	}
@@ -3195,13 +3562,15 @@ rule("BOT: BASTION - ARTILLERY")
 				-0.700), Event Player, Rotation), Eye Position(Event Player) + World Vector Of(Vector(Random Real(-1, 1), Random Integer(40,
 				80), Random Real(0.500, 1.500)), Event Player, Rotation), Color(Orange), Visible To);
 			Event Player.botEffects = Last Created Entity;
-			Wait(0.100, Ignore Condition);
+			Wait(0.050, Ignore Condition);
 			Destroy Effect(Event Player.botEffects);
 			Wait(0.400, Ignore Condition);
 			If(Is Dead(Event Player));
 				Break;
 			End;
 		End;
+		disabled Call Subroutine(BotResetPathFinding);
+		disabled Start Rule(BotStartPathFinding, Do Nothing);
 		Start Throttle In Direction(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 1,
 			To World, Replace existing throttle, Direction and Magnitude);
 		Wait(1.500, Ignore Condition);
@@ -3299,10 +3668,37 @@ rule("SUBROUTINE: BASTION - ARTILLERY DAMAGE")
 			Create Beam Effect(All Players(All Teams), Zarya Particle Beam, Event Player.botEventPosition,
 				Event Player.botEventPosition + Vector(0, 60, 0), Color(Orange), Visible To);
 			Event Player.botEffects = Last Created Entity;
-			Wait(0.100, Ignore Condition);
+			Wait(0.050, Ignore Condition);
 			Destroy Effect(Event Player.botEffects);
 			Wait(0.400, Ignore Condition);
 		End;
+	}
+}
+
+disabled rule("SUBROUTINE: BASTION - FLAME GUN DAMAGE")
+{
+	event
+	{
+		Subroutine;
+		BotBastionFlameGunDamage;
+	}
+
+	actions
+	{
+		Event Player.botRayCastHitPosition = Eye Position(Event Player) + World Vector Of(Vector(-1, -1.200, 1.800), Event Player,
+			Rotation);
+		"FIRE PARTICLES OF FLAME GUN"
+		For Player Variable(Event Player, botLoopIterator1, 1, 13, 3);
+			Event Player.botEventPosition = Ray Cast Hit Position(Event Player.botRayCastHitPosition,
+				Event Player.botRayCastHitPosition + Facing Direction Of(Event Player) * Event Player.botLoopIterator1, Null, Event Player,
+				True);
+			Damage(Players Within Radius(Event Player.botEventPosition, 4, Team 1, Surfaces And Enemy Barriers), Event Player, 20);
+			Set Status(Players Within Radius(Event Player.botEventPosition, 4, Team 1, Off), Event Player, Burning, 2);
+			Play Effect(All Players(All Teams), Debuff Impact Sound, Color(White), Event Player.botEventPosition, 150);
+			Play Effect(All Players(All Teams), Bad Explosion, Color(Orange), Event Player.botEventPosition, 2.500);
+			Wait(0.200, Ignore Condition);
+		End;
+		Event Player.botDoesUniqueBehaviour = False;
 	}
 }
 
@@ -3341,6 +3737,11 @@ rule("BOT: ORISA-BASTION - REACHED TARGET POSITION")
 			Global.gatePosition, Barriers Do Not Block LOS) ? Global.gatePosition : Sorted Array(Filtered Array(All Players(Team 1),
 			Is Alive(Current Array Element)), Distance Between(Eye Position(Event Player), Position Of(Current Array Element)))[0]), 200,
 			To World, Direction and Turn Rate);
+		disabled Start Facing(Global.botOrisaChild, Direction Towards(Eye Position(Event Player), Is In Line of Sight(Eye Position(Event Player),
+			Global.gatePosition, Barriers Do Not Block LOS) ? Global.gatePosition : Sorted Array(Filtered Array(All Players(Team 1),
+			Is Alive(Current Array Element) && Is In Line of Sight(Eye Position(Event Player), Position Of(Current Array Element),
+			Barriers Do Not Block LOS)), Distance Between(Eye Position(Event Player), Position Of(Current Array Element)))[0]), 200,
+			To World, Direction and Turn Rate);
 		Press Button(Event Player, Button(Ability 1));
 		Wait Until(Y Component Of(Facing Direction Of(Event Player)) < -0.300, 99999);
 		Press Button(Event Player, Button(Ability 2));
@@ -3373,7 +3774,7 @@ rule("BOT: ORISA-BASTION - SHOOT")
 	{
 		Event Player.botDoesUniqueBehaviour = True;
 		While(Is Alive(Event Player));
-			Create Effect(All Players(All Teams), Bad Aura, Color(Purple), Eye Position(Event Player) - Vector(0, 0.700, 0)
+			disabled Create Effect(All Players(All Teams), Bad Aura, Color(Purple), Eye Position(Event Player) - Vector(0, 0.700, 0)
 				+ Facing Direction Of(Event Player) * 3.200, 1, Visible To Position and Radius);
 			Event Player.botEffects = Last Created Entity;
 			Wait(1.500, Ignore Condition);
@@ -3402,7 +3803,7 @@ rule("BOT: ORISA-BASTION - SHOOT")
 			End;
 			Wait(0.150, Ignore Condition);
 			Destroy Effect(Event Player.botEffects);
-			Wait(0.100, Ignore Condition);
+			Wait(0.060, Ignore Condition);
 			Wait Until(!Is Reloading(Event Player), 2.500);
 		End;
 	}
@@ -3489,6 +3890,9 @@ rule("SUBROUTINE: ORISA - RESPAWN")
 		Stop Holding Button(Global.botOrisaChild, Button(Ability 1));
 		Teleport(Global.botOrisaChild, Position Of(Event Player));
 		Attach Players(Global.botOrisaChild, Global.botOrisaParent, Vector(0, 1.800, 0.230));
+		disabled Wait(1, Ignore Condition);
+		disabled Stop Holding Button(Global.botOrisaChild, Button(Primary Fire));
+		disabled Wait(0.250, Ignore Condition);
 		Call Subroutine(BotLandingFromSky);
 		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Event Player.botNextNodePosition), 360, To World,
 			Direction and Turn Rate);
@@ -3643,6 +4047,8 @@ rule("GLOBAL: GAME LOGIC - MIN 5 - REINS WAVE")
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
 			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+			disabled Wait(0.200, Ignore Condition);
+			disabled Set Max Health(Global.defaultCurrentBot, 50);
 		End;
 		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Reinhardt))) > 3);
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
@@ -3867,6 +4273,50 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 	}
 }
 
+rule("Team 1 (Ability): Headhunter")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.abilities[1] == True;
+		Event Was Critical Hit == True;
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Player.abilities[1] * 40 / Event Player.damageDealt * Event Damage);
+	}
+}
+
+rule("Team 1 (Ability): Ambush")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.abilities[2] == True;
+		Event Ability != Null;
+		(Y Component Of(Position Of(Event Player)) - Y Component Of(Position Of(Victim)) >= 3 || Absolute Value(Horizontal Angle Towards(
+			Victim, Event Player)) >= 90) == True;
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Player.abilities[2] * 30 / Event Player.damageDealt * Event Damage);
+	}
+}
+
 rule("Team 1 (Ability): Quick Fix")
 {
 	event
@@ -3929,7 +4379,7 @@ rule("Team 1 (Ability): Charged")
 	{
 		Set Ultimate Charge(Event Player, Event Player.abilities[5] * 20);
 		If(Is Duplicating(Event Player));
-			Wait(0.100, Ignore Condition);
+			Wait(0.016, Ignore Condition);
 			Set Ultimate Charge(Event Player, Event Player.abilities[5] * 20);
 		End;
 		Wait(0.250, Ignore Condition);
@@ -4088,6 +4538,27 @@ rule("Team 1 (Ability): Heavy Impact")
 		Abort If(Random Real(-0.020, 1) > Event Damage / Max Health(Event Player));
 		Set Status(Event Player, Attacker, Stunned, 1 * Attacker.abilities[7]);
 		Wait(5, Ignore Condition);
+	}
+}
+
+rule("Team 1 (Ability): Binding Heal")
+{
+	event
+	{
+		Player Dealt Healing;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.abilities[10] == True;
+		Healee != Event Player;
+	}
+
+	actions
+	{
+		Set Player Health(Event Player, Health(Event Player) + Event Player.abilities[10] * 0.250 * Event Healing);
 	}
 }
 
@@ -4324,6 +4795,29 @@ rule("Hero Talent Text")
     }
 }
 
+rule("Ana: Sleep Paralysis")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Ana;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 1);
+		Event Player.abilities[8] == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Good Pickup Effect, Color(Black), Victim, 1);
+		Wait(0.250, Ignore Condition);
+		Set Status(Victim, Null, Knocked Down, 5);
+	}
+}
+
 rule("Ana: Multinade")
 {
 	event
@@ -4343,14 +4837,37 @@ rule("Ana: Multinade")
 	{
 		Event Player.abilityCountdown = 4;
 		While(Event Player.abilityCountdown > 0);
-			Wait(0.100, Ignore Condition);
+			Wait(0.030, Ignore Condition);
 			Set Ability Cooldown(Event Player, Button(Ability 2), 0);
 			Cancel Primary Action(Event Player);
-			Wait(0.100, Ignore Condition);
+			Wait(0.050, Ignore Condition);
 			Press Button(Event Player, Button(Ability 2));
 			Event Player.abilityCountdown -= 1;
 		End;
 		Wait(2, Ignore Condition);
+	}
+}
+
+rule("Brigitte: Heavy Iron")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Brigitte;
+	}
+
+	conditions
+	{
+		(Event Ability == Button(Primary Fire) || Event Ability == Button(Ability 1)) == True;
+		Event Player.abilities[8] == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Victim, 1.500);
+		Set Status(Victim, Null, Rooted, 0.500);
+		Set Environment Credit Player(Victim, Event Player);
 	}
 }
 
@@ -4387,6 +4904,29 @@ rule("Brigitte: Endeavor")
 	}
 }
 
+rule("Mercy: Angelic Blessing")
+{
+	event
+	{
+		Player Dealt Healing;
+		All;
+		Mercy;
+	}
+
+	conditions
+	{
+		Event Player.abilities[8] == True;
+		Healee != Event Player;
+		Normalized Health(Healee) < True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Healee, Ultimate Charge Percent(Healee) + 1);
+		Wait(0.400, Ignore Condition);
+	}
+}
+
 rule("Mercy: Aurora")
 {
 	event
@@ -4414,7 +4954,7 @@ rule("Mercy: Aurora")
 		Chase Player Variable At Rate(Event Player, abilityProjectile1, Event Player.abilityEnd, 70, Destination and Rate);
 		While(Event Player.abilityEnd != Event Player.abilityProjectile1);
 			Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Event Player.abilityProjectile1, 1);
-			Wait(0.100, Ignore Condition);
+			Wait(0.032, Ignore Condition);
 		End;
 		Destroy Effect(Event Player.effects_[3]);
 		Play Effect(All Players(All Teams), Good Explosion, Color(White), Event Player.abilityProjectile1, 5);
@@ -4512,6 +5052,52 @@ rule("[Moira] Hose")
 	}
 }
 
+rule("[Moira] Flourish - Damage")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Moira;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 2);
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Damage * 2);
+		Play Effect(All Players(All Teams), Good Explosion, Color(Violet), Victim, 0.100);
+		Wait(0.250, Ignore Condition);
+	}
+}
+
+rule("[Moira] Flourish - Healing")
+{
+	event
+	{
+		Player Dealt Healing;
+		Team 1;
+		Moira;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 2);
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Heal(Healee, Event Player, Event Healing * 2);
+		Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Healee, 0.100);
+		Wait(0.250, Ignore Condition);
+	}
+}
+
 rule("Baptiste: Corrode")
 {
 	event
@@ -4563,6 +5149,34 @@ rule("Baptiste: Breakthrough")
 		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
 		Wait(0.750, Ignore Condition);
 		Loop If Condition Is True;
+	}
+}
+
+rule("Ashe: Firebourne")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Ashe;
+	}
+
+	conditions
+	{
+		Event Player.abilities[8] == True;
+		Event Ability == Button(Primary Fire);
+		Has Status(Victim, Burning) == True;
+	}
+
+	actions
+	{
+		Set Status(Filtered Array(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Hero Of(
+			Current Array Element) != Hero(Torbjörn)), Null, Burning, 10);
+		Start Damage Over Time(Filtered Array(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Hero Of(
+			Current Array Element) != Hero(Torbjörn)), Event Player, 10, 15);
+		Play Effect(All Players(All Teams), Good Explosion, Color(Orange), Victim, 5);
+		Play Effect(All Players(All Teams), Bad Explosion, Color(Red), Victim, 5);
+		Wait(0.250, Ignore Condition);
 	}
 }
 
@@ -4622,7 +5236,7 @@ rule("D.Va: Voltage Grid")
 			Event Player)), Off), Event Player, 25);
 		Damage(Players Within Radius(Eye Position(Event Player) + Facing Direction Of(Event Player) * 8, 2.500, Opposite Team Of(Team Of(
 			Event Player)), Off), Event Player, 25);
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Set Status(Players Within Radius(Eye Position(Event Player) + Facing Direction Of(Event Player) * 2, 2.500, Opposite Team Of(
 			Team Of(Event Player)), Off), Event Player, Rooted, 0.500);
 		Set Status(Players Within Radius(Eye Position(Event Player) + Facing Direction Of(Event Player) * 5, 2.500, Opposite Team Of(
@@ -4654,6 +5268,30 @@ rule("D.Va: Shooting Star")
 		Set Status(Victim, Null, Burning, 3);
 		Start Damage Over Time(Victim, Event Player, 3, 35);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Red), Victim, 1);
+	}
+}
+
+rule("Genji: Venomous Strike")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Genji;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 1);
+		Event Player.abilities[8] == True;
+	}
+
+	actions
+	{
+		Start Heal Over Time(Event Player, Event Player, 3, 25);
+		Start Damage Over Time(Victim, Event Player, 3, 25);
+		Damage(Victim, Event Player, 25);
+		Heal(Event Player, Event Player, 25);
 	}
 }
 
@@ -4740,6 +5378,107 @@ rule("[Hanzo] Stormbreak (stormEffects6)")
 	}
 }
 
+rule("Hanzo: Punch II")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Hanzo;
+	}
+
+	conditions
+	{
+		Event Player.abilities[12] == True;
+		Event Ability == Button(Ability 2);
+		Hero Of(Victim) != Hero(Torbjörn);
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Damage * 0.800);
+		Apply Impulse(Victim, Facing Direction Of(Event Player), 12, To World, Cancel Contrary Motion);
+		Apply Impulse(Victim, Up, 5, To World, Cancel Contrary Motion);
+		Set Environment Credit Player(Victim, Event Player);
+		Set Status(Victim, Null, Stunned, 1);
+	}
+}
+
+rule("Widowmaker: Kiss Of Death")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Widowmaker;
+	}
+
+	conditions
+	{
+		(Normalized Health(Victim) <= 0.300 || Event Damage >= Normalized Health(Victim) + Event Damage) == True;
+		Is Firing Secondary(Event Player) == True;
+		Event Ability == Button(Primary Fire);
+		Event Player.abilities[8] == True;
+		Event Damage >= 40;
+		Event Was Critical Hit == True;
+	}
+
+	actions
+	{
+		Kill(Victim, Event Player);
+		Play Effect(All Players(All Teams), Bad Explosion, Color(Team 2), Victim, 3);
+		Damage(Players Within Radius(Victim, 3, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, Event Damage * 1.500);
+	}
+}
+
+rule("Widowmaker: Epidemic")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Widowmaker;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 2);
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Good Explosion, Color(Violet), Victim, 8);
+		Play Effect(All Players(All Teams), Good Explosion, Color(Purple), Victim, 4);
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Violet), Victim, 16);
+		Play Effect(All Players(All Teams), Bad Explosion, Color(White), Victim, 3);
+		Start Damage Over Time(Players Within Radius(Victim, 8, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 3, 50);
+		Start Heal Over Time(Event Player, Event Player, 3, 50);
+		Wait(0.500, Ignore Condition);
+	}
+}
+
+rule("McCree: Panic")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Cassidy;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 2);
+		Event Player.abilities[8] == True;
+	}
+
+	actions
+	{
+		Victim.fearedUntil = Total Time Elapsed + 3.500;
+	}
+}
+
 rule("McCree: Panic - Damage")
 {
 	event
@@ -4762,6 +5501,52 @@ rule("McCree: Panic - Damage")
 		Event Player.modificationDamage[1] = Last Damage Modification ID;
 		Wait Until(!Event Player.abilities[8], 99999);
 		Stop Damage Modification(Event Player.modificationDamage[1]);
+	}
+}
+
+rule("McCree: Clocked")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Cassidy;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ultimate);
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Good Pickup Effect, Color(Orange), Victim, 1);
+		Damage(Victim, Event Player, Event Damage * 1.500);
+		Set Status(Victim, Null, Knocked Down, 3);
+	}
+}
+
+rule("Reinhardt: Fire Blast")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 2);
+		Event Player.abilities[8] == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Good Explosion, Color(Orange), Victim, 5);
+		Start Damage Over Time(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 5, 20);
+		Set Status(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, Burning, 5);
 	}
 }
 
@@ -4788,11 +5573,11 @@ rule("Reinhardt: Epicenter")
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Position Of(Event Player), 10);
 		Damage(Filtered Array(Players Within Radius(Event Player, 20, Opposite Team Of(Team Of(Event Player)), Surfaces), !Has Status(
 			Current Array Element, Knocked Down)), Event Player, 50);
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Position Of(Event Player), 20);
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Position Of(Event Player), 30);
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Position Of(Event Player), 40);
 		Wait(5, Ignore Condition);
 	}
@@ -4850,19 +5635,19 @@ rule("[Soldier: 76] First Rocket Effect")
 	{
 		Play Effect(All Players(All Teams), Good Explosion, Random Value In Array(Array(Color(Sky Blue), Color(Aqua))),
 			Event Player.abilityPosition, 0.400);
-		Wait(0.100, Ignore Condition);
+		Wait(0.050, Ignore Condition);
 		Loop If Condition Is True;
 		Play Effect(All Players(All Teams), Explosion Sound, Color(Orange), Event Player.abilityPosition, 100);
 		Play Effect(All Players(All Teams), Good Explosion, Color(Sky Blue), Event Player.abilityPosition, 2.500);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Team 1), Event Player.abilityPosition, 2.500);
 		Stop Chasing Player Variable(Event Player, abilityPosition);
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Damage(Players Within Radius(Event Player.abilityPosition, 4, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
 			80);
 		Stop Chasing Player Variable(Event Player, abilityPosition);
 		Event Player.abilityPosition = 0;
 		Event Player.abilityProjectile1 = 0;
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 	}
 }
 
@@ -4885,7 +5670,7 @@ rule("[Soldier: 76] Second Rocket Effect")
 	{
 		Play Effect(All Players(All Teams), Good Explosion, Random Value In Array(Array(Color(Sky Blue), Color(Aqua))),
 			Event Player.abilityEnd, 0.400);
-		Wait(0.100, Ignore Condition);
+		Wait(0.050, Ignore Condition);
 		Loop If Condition Is True;
 		Play Effect(All Players(All Teams), Explosion Sound, Color(Orange), Event Player.abilityEnd, 100);
 		Play Effect(All Players(All Teams), Good Explosion, Color(Sky Blue), Event Player.abilityEnd, 2.500);
@@ -4976,6 +5761,29 @@ rule("Torbjorn: Melting Point")
 		Play Effect(All Players(All Teams), Ring Explosion Sound, Color(White), Event Player, 100);
 		Wait(0.750, Ignore Condition);
 		Loop If Condition Is True;
+	}
+}
+
+rule("Torbjorn: Roots of Magma")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Torbjörn;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ultimate);
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Good Pickup Effect, Color(Orange), Victim, 1);
+		Set Status(Victim, Null, Rooted, 1);
+		Wait(1, Ignore Condition);
 	}
 }
 
@@ -5085,6 +5893,28 @@ rule("Tracer: Chain Reaction 2")
 		Event Player.chainReactionOn = False;
 		Wait(2, Ignore Condition);
 		Event Player.chainReactionImmune = False;
+	}
+}
+
+rule("Tracer: Chain Reaction 3")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Tracer;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ultimate);
+		Event Damage > 20;
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Victim.chainReactionOn = True;
 	}
 }
 
@@ -5531,6 +6361,31 @@ rule("Sigma: Gravity Channels")
 	}
 }
 
+rule("Echo: Focusing Optics")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Echo;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Ability 2);
+		Event Player.abilities[8] == True;
+		Normalized Health(Victim) > 0.500;
+		Normalized Health(Victim) <= 0.900;
+		Is Duplicating(Event Player) == False;
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Damage * 3);
+		Play Effect(All Players(All Teams), Bad Explosion, Color(Violet), Victim, 0.500);
+	}
+}
+
 rule("Echo: Streamline")
 {
 	event
@@ -5798,6 +6653,31 @@ rule("Mei: Icebound")
 	}
 }
 
+rule("Mei: Icebound - Icicles hit")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Mei;
+	}
+
+	conditions
+	{
+		Event Ability == Button(Secondary Fire);
+		Is Using Ability 2(Event Player) == True;
+		Event Player.abilities[12] == True;
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, Event Damage * 1.250);
+		Set Status(Victim, Null, Frozen, 1);
+		Set Status(Victim, Null, Rooted, 1);
+		Play Effect(All Players(All Teams), Good Pickup Effect, Color(White), Victim, 1);
+	}
+}
+
 rule("Wrecking Ball: Mirror Ball")
 {
 	event
@@ -5916,6 +6796,59 @@ rule("Junkrat: Pyromania")
 	{
 		Start Damage Over Time(Victim, Event Player, 2, 30);
 		Set Status(Victim, Null, Burning, 2);
+	}
+}
+
+rule("Junkrat: Short Fused")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Junkrat;
+	}
+
+	conditions
+	{
+		Event Player.abilities[12] == True;
+		Event Ability == Button(Ability 2);
+	}
+
+	actions
+	{
+		Event Player.abilityCountdown = 4;
+		While(Event Player.abilityCountdown > 0);
+			Event Player.abilityCountdown -= 1;
+			Event Player.abilityPosition = Position Of(Victim) + Vector(Random Real(-2, 2), Random Real(-2, 2), Random Real(-2, 2));
+			Play Effect(All Players(All Teams), Good Explosion, Color(Sky Blue), Event Player.abilityPosition, 4);
+			Play Effect(All Players(All Teams), Good Explosion, Color(White), Event Player.abilityPosition, 4);
+			Damage(Players Within Radius(Event Player.abilityPosition, 4, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
+				35);
+			Set Status(Players Within Radius(Event Player.abilityPosition, 4, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
+				Stunned, 0.800);
+			Wait(0.200, Ignore Condition);
+		End;
+	}
+}
+
+rule("Zenyatta: Vigor")
+{
+	event
+	{
+		Player Dealt Healing;
+		Team 1;
+		Zenyatta;
+	}
+
+	conditions
+	{
+		Event Player.abilities[8] == True;
+	}
+
+	actions
+	{
+		Set Status(Healee, Null, Invincible, 1);
+		Wait(0.800, Ignore Condition);
 	}
 }
 
@@ -6160,6 +7093,28 @@ rule("Doomfist: Fissure")
 		End;
 		Destroy Effect(Event Player.effects_[1]);
 		Destroy Effect(Event Player.effects_[2]);
+	}
+}
+
+rule("Team 1 (perk): Sharpshooter")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.perk[0] == True;
+		Event Ability != Null;
+		Distance Between(Event Player, Victim) >= 10;
+	}
+
+	actions
+	{
+		Damage(Victim, Event Player, 50 / Event Player.damageDealt * Event Damage);
 	}
 }
 
@@ -6494,7 +7449,7 @@ rule("Collision Logic")
 	actions
 	{
 		Event Player.lastSavedPosition = (Eye Position(Event Player) + Position Of(Event Player)) / 2;
-		Wait(0.100, Ignore Condition);
+		Wait(0.016, Ignore Condition);
 		Event Player.closestWall = Filtered Array(Global.allPositions, Distance Between(Global.allPositions[Current Array Index],
 			Event Player) <= Distance Between(Global.allPositions[Current Array Index], Global.firstPosition[Current Array Index])
 			|| Event Player.activeWall[Current Array Index] == 1 || (Dot Product(Direction Towards(Current Array Element,
@@ -7718,182 +8673,4 @@ rule("Team 1: Change Hero")
 		Wait Until(Has Spawned(Event Player), 99999);
 		Teleport(Event Player, Vector(159, 11, -46.500));
 	}
-}
-
-rule("Team 1: Player Dealt Healing")
-{
-    event
-    {
-        Player Dealt Healing;
-        Team 1;
-        All;
-    }
-
-    actions
-    {
-        If(Hero Of(Event Player) == Hero(Moira) && Event Ability == Button(Ability 2) && Event Player.abilities[12] == True);
-            Heal(Healee, Event Player, Event Healing * 2);
-        	Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Healee, 0.100);
-        	Wait(0.250, Ignore Condition);
-        End;
-        If(Hero Of(Event Player) == Hero(Zenyatta) && Event Player.abilities[8] == True);
-            Set Status(Healee, Null, Invincible, 1);
-        	Wait(0.800, Ignore Condition);
-        End;
-        Abort If(Healee != Event Player);
-        If(Event Player.abilities[10] == True);
-        	Set Player Health(Event Player, Health(Event Player) + Event Player.abilities[10] * 0.250 * Event Healing);
-        End;
-        If(Hero Of(Event Player) == Hero(Mercy) && Event Player.abilities[8] == True && Normalized Health(Healee) < True);
-            Set Ultimate Charge(Healee, Ultimate Charge Percent(Healee) + 1);
-            Wait(0.400, Ignore Condition);
-        End;
-    }
-}
-
-rule("Team 1: Player Dealt Damage")
-{
-    event
-    {
-        Player Dealt Damage;
-        Team 1;
-        All;
-    }
-
-    actions
-    {
-        If(Event Was Critical Hit == True);
-            If(Global.upgradeCriticalDamageValue >= Global.upgradeCriticalDamageMaxValue[0]);
-                Damage(Victim, Event Player, Event Damage * 0.500);
-            End;
-            If(Event Player.abilities[1] == True);
-                Damage(Victim, Event Player, Event Player.abilities[1] * 40 / Event Player.damageDealt * Event Damage);
-            End;
-        End;
-        If(Event Player.abilities[2] == True && Event Ability != Null && (Y Component Of(Position Of(Event Player)) - Y Component Of(Position Of(Victim)) >= 3 || Absolute Value(Horizontal Angle Towards(
-           	Victim, Event Player)) >= 90) == True);
-          	Damage(Victim, Event Player, Event Player.abilities[2] * 30 / Event Player.damageDealt * Event Damage);
-        End;
-        If(Global.perk[0] == True && Event Ability != Null && Distance Between(Event Player, Victim) >= 10);
-            Damage(Victim, Event Player, 50 / Event Player.damageDealt * Event Damage);
-        End;
-        If(Event Player.abilities[8] == True);
-            If(Event Ability == Button(Ability 1));
-                If(Hero Of(Event Player) == Hero(Ana));
-                    Play Effect(All Players(All Teams), Good Pickup Effect, Color(Black), Victim, 1);
-                    Wait(0.250, Ignore Condition);
-                    Set Status(Victim, Null, Knocked Down, 5);
-                End;
-                If(Hero Of(Event Player) == Hero(Brigitte));
-                    Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Victim, 1.500);
-                    Set Status(Victim, Null, Rooted, 0.500);
-                    Set Environment Credit Player(Victim, Event Player);
-                End;
-                If(Hero Of(Event Player) == Hero(Genji));
-                    Start Heal Over Time(Event Player, Event Player, 3, 25);
-                    Start Damage Over Time(Victim, Event Player, 3, 25);
-                    Damage(Victim, Event Player, 25);
-                    Heal(Event Player, Event Player, 25);
-                End;
-            End;
-            If(Event Ability == Button(Primary Fire));
-                If(Hero Of(Event Player) == Hero(Brigitte));
-                    Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Victim, 1.500);
-                    Set Status(Victim, Null, Rooted, 0.500);
-                    Set Environment Credit Player(Victim, Event Player);
-                End;
-                If(Has Status(Victim, Burning) == True && Hero Of(Event Player) == Hero(Ashe));
-                    Set Status(Filtered Array(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Hero Of(
-                    	Current Array Element) != Hero(Torbjörn)), Null, Burning, 10);
-                   	Start Damage Over Time(Filtered Array(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Hero Of(
-                    	Current Array Element) != Hero(Torbjörn)), Event Player, 10, 15);
-                    Play Effect(All Players(All Teams), Good Explosion, Color(Orange), Victim, 5);
-                    Play Effect(All Players(All Teams), Bad Explosion, Color(Red), Victim, 5);
-                    Wait(0.250, Ignore Condition);
-                End;
-                If((Normalized Health(Victim) <= 0.300 || Event Damage >= Normalized Health(Victim) + Event Damage) && Is Firing Secondary(Event Player) == True && Event Damage >= 40 && Event Was Critical Hit == True);
-                    Kill(Victim, Event Player);
-                   	Play Effect(All Players(All Teams), Bad Explosion, Color(Team 2), Victim, 3);
-                    Damage(Players Within Radius(Victim, 3, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, Event Damage * 1.500);
-                End;
-            End;
-            If(Event Ability == Button(Ability 2));
-                If(Hero Of(Event Player) == Hero(Cassidy));
-                    Victim.fearedUntil = Total Time Elapsed + 3.500;
-                End;
-                If(Hero Of(Event Player) == Hero(Echo) && Normalized Health(Victim) > 0.500 && Normalized Health(Victim) <= 0.900 && Is Duplicating(Event Player) == False);
-                    Damage(Victim, Event Player, Event Damage * 3);
-                    Play Effect(All Players(Team 1), Bad Explosion, Color(Violet), Victim, 0.500);
-                End;
-            End;
-        End;
-        If(Event Player.abilities[12] == True);
-            If(Event Ability == Button(Ability 2));
-                If(Hero Of(Event Player) == Hero(Moira));
-                    Damage(Victim, Event Player, Event Damage * 2);
-                    Play Effect(All Players(All Teams), Good Explosion, Color(Violet), Victim, 0.100);
-                    Wait(0.250, Ignore Condition);
-                End;
-                If(Hero Of(Event Player) == Hero(Hanzo));
-                    Damage(Victim, Event Player, Event Damage * 0.800);
-                    Apply Impulse(Victim, Facing Direction Of(Event Player), 12, To World, Cancel Contrary Motion);
-                    Apply Impulse(Victim, Up, 5, To World, Cancel Contrary Motion);
-                    Set Environment Credit Player(Victim, Event Player);
-                    Set Status(Victim, Null, Stunned, 1);
-                End;
-                If(Hero Of(Event Player) == Hero(Widowmaker));
-                    Play Effect(All Players(All Teams), Good Explosion, Color(Violet), Victim, 8);
-                	Play Effect(All Players(All Teams), Good Explosion, Color(Purple), Victim, 4);
-                	Play Effect(All Players(All Teams), Ring Explosion, Color(Violet), Victim, 16);
-                	Play Effect(All Players(All Teams), Bad Explosion, Color(White), Victim, 3);
-                	Start Damage Over Time(Players Within Radius(Victim, 8, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 3, 50);
-                	Start Heal Over Time(Event Player, Event Player, 3, 50);
-                	Wait(0.500, Ignore Condition);
-                End;
-                If(Hero Of(Event Player) == Hero(Reinhardt));
-                    Play Effect(All Players(All Teams), Good Explosion, Color(Orange), Victim, 5);
-            		Start Damage Over Time(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 5, 20);
-            		Set Status(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, Burning, 5);
-                End;
-                If(Hero Of(Event Player) == Hero(Junkrat));
-                    Event Player.abilityCountdown = 4;
-                	While(Event Player.abilityCountdown > 0);
-                	    Event Player.abilityCountdown -= 1;
-                		Event Player.abilityPosition = Position Of(Victim) + Vector(Random Real(-2, 2), Random Real(-2, 2), Random Real(-2, 2));
-                		Play Effect(All Players(All Teams), Good Explosion, Color(Sky Blue), Event Player.abilityPosition, 4);
-                		Play Effect(All Players(All Teams), Good Explosion, Color(White), Event Player.abilityPosition, 4);
-                		Damage(Players Within Radius(Event Player.abilityPosition, 4, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
-                			35);
-                		Set Status(Players Within Radius(Event Player.abilityPosition, 4, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player,
-                			Stunned, 0.800);
-                		Wait(0.200, Ignore Condition);
-                	End;
-                End;
-            End;
-            If(Event Ability == Button(Ultimate));
-                If(Hero Of(Event Player) == Hero(Cassidy));
-                    Play Effect(All Players(All Teams), Good Pickup Effect, Color(Orange), Victim, 1);
-                    Damage(Victim, Event Player, Event Damage * 1.500);
-                    Set Status(Victim, Null, Knocked Down, 3);
-                End;
-                If(Hero Of(Event Player) == Hero(Torbjörn));
-                    Play Effect(All Players(All Teams), Good Pickup Effect, Color(Orange), Victim, 1);
-                    Set Status(Victim, Null, Rooted, 1);
-                    Wait(1, Ignore Condition);
-                End;
-                If(Hero Of(Event Player) == Hero(Tracer) && Event Damage > 20);
-                    Victim.chainReactionOn = True;
-                End;
-            End;
-            If(Event Ability == Button(Secondary Fire));
-                If(Hero Of(Event Player) == Hero(Mei) && Is Using Ability 2(Event Player) == True);
-                    Damage(Victim, Event Player, Event Damage * 1.250);
-                    Set Status(Victim, Null, Frozen, 1);
-                    Set Status(Victim, Null, Rooted, 1);
-                    Play Effect(All Players(Team 1), Good Pickup Effect, Color(White), Victim, 1);
-                End;
-            End;
-        End;
-    }
-
 }
