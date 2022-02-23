@@ -3814,7 +3814,7 @@ rule("money on kill")
 			All Players(Team 1).money[0] += 5 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
-				Global.upgradeMaxAmmoValue += Victim.isBoss == 1 ? 10 : 1;
+				Global.upgradeMaxAmmoValue += (Victim.isBoss == 1 ? 10 : 1);
 			End;
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
 			All Players(Team 1).money[0] += 15 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
@@ -6867,7 +6867,6 @@ rule("Open Shop")
 
 	conditions
 	{
-		"Open Shop"
 		Event Player.isInMenu == True;
 	}
 
@@ -6892,7 +6891,6 @@ rule("Close Shop")
 
 	conditions
 	{
-		"Open Shop"
 		Event Player.isInMenu == False;
 	}
 
@@ -7811,6 +7809,11 @@ rule("Team 1: Player Dealt Damage")
 				End;
 			End;
 			If(Event Ability == Button(Ability 2));
+			    If(Hero Of(Event Player) == Hero(Reinhardt));
+            		Play Effect(All Players(Team 1), Good Explosion, Color(Orange), Victim, 5);
+            		Start Damage Over Time(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 5, 20);
+            		Set Status(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, Burning, 5);
+            	End;
 				If(Hero Of(Event Player) == Hero(Cassidy));
 					Victim.fearedUntil = Total Time Elapsed + 3.500;
 				End;
@@ -7843,11 +7846,6 @@ rule("Team 1: Player Dealt Damage")
 					Start Damage Over Time(Players Within Radius(Victim, 8, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 3, 50);
 					Start Heal Over Time(Event Player, Event Player, 3, 50);
 					Wait(0.500, Ignore Condition);
-				End;
-				If(Hero Of(Event Player) == Hero(Reinhardt));
-					Play Effect(All Players(Team 1), Good Explosion, Color(Orange), Victim, 5);
-					Start Damage Over Time(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, 5, 20);
-					Set Status(Players Within Radius(Victim, 5, Opposite Team Of(Team Of(Event Player)), Surfaces), Event Player, Burning, 5);
 				End;
 				If(Hero Of(Event Player) == Hero(Junkrat));
 					Event Player.abilityCountdown = 4;
