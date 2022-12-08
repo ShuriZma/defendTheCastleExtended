@@ -30,3 +30,51 @@ c125:
 c126:
 -> Fixed Huds being added when player switches hero using the circle at spawn
 -> Fixed player spawn position when player switches hero using the circle at the spawn
+
+c127:
+-> refactor variable/rule names and case
+-> fix hero switch station
+-> fix condition for exfiltration
+
+c128:
+-> move spawn and hero switch station inside castle
+-> fix mercy rez teleporting to spawn
+
+c130:
+-> change team challenge values
+-> remove some disabled rules
+-> merge rules with similar conditions
+-> refactor repair rules
+
+c131:
+-> remove old "story heroes" from original mode
+-> remove/merge old debug rules
+-> rearrange and fix max ammo challenges
+-> show current challengeCount in HUD
+-> actually finally fix mercy rezz
+-> remove "rein boss wave" messages
+-> fix zen boss not giving more zen kills
+
+c132:
+-> removed all disabled rules/actions/conditions
+-> merged all Player Dealt Damage/Healing rules
+-> increased waits
+This update is supposed to improve the performance.
+Actual changes coming with the next update
+
+c133:
+-> make players in shop not being attacked
+-> fix sombra being attacked while invis
+-> remove most small/big messages
+-> change effect visibility to team 1 only
+-> add actual vote to start the mode
+-> remove boss timer
+-> allow echo to repair when duplicating rein
+-> fix some effect bugs
+
+
+c135:
+-> add fixes i prepared ages ago
+-> remove rein cancel (obsolete in ow2)
+
+c136:
