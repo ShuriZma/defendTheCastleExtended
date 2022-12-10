@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "<FGf74b51FF>Defend The Castle Extended Version d136\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
+		Description: "<FGf74b51FF>Defend The Castle Extended Version d138\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -634,7 +634,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create In-World Text(All Players(Team 1), Custom String(
-			"Defend The Castle Extended d136\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
+			"Defend The Castle Extended d138\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(
@@ -1548,18 +1548,18 @@ rule("Subroutine: GATE REPAIR")
 	{
 		"UPGRADE - GATE'S MAX HEALTH"
 		If(Global.upgradeGateMaxHealthValue < Global.upgradeGateMaxHealthMaxValue[2]);
-			If(Global.gateMaxHealth - Global.gateHealth > 10 * (
+			If(Global.gateMaxHealth - Global.gateHealth > (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
 				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
-				Global.upgradeGateMaxHealthValue += 10 * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+				Global.upgradeGateMaxHealthValue += (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
 					Event Player.isNanoed == 1 ? 2 : 1);
 			Else;
 				Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
 			End;
 		End;
 		"HEAL GATE"
-		If(Global.gateMaxHealth - Global.gateHealth > 10 * (
+		If(Global.gateMaxHealth - Global.gateHealth > (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
 			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
-			Global.gateHealth += 10 * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+			Global.gateHealth += (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
 				Event Player.isNanoed == 1 ? 2 : 1);
 		Else;
 			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
@@ -1588,7 +1588,7 @@ rule("GATE REPAIR")
 		Is Firing Primary(Event Player) == True;
 		Global.gateHealth < Global.gateMaxHealth;
 		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : 3.500);
+		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : (Hero Of(Event Player) == Hero(Symmetra) ? 12 : 3.500));
 	}
 
 	actions
@@ -1601,6 +1601,8 @@ rule("GATE REPAIR")
 			Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			Wait(0.850, Ignore Condition);
+		Else If(Hero of(Event Player) == Hero(Symmetra));
+			Wait(0.100, Ignore Condition);
 		Else;
 			Wait(0.500, Ignore Condition);
 		End;
