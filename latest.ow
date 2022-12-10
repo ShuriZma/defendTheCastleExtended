@@ -618,7 +618,6 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 			100, 1000, 0);
 		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"),
 			1, 0.500, 2, 0);
-		Global.moneyMultiplier = 1.2;
 		Global.selfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
 	}
@@ -1564,6 +1563,8 @@ rule("Subroutine: GATE REPAIR")
 		Else;
 			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
 		End;
+		Big Message(All Players(Team 1), Custom String("Repairing gate {0}", (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
+                                                                                     					Event Player.isNanoed == 1 ? 2 : 1)));
 		"CHARGE ULTIMATE"
 		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
 		"UPDATE GATE'S HEALTH BAR"
@@ -1584,7 +1585,7 @@ rule("GATE REPAIR")
 	{
 		Is Game In Progress == True;
 		((Hero Of(Event Player) == Hero(Torbjörn) && Weapon(Event Player) == 2) || (Hero Of(Event Player) == Hero(Reinhardt) || Hero Of(
-			Event Player) == Hero(Brigitte) || Hero Being Duplicated(Event Player) == Hero(Reinhardt))) == True;
+			Event Player) == Hero(Brigitte) || Hero Being Duplicated(Event Player) == Hero(Reinhardt) || Hero Of(Event Player) == Hero(Symmetra))) == True;
 		Is Firing Primary(Event Player) == True;
 		Global.gateHealth < Global.gateMaxHealth;
 		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
@@ -3784,7 +3785,7 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 		Event Player.baseStats[2] = 100;
 		Event Player.baseStats[3] = 100;
 		Event Player.damageBoost[0] = 0;
-		Event Player.damageBoost[1] = 100;
+		Event Player.damageBoost[1] = 0;
 		Event Player.playerHealth = 0;
 		Event Player.healBoost = 0;
 		Event Player.moveSpeed = 0;
