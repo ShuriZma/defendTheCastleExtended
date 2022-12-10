@@ -2,13 +2,13 @@ settings
 {
 	main
 	{
-		Description: "Defend The Castle Extended Version d136\nby ShuriZma#2349\nJ1K6F (Code Version: c132)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies and don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
+		Description: "<FGf74b51FF>Defend The Castle Extended Version d136\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
 	lobby
 	{
-		Max Spectators: 0
+		Max Spectators: 1
 		Max Team 1 Players: 4
 		Max Team 2 Players: 0
 		Return To Lobby: Never
@@ -42,11 +42,12 @@ settings
 	extensions
 	{
 		Beam Effects
-		Kinetic Explosion Effects
-		Energy Explosion Effects
-		Explosion Sounds
-		Play More Effects
-		Spawn More Dummy Bots
+        Buff Status Effects
+        Energy Explosion Effects
+        Kinetic Explosion Effects
+        Explosion Sounds
+        Play More Effects
+        Spawn More Dummy Bots
 	}
 }
 
@@ -93,7 +94,7 @@ variables
 		38: upgradePlayerMaxHealthMaxValue
 		39: upgradeCriticalDamageMaxValue
 		40: upgradeGateMaxHealthMaxValue
-		41: damageDealt
+		41: damageBoost
 		42: isDebugAINavigation
 		43: gameLogicCountOfUniqueHeroes
 		44: isNewWaveGameLogicProcessing
@@ -115,6 +116,7 @@ variables
 		61: challengeCount
 		62: upgradeBossHealthValue
 		63: globalHUDs
+		64: baseStats
 		112: allPositions
 		113: allDirections
 		114: firstPosition
@@ -159,7 +161,7 @@ variables
 		24: abilities
 		25: money
 		26: heroTalentText
-		27: damageDealt
+		27: damageBoost
 		28: playerHealth
 		29: abilityCountdown
 		30: hpPool
@@ -169,11 +171,14 @@ variables
 		34: abilityAvailable
 		35: moveSpeed
 		36: damageMod
+		37: critDamageBoost
 		38: soldierEspionage
-		39: healingDealt
+		39: healBoost
+		40: baseStats
 		41: chainReactionOn
 		42: chainReactionImmune
 		43: abilityActive
+		44: loopIterator
 		45: secondWindActive
 		46: isInMenu
 		48: playerFacing
@@ -192,7 +197,7 @@ variables
 		113: intersectionLength
 		114: thickness
 		115: botCancelPathFinding
-		116: botLoopIterator
+		116: botLoopIterator1
 		117: botTempArray
 		118: botTargetPlayer
 		119: botTargetPosition
@@ -235,6 +240,7 @@ subroutines
 	25: EnablePlayer
 	26: GateRepair
 	27: CancelMomentum
+	28: UpdatePlayerStats
 	124: BotStartPathFinding
 	125: BotGetClosestNodeIdToTarget
 	126: BotGetNextNodeIdAndPosition
@@ -415,11 +421,11 @@ rule("SUBROUTINE: BOT - GET NEXT NODE ID AND POSITION")
 			Event Player.botShortestDistanceToTarget = 999;
 			Event Player.botCurrentDistanceToTarget = Event Player.botShortestDistanceToTarget;
 			Event Player.botTempArray = Global.nodeConnections[Event Player.botClosestNodeIdToBot];
-			For Player Variable(Event Player, botLoopIterator, 0, Count Of(Event Player.botTempArray), 1);
-				Event Player.botCurrentDistanceToTarget = Global.distanceMatrix[Event Player.botTempArray[Event Player.botLoopIterator]][Event Player.botClosestNodeIdToTarget];
+			For Player Variable(Event Player, botLoopIterator1, 0, Count Of(Event Player.botTempArray), 1);
+				Event Player.botCurrentDistanceToTarget = Global.distanceMatrix[Event Player.botTempArray[Event Player.botLoopIterator1]][Event Player.botClosestNodeIdToTarget];
 				If(Event Player.botCurrentDistanceToTarget < Event Player.botShortestDistanceToTarget);
 					Event Player.botShortestDistanceToTarget = Event Player.botCurrentDistanceToTarget;
-					Event Player.botNextNodeId = Event Player.botTempArray[Event Player.botLoopIterator];
+					Event Player.botNextNodeId = Event Player.botTempArray[Event Player.botLoopIterator1];
 				End;
 			End;
 		End;
@@ -612,6 +618,7 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 			100, 1000, 0);
 		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"),
 			1, 0.500, 2, 0);
+		Global.moneyMultiplier = 1.2;
 		Global.selfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
 	}
@@ -844,8 +851,7 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
 		End;
 		Global.maxHealthDone = 50;
-		All Players(Team 1).playerHealth = 100 + Global.maxHealthDone + All Players(Team 1).abilities[14] * 5;
-		Set Max Health(All Players(Team 1), All Players(Team 1).playerHealth);
+		Call Subroutine(UpdatePlayerStats);
 		Heal(All Players(Team 1), Null, 9999);
 		Global.challengeCount += 1;
 	}
@@ -913,8 +919,7 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
 		End;
 		Global.maxHealthDone = 150;
-		All Players(Team 1).playerHealth = 100 + Global.maxHealthDone + All Players(Team 1).abilities[14] * 5;
-		Set Max Health(All Players(Team 1), All Players(Team 1).playerHealth);
+        Call Subroutine(UpdatePlayerStats);
 		Heal(All Players(Team 1), Null, 9999);
 		Global.challengeCount += 1;
 	}
@@ -939,6 +944,7 @@ rule("PLAYER: UPGRADE - CRITICAL DAMAGE - DEALT KILL")
 
 	actions
 	{
+		Big Message(All Players(Team 1), Custom String("WIDOW HEADSHOT"));
 		Global.upgradeCriticalDamageValue += 1;
 	}
 }
@@ -1104,9 +1110,8 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 			Custom String("KILL {2}: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2], Hero(Zenyatta)), Left, 15,
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
-		Global.damageDealt = 50;
-		All Players(Team 1).damageDealt = 100 + Global.damageDealt + All Players(Team 1).abilities[13] * 5;
-		Set Damage Dealt(All Players(Team 1), All Players(Team 1).damageDealt);
+		Global.damageBoost += 50;
+		Call Subroutine(UpdatePlayerStats);
 		Global.challengeCount += 1;
 	}
 }
@@ -1167,7 +1172,7 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			Set Match Time(20);
 		End;
 		Create In-World Text(All Players(Team 1), Custom String("  {0}\r\nREPAIR\r\n  {1}", Hero Icon String(Hero(Torbjörn)),
-			Ability Icon String(Hero(Bastion), Button(Secondary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
+			Ability Icon String(Hero(Torbjörn), Button(Secondary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
 		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Left, 11, Color(
 			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
@@ -1510,6 +1515,27 @@ disabled rule("=== GATE ===")
 	}
 }
 
+rule("Subroutine: UPDATE PLAYER STATS")
+{
+	event
+	{
+		Subroutine;
+		UpdatePlayerStats;
+	}
+
+	actions
+	{
+	    Big Message(Custom String("{0}", Event Player) == Custom String("ShuriZma") ? Event Player : NULL, Custom String("UpdatePlayerStats"));
+		Event Player.damageBoost[0] = Global.damageBoost + Event Player.abilities[13] * 5 + Event Player.damageBoost[1];
+		Set Damage Dealt(Event Player, Event Player.baseStats[0] + Event Player.damageBoost);
+		Event Player.playerHealth = Global.maxHealthDone + Event Player.abilities[14] * 5;
+        Set Max Health(Event Player, Event Player.baseStats[1] + Event Player.playerHealth);
+        Event Player.healBoost[0] = Event Player.healBoost[1] + Event Player.abilities[15] * 5;
+        Set Healing Dealt(Event Player, Event Player.baseStats[2] + Event Player.healBoost[0]);
+        Set Move Speed(Event Player, Event Player.baseStats[3] + Event Player.moveSpeed);
+	}
+}
+
 rule("Subroutine: GATE REPAIR")
 {
 	event
@@ -1688,11 +1714,7 @@ rule("SUBROUTINE: PLAYER - INIT")
 
 	actions
 	{
-		"TEAM CHALLENGE - PLAYER'S MAX HEALTH"
-		If(Global.upgradePlayerMaxHealthValue >= Global.upgradePlayerMaxHealthMaxValue[0]);
-			Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
-			Set Max Health(Event Player, Event Player.playerHealth);
-		End;
+		Call Subroutine(UpdatePlayerStats);
 		If(Is Game In Progress);
 			Disable Game Mode HUD(Event Player);
 		End;
@@ -1797,8 +1819,7 @@ rule("SUBROUTINE: PLAYER - RESPAWN")
 			Teleport(Event Player, Global.playerSpawnPositions[Slot Of(Event Player) == Count Of(Global.playerSpawnPositions) ? Random Integer(
 				0, Count Of(Global.playerSpawnPositions) - 1) : Slot Of(Event Player)]);
 		End;
-		Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
-		Set Max Health(Event Player, Event Player.playerHealth);
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -1851,8 +1872,8 @@ rule("BOT: DEATH")
 		Destroy Effect(Event Player.botEffects);
 		"BOT HAS MORE THEN 1 EFFECT IN VAR (ARRAY)"
 		Skip If(Count Of(Event Player.botEffects) == 0, 3);
-		For Player Variable(Event Player, botLoopIterator, 0, Count Of(Event Player.botEffects), 1);
-			Destroy Effect(Event Player.botEffects[Event Player.botLoopIterator]);
+		For Player Variable(Event Player, botLoopIterator1, 0, Count Of(Event Player.botEffects), 1);
+			Destroy Effect(Event Player.botEffects[Event Player.botLoopIterator1]);
 		End;
 	}
 }
@@ -2039,11 +2060,11 @@ rule("BOT: ZEN - DEATH")
 		Play Effect(All Players(Team 1), Ashe Dynamite Explosion Sound, Color(Red), Eye Position(Event Player), 70);
 		"DAMAGE AND APPLY IMPULSE TO PLAYERS"
 		Event Player.botPlayersInRadius = Players Within Radius(Position Of(Event Player), 2.500, All Teams, Surfaces And Enemy Barriers);
-		For Player Variable(Event Player, botLoopIterator, 0, Count Of(Event Player.botPlayersInRadius), 1);
-			Apply Impulse(Event Player.botPlayersInRadius[Event Player.botLoopIterator], Direction Towards(Position Of(Event Player),
-				Eye Position(Event Player.botPlayersInRadius[Event Player.botLoopIterator])), 5, To World, Incorporate Contrary Motion);
-			If(Team Of(Event Player.botPlayersInRadius[Event Player.botLoopIterator]) == Team 1);
-				Damage(Event Player.botPlayersInRadius[Event Player.botLoopIterator], Event Player, 50);
+		For Player Variable(Event Player, botLoopIterator1, 0, Count Of(Event Player.botPlayersInRadius), 1);
+			Apply Impulse(Event Player.botPlayersInRadius[Event Player.botLoopIterator1], Direction Towards(Position Of(Event Player),
+				Eye Position(Event Player.botPlayersInRadius[Event Player.botLoopIterator1])), 5, To World, Incorporate Contrary Motion);
+			If(Team Of(Event Player.botPlayersInRadius[Event Player.botLoopIterator1]) == Team 1);
+				Damage(Event Player.botPlayersInRadius[Event Player.botLoopIterator1], Event Player, 50);
 			End;
 		End;
 		"DAMAGE GATE"
@@ -3176,7 +3197,7 @@ rule("BOT: BASTION - ARTILLERY")
 		Event Player.botEventPosition = Position Of(Event Player.botSeePlayer);
 		"SHOOT FROM ARTILLERY"
 		Event Player.botBastionArtilleryDidShotsCount = 0;
-		For Player Variable(Event Player, botLoopIterator, 0, 4, 1);
+		For Player Variable(Event Player, botLoopIterator1, 0, 4, 1);
 			Event Player.botBastionArtilleryDidShotsCount += 1;
 			Play Effect(All Players(Team 1), Wrecking Ball Minefield Explosion Sound, Color(White), Eye Position(Event Player), 250);
 			Play Effect(All Players(Team 1), Pharah Barrage Explosion Effect, Color(Orange), Eye Position(Event Player) + World Vector Of(
@@ -3242,7 +3263,7 @@ rule("BOT: BASTION - DEATH")
 	actions
 	{
 		Stop Holding Button(Event Player, Button(Secondary Fire));
-		For Player Variable(Event Player, botLoopIterator, 0, 3, 1);
+		For Player Variable(Event Player, botLoopIterator1, 0, 3, 1);
 			Play Effect(All Players(Team 1), Bastion Tank Cannon Explosion Effect, Color(White), Event Player, 1);
 			Play Effect(All Players(Team 1), Bastion Tank Cannon Explosion Sound, Color(White), Event Player, 100);
 			Wait(0.250, Ignore Condition);
@@ -3756,9 +3777,15 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 
 	actions
 	{
-		Event Player.damageDealt = 100;
-		Event Player.moveSpeed = 100;
-		Event Player.playerHealth = 100;
+		Event Player.baseStats[0] = 100;
+		Event Player.baseStats[1] = 100;
+		Event Player.baseStats[2] = 100;
+		Event Player.baseStats[3] = 100;
+		Event Player.damageBoost[0] = 0;
+		Event Player.damageBoost[1] = 100;
+		Event Player.playerHealth = 0;
+		Event Player.healBoost = 0;
+		Event Player.moveSpeed = 0;
 		Event Player.money[0] = 2400 + Global.startMoney;
 		If(Custom String("{0}", Event Player) == Custom String("ShuriZma"));
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
@@ -3785,9 +3812,11 @@ rule("Team 1 (Ability): Quick Fix")
 	actions
 	{
 		Heal(Event Player, Null, Event Player.abilities[3] * 50);
-		Set Move Speed(Event Player, 100 + Event Player.abilities[3] * 20);
+		Event Player.moveSpeed += Event Player.abilities[3] * 20;
+		Call Subroutine(UpdatePlayerStats);
+		Event Player.moveSpeed -= Event Player.abilities[3] * 20;
 		Wait(5, Restart When True);
-		Set Move Speed(Event Player, 100);
+        Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -3807,7 +3836,7 @@ rule("Team 1 (Ability): Heavyweight")
 
 	actions
 	{
-		Damage(Victim, Event Player, Event Player.abilities[4] * 25 / Event Player.damageDealt * Event Damage);
+		Damage(Victim, Event Player, Event Damage / (100 / (Event Player.abilities[4] * 25)));
 	}
 }
 
@@ -4252,6 +4281,7 @@ rule("Subroutine: Cancel player momentum")
 		Apply Impulse(Event Player, -1 * Direction From Angles(Horizontal Angle From Direction(Velocity Of(Event Player)), 0), 0.001,
 			To World, Cancel Contrary Motion XYZ);
 	}
+}
 
 
 rule("Ana: Sleep Paralysis")
@@ -4295,7 +4325,7 @@ rule("Ana: Multinade")
 
 	actions
 	{
-		For Player Variable(Event Player, i, 0, 4, 1);
+		For Player Variable(Event Player, loopIterator, 0, 4, 1);
         	Wait(0.030, Ignore Condition);
         	Set Ability Cooldown(Event Player, Button(Ability 2), False);
         	Cancel Primary Action(Event Player);
@@ -4371,7 +4401,7 @@ rule("Baptiste: Corrode")
 
 	actions
 	{
-		For Player Variable(Event Player, i, 0, 3, 1);
+		For Player Variable(Event Player, loopIterator, 0, 3, 1);
 			Play Effect(All Players(All Teams), Ring Explosion, Color(Purple), Position Of(Event Player), 20);
 			Damage(Players Within Radius(Event Player, 10, Team 2, Surfaces), Event Player, 25);
 			Start Damage Over Time(Players Within Radius(Event Player, 10, Team 2, Surfaces), Event Player, 5, 30);
@@ -4402,10 +4432,12 @@ rule("Baptiste: Aerial Ace - Jump")
 		Wait Until(Is Jumping(Event Player), 1);
 		Event Player.abilityAvailable = True;
 		Wait(0.250, Ignore Condition);
-		Event Player.damageDealt += 30;
+		Event Player.damageBoost[1] += 30;
+		Call Subroutine(UpdatePlayerStats);
 		Wait Until(Is On Ground(Event Player), 99999);
 		Event Player.abilityAvailable = False;
-		Event Player.damageDealt -= 30;
+		Event Player.damageBoost[1] -= 30;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -4508,13 +4540,15 @@ rule("Brigitte: Endeavor")
 		Event Player.effects[1] = Last Created Entity;
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Eye Position(Event Player), 15);
 		Heal(Players Within Radius(Event Player, 15, Team 1, Off), Event Player, 200);
-		Event Player.damageDealt += 150;
+		Event Player.damageBoost[1] += 150;
 		Event Player.moveSpeed += 75;
+		Call Subroutine(UpdatePlayerStats);
 		Add Health Pool To Player(Event Player, Armor, Max Health(Event Player) / 3, False, True);
 		Event Player.hpPool[1] = Last Created Health Pool;
 		Wait Until(!Event Player.abilities[8] || Is Dead(Event Player), 6);
-		Event Player.damageDealt -= 150;
+		Event Player.damageBoost[1] -= 150;
 		Event Player.moveSpeed -= 75;
+		Call Subroutine(UpdatePlayerStats);
 		Remove Health Pool From Player(Event Player.hpPool[1]);
 		Destroy Effect(Event Player.effects[1]);
 	}
@@ -4590,7 +4624,7 @@ rule("Cassidy: Standoff - Set root")
 	actions
 	{
 		Wait(0.200, Ignore Condition);
-		For Player Variable(Event Player, i, 0, 5, 1);
+		For Player Variable(Event Player, loopIterator, 0, 5, 1);
 			Wait(1, Abort When False);
 			Play Effect(Event Player, Explosion Sound, Color(White), Event Player, 15);
 			Set Status(Filtered Array(Players in View Angle(Event Player, Team 2, 103), Health(Current Array Element)
@@ -4704,9 +4738,11 @@ rule("Doomfist: Punch Card")
 	actions
 	{
 		Wait(1, Abort When False);
-		Event Player.damageDealt += 200;
+		Event Player.damageBoost[1] += 200;
+		Call Subroutine(UpdatePlayerStats);
 		Wait Until(Ability Cooldown(Event Player, Button(Secondary Fire)) > 0.100, 1);
-		Event Player.damageDealt -= 200;
+		Event Player.damageBoost[1] -= 200;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -4881,7 +4917,7 @@ rule("Hanzo: Firebolt")
 
 	actions
 	{
-		For Player Variable(Event Player, i, 0, 1, 1);
+		For Player Variable(Event Player, loopIterator, 0, 1, 1);
 			Wait(1, Abort When False);
 			Play Effect(Event Player, Explosion Sound, Color(White), Event Player, 100);
 		End;
@@ -5205,14 +5241,16 @@ rule("Mei: Polar Vortex")
 
 	actions
 	{
-		Event Player.damageDealt += 75;
-		For Player Variable(Event Player, i, 0, 3, 1);
+		Event Player.damageBoost[1] += 75;
+		Call Subroutine(UpdatePlayerStats);
+		For Player Variable(Event Player, loopIterator, 0, 3, 1);
 			Wait(0.016, Ignore Condition);
 			Set Ultimate Charge(Event Player, 100);
 			Press Button(Event Player, Button(Ultimate));
 			Wait(0.510, Ignore Condition);
 		End;
-		Event Player.damageDealt -= 75;
+		Event Player.damageBoost[1] -= 75;
+		Call Subroutine(UpdatePlayerStats);
 		Set Ultimate Charge(Event Player, 0);
 		Wait(1, Ignore Condition);
 	}
@@ -5329,13 +5367,15 @@ rule("Moira: Catalyst")
 
 	actions
 	{
-		Event Player.damageDealt += 300;
-		Event Player.healingDealt += 300;
+		Event Player.damageBoost[1] += 300;
+		Event Player.healBoost[1] += 300;
 		Event Player.moveSpeed -= 40;
+		Call Subroutine(UpdatePlayerStats);
 		Wait Until(!Is Button Held(Event Player, Button(Primary Fire)) || !Event Player.abilities[12] || !Is Using Ultimate(Event Player), 8);
-		Event Player.damageDealt -= 300;
+		Event Player.damageBoost[1] -= 300;
 		Event Player.moveSpeed += 40;
-		Event Player.healingDealt -= 300;
+		Event Player.healBoost[1] -= 300;
+		Call Subroutine(UpdatePlayerStats);
 		Wait(0.250, Ignore Condition);
 	}
 }
@@ -5468,7 +5508,7 @@ rule("Pharah: Weaponized Storm")
 		Chase Player Variable At Rate(Event Player, abilityProjectile, Event Player.abilityEnd, 35, Destination and Rate);
 		Wait Until(!Event Player.abilities[12] || Event Player.abilityProjectile == Event Player.abilityEnd, 99999);
 		Destroy Effect(Event Player.effects[7]);
-		For Player Variable(Event Player, i, 0, 6, 1);
+		For Player Variable(Event Player, loopIterator, 0, 6, 1);
 			Play Effect(All Players(All Teams), Bad Pickup Effect, Color(Orange), Event Player.abilityProjectile + Vector(Random Real(-1.500,
 				1.500), Random Real(-0.500, 0.500), Random Real(-1.500, 1.500)), 1);
 			Play Effect(All Players(All Teams), Explosion Sound, Color(Team 1), Event Player.abilityProjectile, 25);
@@ -5502,15 +5542,17 @@ rule("Reaper: Wraith Wrath")
 		Create Effect(All Players(All Teams), Reaper Wraith Form Effect, Color(Team 1), Event Player, True,
 			Visible To Position and Radius);
 		Event Player.effects[1] = Last Created Entity;
-		Event Player.damageDealt += 30;
+		Event Player.damageBoost[1] += 30;
 		Event Player.moveSpeed += 50;
+		Call Subroutine(UpdatePlayerStats);
 		Disallow Button(Event Player, Button(Ability 1));
 		Set Status(Event Player, Null, Phased Out, 3);
 		Wait Until(Is Dead(Event Player) || !Event Player.abilities[8], 3);
 		Allow Button(Event Player, Button(Ability 1));
 		Set Ability Cooldown(Event Player, Button(Ability 1), 8);
-		Event Player.damageDealt -= 30;
+		Event Player.damageBoost[1] -= 30;
 		Event Player.moveSpeed -= 50;
+		Call Subroutine(UpdatePlayerStats);
 		Destroy Effect(Event Player.effects[1]);
 	}
 }
@@ -5577,10 +5619,10 @@ rule("Reinhardt: Epicenter")
 	actions
 	{
 		Set Status(Players Within Radius(Event Player, 20, Team 2, Surfaces), Event Player, Knocked Down, 2.500);
-		For Player Variable(Event Player, i, 0, 3, 1);
+		For Player Variable(Event Player, loopIterator, 0, 3, 1);
 			Wait(0.032, Ignore Condition);
-			Damage(Players Within Radius(Event Player, Event Player.i * 10, Team 2, Surfaces), Event Player, 50);
-			Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Position Of(Event Player), Event Player.i * 20);
+			Damage(Players Within Radius(Event Player, Event Player.loopIterator * 10, Team 2, Surfaces), Event Player, 50);
+			Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Position Of(Event Player), Event Player.loopIterator * 20);
 		End;
 		Wait(5, Ignore Condition);
 	}
@@ -6050,9 +6092,11 @@ rule("Symmetra: Sentry Paragon")
 		Wait(0.500, Abort When False);
 		Start Damage Modification(All Players(Team 2), Event Player, 66.667, Receivers Damagers and Damage Percent);
 		Event Player.damageMod = Last Damage Modification ID;
-		Event Player.damageDealt += 50;
+		Event Player.damageBoost[1] += 50;
+		Call Subroutine(UpdatePlayerStats);
 		Wait Until(!Event Player.abilities[8] || Is Dead(Event Player), 99999);
-		Event Player.damageDealt -= 50;
+		Event Player.damageBoost[1] -= 50;
+		Call Subroutine(UpdatePlayerStats);
 		Stop Damage Modification(Event Player.damageMod);
 		Wait(0.100, Ignore Condition);
 		Loop If Condition Is True;
@@ -6075,8 +6119,9 @@ rule("Symmetra: Shield Generator")
 
 	actions
 	{
-		Event Player.damageDealt += 30;
+		Event Player.damageBoost[1] += 30;
 		Event Player.moveSpeed += 30;
+		Call Subroutine(UpdatePlayerStats);
 		Add Health Pool To Player(All Players(Team 1), Shields, Min(200, Max Health(Event Player) * 0.250), False, False);
 		Event Player.hpPool[6] = Last Created Health Pool;
 		Create Effect(All Players(All Teams), Ana Nano Boosted Effect, Color(Team 1), Event Player, 1, Visible To Position and Radius);
@@ -6084,8 +6129,9 @@ rule("Symmetra: Shield Generator")
 		Wait Until(!Event Player.abilities[12] || Is Dead(Event Player), 10);
 		Destroy Effect(Event Player.effects[1]);
 		Remove Health Pool From Player(Event Player.hpPool[6]);
-		Event Player.damageDealt -= 30;
+		Event Player.damageBoost[1] -= 30;
 		Event Player.moveSpeed -= 30;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -6158,11 +6204,13 @@ rule("Torbjorn: Melting Point - Boost")
 	{
 		Start Damage Modification(All Players(Team 2), Event Player, 33, Receivers Damagers and Damage Percent);
 		Event Player.damageMod = Last Damage Modification ID;
-		Event Player.damageDealt += 300;
+		Event Player.damageBoost[1] += 300;
+		Call Subroutine(UpdatePlayerStats);
 		Wait Until(Is Dead(Event Player) || !Event Player.abilityCountdown || !Event Player.abilities[12], 99999);
 		Event Player.abilityCountdown = False;
 		Stop Damage Modification(Event Player.damageMod);
-		Event Player.damageDealt -= 300;
+		Event Player.damageBoost[1] -= 300;
+		Call Subroutine(UpdatePlayerStats);
 		Stop Chasing Player Variable(Event Player, abilityCountdown);
 	}
 }
@@ -6332,10 +6380,12 @@ rule("Widowmaker: Felt More Alive")
 	actions
 	{
 		Set Gravity(Event Player, 20);
-		Event Player.damageDealt += 40;
+		Event Player.damageBoost[1] += 40;
+		Call Subroutine(UpdatePlayerStats);
 		Wait Until(!Is Firing Secondary(Event Player) || !Event Player.abilities[12] || !Is In Air(Event Player), 99999);
 		Set Gravity(Event Player, 100);
-		Event Player.damageDealt -= 40;
+		Event Player.damageBoost[1] -= 40;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -6420,7 +6470,7 @@ rule("Wrecking Ball: Distort")
 
 	actions
 	{
-		For Player Variable(Event Player, i, False, 4, 1);
+		For Player Variable(Event Player, loopIterator, False, 4, 1);
 			Play Effect(All Players(All Teams), Ring Explosion, Color(Purple), Position Of(Event Player), 20);
 			Damage(Players Within Radius(Event Player, 10, Team 2, Surfaces), Event Player, 25);
 			Set Status(Players Within Radius(Event Player, 10, Team 2, Surfaces), Event Player, Hacked, 2);
@@ -6529,9 +6579,11 @@ rule("Zenyatta: Stress Relief")
 	{
 		Wait(2, Abort When False);
 		Play Effect(Event Player, Explosion Sound, Color(Black), Event Player, 150);
-		Event Player.damageDealt += 50;
+		Event Player.damageBoost[1] += 50;
+		Call Subroutine(UpdatePlayerStats);
 		Wait(0.750, Ignore Condition);
-		Event Player.damageDealt -= 50;
+		Event Player.damageBoost[1] -= 50;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -6607,10 +6659,7 @@ rule("Team 1 Challenges")
 				Visible To and String, Default Visibility);
 			Event Player.abilityHUD[19] = Last Text ID;
 		End;
-		If(Global.maxHealthDone == 50);
-			Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
-			Set Max Health(Event Player, Event Player.playerHealth);
-		End;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -6668,20 +6717,14 @@ rule("Refund")
 		Event Player.abilities[12] = 0;
 		"Reset Damage"
 		Event Player.abilities[13] = 0;
-		Event Player.damageDealt = 100 + Global.damageDealt + Event Player.abilities[13] * 5;
-		Set Damage Dealt(Event Player, Event Player.damageDealt);
 		"Reset Health"
 		Event Player.abilities[14] = 0;
-		Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
-		Set Max Health(Event Player, Event Player.playerHealth);
-		If(Global.maxHealthDone == 0);
-		End;
 		"Reset Healing"
 		Event Player.abilities[15] = 0;
-		Set Healing Dealt(Event Player, 100 + Event Player.abilities[15] * 5);
 		"Reset automaticRepair"
 		Global.automaticRepair -= Event Player.abilities[16];
 		Event Player.abilities[16] = 0;
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -7160,7 +7203,7 @@ rule("Create Shop Buttons")
 			"Second Wind I: 30% chance to revive yourself after going down\n     This cannot occur more than once every 30 seconds"),
 			Local Player.abilities[5] ? Custom String("Charged II: Ultimates cost 40% less\n") : Custom String(
 			"Charged I: Ultimates cost 20% less\n"), Local Player.abilities[1] ? Custom String(
-			"Headhunter II: Critical hits deal 80% more damage\n") : Custom String("Headhunter I: Critical hits deal 40% more damage\n"))
+			"Headhunter II: Critical hits deal 60% more damage\n") : Custom String("Headhunter I: Critical hits deal 30% more damage\n"))
 			[Round To Integer((Horizontal Facing Angle Of(Local Player) + 90) / 45, Down)] : Custom String("")),
 			Global.shopBasePosition - 75 * Global.shopPositionAngle[1], 2.500, Do Not Clip, Visible To and String, Color(White),
 			Default Visibility);
@@ -7366,8 +7409,7 @@ rule("Buy Ability")
 					Event Player.money[0] -= 400;
 					Event Player.money[1] += 400;
 					Event Player.abilities[13] += 1;
-					Event Player.damageDealt = 100 + Global.damageDealt + Event Player.abilities[13] * 5;
-					Set Damage Dealt(Event Player, Event Player.damageDealt);
+					Call Subroutine(UpdatePlayerStats);
 				Else;
 					Small Message(Event Player, Custom String("Not enough money!"));
 				End;
@@ -7413,8 +7455,7 @@ rule("Buy Ability")
 					Event Player.money[0] -= 400;
 					Event Player.money[1] += 400;
 					Event Player.abilities[14] += 1;
-					Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
-					Set Max Health(Event Player, Event Player.playerHealth);
+					Call Subroutine(UpdatePlayerStats);
 				Else;
 					Small Message(Event Player, Custom String("Not enough money!"));
 				End;
@@ -7460,7 +7501,7 @@ rule("Buy Ability")
 					Event Player.money[0] -= 400;
 					Event Player.money[1] += 400;
 					Event Player.abilities[15] += 1;
-					Set Healing Dealt(Event Player, 100 + Event Player.abilities[15] * 5);
+					Call Subroutine(UpdatePlayerStats);
 				Else;
 					Small Message(Event Player, Custom String("Not enough money!"));
 				End;
@@ -7584,8 +7625,7 @@ rule("Refund Single Ability")
 					Event Player.money[0] += 400;
 					Event Player.money[1] -= 400;
 					Event Player.abilities[13] -= 1;
-					Event Player.damageDealt = 100 + Global.damageDealt + Event Player.abilities[13] * 5;
-					Set Damage Dealt(Event Player, Event Player.damageDealt);
+					Call Subroutine(UpdatePlayerStats);
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
@@ -7625,8 +7665,7 @@ rule("Refund Single Ability")
 					Event Player.money[0] += 400;
 					Event Player.money[1] -= 400;
 					Event Player.abilities[14] -= 1;
-					Event Player.playerHealth = 100 + Global.maxHealthDone + Event Player.abilities[14] * 5;
-					Set Max Health(Event Player, Event Player.playerHealth);
+					Call Subroutine(UpdatePlayerStats);
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
@@ -7666,7 +7705,7 @@ rule("Refund Single Ability")
 					Event Player.money[0] += 400;
 					Event Player.money[1] -= 400;
 					Event Player.abilities[15] -= 1;
-					Set Healing Dealt(Event Player, 100 + Event Player.abilities[15] * 5);
+					Call Subroutine(UpdatePlayerStats);
 				Else;
 					Small Message(Event Player, Custom String("You don't have that ability!"));
 				End;
@@ -7761,8 +7800,8 @@ rule("Create Player HUD")
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)), Is Dead(Event Player) ? Color(
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)),
 			Visible To Sort Order String and Color, Default Visibility);
-		Create HUD Text(Event Player.abilities[13] || Global.damageDealt ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
-			Global.damageDealt + Event Player.abilities[13] * 5), Left, 913, Color(White), Color(White), Color(Turquoise),
+		Create HUD Text(Event Player.damageBoost[0] > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
+			Event Player.damageBoost[0]), Left, 913, Color(White), Color(White), Color(Turquoise),
 			Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.abilities[9] ? Event Player : Null, Null, Null, Custom String("Second Wind {0}",
 			Event Player.abilities[9] == 1 ? Custom String("I") : Custom String("II")), Left, 908, Color(White), Color(White), Color(
@@ -7773,8 +7812,8 @@ rule("Create Player HUD")
 		Create HUD Text(Event Player.abilities[1] ? Event Player : Null, Null, Null, Custom String("Headhunter {0}",
 			Event Player.abilities[1] == 1 ? Custom String("I") : Custom String("II")), Left, 901, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[14] || Global.maxHealthDone ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
-			Global.maxHealthDone + Event Player.abilities[14] * 5), Left, 914, Color(White), Color(White), Color(Turquoise),
+		Create HUD Text(Event Player.playerHealth > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
+			Event Player.playerHealth), Left, 914, Color(White), Color(White), Color(Turquoise),
 			Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.abilities[10] ? Event Player : Null, Null, Null, Custom String("Binding Heal {0}",
 			Event Player.abilities[10] == 1 ? Custom String("I") : Custom String("II")), Left, 909, Color(White), Color(White), Color(
@@ -7785,8 +7824,11 @@ rule("Create Player HUD")
 		Create HUD Text(Event Player.abilities[2] ? Event Player : Null, Null, Null, Custom String("Ambush {0}",
 			Event Player.abilities[2] == 1 ? Custom String("I") : Custom String("II")), Left, 902, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[15] ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
-			Event Player.abilities[15] * 5), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
+		Create HUD Text(Event Player.healBoost[0] > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
+			Event Player.healBoost[0]), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player.moveSpeed > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
+			Event Player.moveSpeed), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
 		Create HUD Text(Event Player.abilities[11] ? Event Player : Null, Null, Null, Custom String("Resilience {0}",
 			Event Player.abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Color(White), Color(White), Color(
@@ -8078,7 +8120,7 @@ rule("Team 1: Player Dealt Healing")
 	{
 		Abort If(Healee != Event Player);
 		If(Event Player.abilities[10] == True);
-			Set Player Health(Event Player, Health(Event Player) + Event Player.abilities[10] * 0.250 * Event Healing);
+			Set Player Health(Event Player, Health(Event Player) + (Event Player.abilities[10] * 0.250) * Event Healing);
 		End;
 	}
 }
@@ -8099,15 +8141,15 @@ rule("Team 1: Player Dealt Damage")
 				Damage(Victim, Event Player, Event Damage * 0.500);
 			End;
 			If(Event Player.abilities[1] == True);
-				Damage(Victim, Event Player, Event Player.abilities[1] * 40 / Event Player.damageDealt * Event Damage);
+				Damage(Victim, Event Player, Event Damage * (Event Player.abilities[1] * 0.4));
 			End;
 		End;
 		If(Event Player.abilities[2] == True && Event Ability != Null && (Y Component Of(Position Of(Event Player)) - Y Component Of(
 			Position Of(Victim)) >= 3 || Absolute Value(Horizontal Angle Towards(Victim, Event Player)) >= 90) == True);
-			Damage(Victim, Event Player, Event Player.abilities[2] * 30 / Event Player.damageDealt * Event Damage);
+			Damage(Victim, Event Player, Event Damage * (Event Player.abilities[2] * 0.3));
 		End;
 		If(Global.perk[0] == True && Event Ability != Null && Distance Between(Event Player, Victim) >= 10);
-			Damage(Victim, Event Player, 50 / Event Player.damageDealt * Event Damage);
+			Damage(Victim, Event Player, Event Damage * 0.5);
 		End;
 	}
 }
