@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "<FGf74b51FF>Defend The Castle Extended Version d139\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
+		Description: "<FGf74b51FF>Defend The Castle Extended Version d140\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -21,7 +21,7 @@ settings
 		{
 			enabled maps
 			{
-				Havana
+				Havana 0
 			}
 		}
 
@@ -42,11 +42,11 @@ settings
 	extensions
 	{
 		Beam Effects
-        Buff Status Effects
-        Kinetic Explosion Effects
-        Explosion Sounds
-        Play More Effects
-        Spawn More Dummy Bots
+		Buff Status Effects
+		Kinetic Explosion Effects
+		Explosion Sounds
+		Play More Effects
+		Spawn More Dummy Bots
 	}
 }
 
@@ -73,7 +73,6 @@ variables
 		17: timeMinutes
 		18: defaultCurrentBot
 		19: defaultHeroBotsPool
-		20: defaultHeroBotsPoolCurrentId
 		21: isDebug
 		22: botOrisaParent
 		24: botOrisaChild
@@ -114,7 +113,9 @@ variables
 		61: challengeCount
 		62: upgradeBossHealthValue
 		63: globalHUDs
-		64: baseStats
+		108: extendedGlobalCollection
+		109: arrayBuilder
+		111: exitButtonProperties
 		112: allPositions
 		113: allDirections
 		114: firstPosition
@@ -183,6 +184,17 @@ variables
 		53: deathPosition
 		54: lastSecondWind
 		55: vote
+		94: workshopButtons
+		95: extendedPlayerCollection
+		96: getProperties
+		97: buttonModification
+		98: currActionID
+		99: destroyButtonID
+		100: lastMenuButtonID
+		101: buttons
+		102: newButton
+		103: menuOriginalFacing
+		104: menuFrame
 		105: filterPosition
 		106: lastSavedPosition
 		107: closestBodyPosition
@@ -237,6 +249,12 @@ subroutines
 	26: GateRepair
 	27: CancelMomentum
 	28: UpdatePlayerStats
+	114: createMenuButton
+	115: destroyMenuButton
+	116: modifyMenuButton
+	117: getButtonProperties
+	118: createCursor
+	122: doButtonUpdate
 	124: BotStartPathFinding
 	125: BotGetClosestNodeIdToTarget
 	126: BotGetNextNodeIdAndPosition
@@ -608,12 +626,12 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 
 	actions
 	{
-		Global.isDebug = true;
+		Global.isDebug = False;
 		Global.isDebugAINavigation = False;
-		Global.gateMaxHealth = Workshop Setting Integer(Custom String("Defend The Castle Extended"), Custom String("GATE MAX HEALTH"), 500,
-			100, 1000, 0);
-		Global.moneyMultiplier = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String("Money Multiplicator"),
-			1, 0.500, 2, 0);
+		Global.gateMaxHealth[0] = Workshop Setting Integer(Custom String("Defend The Castle Extended"), Custom String("GATE MAX HEALTH"),
+			500, 100, 1000, 0);
+		Global.moneyMultiplier[0] = Workshop Setting Real(Custom String("Defend The Castle Extended"), Custom String(
+			"Money Multiplicator"), 1, 0.500, 2, 0);
 		Global.selfNanoWorkshopSetting = Workshop Setting Toggle(Custom String("Ana Self Nano"), Custom String(
 			"Ana can nano herself even if there are other players (only if no player targeted)"), False, 0);
 	}
@@ -629,7 +647,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create In-World Text(All Players(Team 1), Custom String(
-			"Defend The Castle Extended d139\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
+			"Defend The Castle Extended d140\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(
@@ -684,7 +702,7 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 		Global.upgradePlayerMaxHealthMaxValue[0] = 4000;
 		Global.upgradePlayerMaxHealthMaxValue[1] = 9000;
 		Global.upgradePlayerMaxHealthMaxValue[2] = 15000;
-		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth + Global.gateMaxHealth * 0.750, Up);
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
 		Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
 		Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
 		Abort If(Global.isDebug == False);
@@ -720,8 +738,8 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH - DONE")
 	{
 		Play Effect(All Players(Team 1), Good Explosion, Color(Green), Global.gatePosition, 5);
 		Play Effect(All Players(Team 1), Buff Impact Sound, Color(Green), Global.gatePosition, 100);
-		Global.gateMaxHealth = Global.upgradeGateMaxHealthMaxValue[0];
-		Global.gateHealth = Global.gateMaxHealth;
+		Global.gateMaxHealth[0] = Global.upgradeGateMaxHealthMaxValue[0];
+		Global.gateHealth = Global.gateMaxHealth[0];
 		Destroy HUD Text(Global.upgradeGateMaxHealthHudId[0]);
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
 			Icon String(Checkmark)), Custom String("GATE'S MAX HEALTH: {0} HP", Global.upgradeGateMaxHealthMaxValue[0]), Right, 1, Color(
@@ -762,7 +780,7 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 2 - DONE")
 			Custom String("REPAIR GATE {0}/{1} HP", Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[2]), Left, 12,
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[2] = Last Text ID;
-		Global.gateHealth = Global.gateMaxHealth;
+		Global.gateHealth = Global.gateMaxHealth[0];
 		Start Rule(GateProgressBarColor, Restart Rule);
 		Global.challengeCount += 1;
 	}
@@ -790,7 +808,7 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 3 - DONE")
 			Icon String(Checkmark)), Custom String("2X AUTO-REPAIR"), Right, 3, Color(Green), Color(Green), Color(Green), Visible To,
 			Default Visibility);
 		Global.upgradeGateMaxHealthHudId[2] = Last Text ID;
-		Global.gateHealth = Global.gateMaxHealth;
+		Global.gateHealth = Global.gateMaxHealth[0];
 		Start Rule(GateProgressBarColor, Restart Rule);
 		Global.challengeCount += 1;
 	}
@@ -914,7 +932,7 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
 		End;
 		Global.maxHealthDone = 150;
-        Call Subroutine(UpdatePlayerStats);
+		Call Subroutine(UpdatePlayerStats);
 		Heal(All Players(Team 1), Null, 9999);
 		Global.challengeCount += 1;
 	}
@@ -962,10 +980,9 @@ rule("GLOBAL: UPGRADE - CRITICAL DAMAGE - DONE")
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
 			"CRITICAL DAMAGE 150%"), Right, 7, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String(
-			"Sharpshooter: 40% more damage at >15m"), Custom String("KILL ECHO {0}/{1}",
-			Global.upgradePerkSharpshooterValue, Global.upgradeCriticalDamageMaxValue[1]), Left, 14, Color(Orange), Color(White), Color(
-			White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("Sharpshooter: 40% more damage at >15m"), Custom String(
+			"KILL ECHO {0}/{1}", Global.upgradePerkSharpshooterValue, Global.upgradeCriticalDamageMaxValue[1]), Left, 14, Color(Orange),
+			Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[1] = Last Text ID;
 		Global.challengeCount += 1;
 	}
@@ -1068,8 +1085,8 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 			"MAX AMMO 200%"), Right, 10, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL ENEMIES: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1]), Left, 15, Color(Orange), Color(White), Color(
-			White), Visible To and String, Default Visibility);
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1]), Left, 15, Color(Orange), Color(White), Color(White),
+			Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		For Global Variable(loopIterator, 0, Count Of(All Players(Team 1)), 1);
 			Set Max Ammo(All Players(Team 1)[Global.loopIterator], 0, Max Ammo(All Players(Team 1)[Global.loopIterator], 0) * 2);
@@ -1101,8 +1118,8 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 			"+50% DAMAGE"), Right, 12, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
-			Custom String("KILL ENEMIES: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2]), Left, 15,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+			Custom String("KILL ENEMIES: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2]), Left, 15, Color(Orange),
+			Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
 		Call Subroutine(UpdatePlayerStats);
 		Global.challengeCount += 1;
@@ -1164,8 +1181,14 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			Disable Inspector Recording;
 			Set Match Time(20);
 		End;
-		Create In-World Text(All Players(Team 1), Custom String("{0}{1}\nREPAIR\n {2}", Custom String("{0}{1}{2}", Hero Icon String(Hero(Torbjörn)), Hero Icon String(Hero(Brigitte)), Hero Icon String(Hero(Reinhardt))), Hero Icon String(Hero(Symmetra)), Ability Icon String(Hero(Reinhardt), Button(Primary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
+		Create In-World Text(All Players(Team 1), Custom String("{0}{1}\nREPAIR\n {2}", Custom String("{0}{1}{2}", Hero Icon String(Hero(
+			Torbjörn)), Hero Icon String(Hero(Brigitte)), Hero Icon String(Hero(Reinhardt))), Hero Icon String(Hero(Symmetra)),
+			Ability Icon String(Hero(Reinhardt), Button(Primary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
+		Create HUD Text(!All Players(Team 1).isInMenu[1] ? All Players(Team 1) : Null, Custom String("HOLD {0} - Reload to open the shop",
+			Input Binding String(Button(Reload))), Null, Null, Top, 1000, Color(Yellow), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+		Wait Until(Is Game In Progress == True, 9999);
 		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Left, 11, Color(
 			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
 		"UPGRADE - GATE'S MAX HEALTH"
@@ -1187,11 +1210,9 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
 		"UPGRADE - MAX AMMO"
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL ENEMIES: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0]), Left, 15, Color(Orange), Color(White), Color(
-			White), Visible To and String, Default Visibility);
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0]), Left, 15, Color(Orange), Color(White), Color(White),
+			Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Custom String("HOLD {0} - Reload to open the shop", Input Binding String(Button(Reload))),
-			Null, Null, Top, 1000, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
 	}
 }
 
@@ -1213,9 +1234,10 @@ rule("GLOBAL: SETUP PHASE")
 			Set Match Time(1);
 		Else;
 			Pause Match Time;
-			Create HUD Text(All Players(Team 1), Custom String("PRESS {0} - INTERACT TO VOTE FOR START | {1}/{2}", Input Binding String(Button(Interact)), Count Of(
-				Filtered Array(All Players(Team 1), Current Array Element.vote[0] == 1)), Count Of(All Players(Team 1))), Null, Null, Top, 50,
-				Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
+			Create HUD Text(!All Players(Team 1).isInMenu[1] ? All Players(Team 1) : Null, Custom String(
+				"PRESS {0} - INTERACT TO VOTE FOR START | {1}/{2}", Input Binding String(Button(Interact)), Count Of(Filtered Array(
+				All Players(Team 1), Current Array Element.vote[0] == 1)), Count Of(All Players(Team 1))), Null, Null, Top, 50, Color(Red),
+				Color(White), Color(White), Visible To and String, Default Visibility);
 			Global.globalHUDs[0] = Last Text ID;
 			Set Match Time(20);
 			While(Count Of(Filtered Array(All Players(Team 1), Current Array Element.vote[0] == 1)) <= Count Of(All Players(Team 1)) / 2);
@@ -1250,12 +1272,12 @@ rule("GLOBAL: GAME IN PROGRESS")
 		Disable Built-In Game Mode Completion;
 		Disable Game Mode HUD(All Players(All Teams));
 		Disable Game Mode In-World UI(All Players(All Teams));
-		Global.gateHealth = Global.gateMaxHealth;
+		Global.gateHealth = Global.gateMaxHealth[0];
 		Global.gateHealthChase = Global.gateHealth;
 		Global.gateProgressBarColorComponent = 255;
 		Global.gateProgressBarColorCurrent = Color(White);
-		Create Progress Bar HUD Text(All Players(Team 1), Global.gateHealthChase * 100 / Global.gateMaxHealth, Custom String(
-			"GATE {0}/{1}", Global.gateHealth, Global.gateMaxHealth), Top, 1, Global.gateProgressBarColorCurrent, Color(White),
+		Create Progress Bar HUD Text(All Players(Team 1), Global.gateHealthChase * 100 / Global.gateMaxHealth[0], Custom String(
+			"GATE {0}/{1}", Global.gateHealth, Global.gateMaxHealth[0]), Top, 1, Global.gateProgressBarColorCurrent, Color(White),
 			Visible To Values and Color, Default Visibility);
 		Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.timeMinutes,
 			Global.timeSeconds < 10 ? Custom String("0{0}", Global.timeSeconds) : Global.timeSeconds), Top, 2, Color(White), Color(White),
@@ -1477,13 +1499,14 @@ rule("Subroutine: UPDATE PLAYER STATS")
 
 	actions
 	{
-		All Players(Team 1).damageBoost[0] = (Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[1] ? 50 : 0) + All Players(Team 1).abilities[13] * 5 + All Players(Team 1).damageBoost[1];
+		All Players(Team 1).damageBoost[0] = (Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[1] ? 50 : 0) + All Players(
+			Team 1).abilities[13] * 5 + All Players(Team 1).damageBoost[1];
 		Set Damage Dealt(All Players(Team 1), All Players(Team 1).baseStats[0] + All Players(Team 1).damageBoost);
 		All Players(Team 1).playerHealth = Global.maxHealthDone + All Players(Team 1).abilities[14] * 5;
-        Set Max Health(All Players(Team 1), All Players(Team 1).baseStats[1] + All Players(Team 1).playerHealth);
-        All Players(Team 1).healBoost[0] = All Players(Team 1).healBoost[1] + All Players(Team 1).abilities[15] * 5;
-        Set Healing Dealt(All Players(Team 1), All Players(Team 1).baseStats[2] + All Players(Team 1).healBoost[0]);
-        Set Move Speed(All Players(Team 1), All Players(Team 1).baseStats[3] + All Players(Team 1).speedBoost);
+		Set Max Health(All Players(Team 1), All Players(Team 1).baseStats[1] + All Players(Team 1).playerHealth);
+		All Players(Team 1).healBoost[0] = All Players(Team 1).healBoost[1] + All Players(Team 1).abilities[15] * 5;
+		Set Healing Dealt(All Players(Team 1), All Players(Team 1).baseStats[2] + All Players(Team 1).healBoost[0]);
+		Set Move Speed(All Players(Team 1), All Players(Team 1).baseStats[3] + All Players(Team 1).speedBoost);
 	}
 }
 
@@ -1499,21 +1522,21 @@ rule("Subroutine: GATE REPAIR")
 	{
 		"UPGRADE - GATE'S MAX HEALTH"
 		If(Global.upgradeGateMaxHealthValue < Global.upgradeGateMaxHealthMaxValue[2]);
-			If(Global.gateMaxHealth - Global.gateHealth > (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
+			If(Global.gateMaxHealth[0] - Global.gateHealth > (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
 				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
-				Global.upgradeGateMaxHealthValue += (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
-					Event Player.isNanoed == 1 ? 2 : 1);
+				Global.upgradeGateMaxHealthValue += (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
+					Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1);
 			Else;
-				Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
+				Global.upgradeGateMaxHealthValue += Global.gateMaxHealth[0] - Global.gateHealth;
 			End;
 		End;
 		"HEAL GATE"
-		If(Global.gateMaxHealth - Global.gateHealth > (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
+		If(Global.gateMaxHealth[0] - Global.gateHealth > (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
 			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1));
-			Global.gateHealth += (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
-				Event Player.isNanoed == 1 ? 2 : 1);
+			Global.gateHealth += (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (
+				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (Event Player.isNanoed == 1 ? 2 : 1);
 		Else;
-			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
+			Global.gateHealth += Global.gateMaxHealth[0] - Global.gateHealth;
 		End;
 		"CHARGE ULTIMATE"
 		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
@@ -1535,11 +1558,13 @@ rule("GATE REPAIR")
 	{
 		Is Game In Progress == True;
 		((Hero Of(Event Player) == Hero(Torbjörn) && Weapon(Event Player) == 2) || (Hero Of(Event Player) == Hero(Reinhardt) || Hero Of(
-			Event Player) == Hero(Brigitte) || Hero Being Duplicated(Event Player) == Hero(Reinhardt) || Hero Of(Event Player) == Hero(Symmetra))) == True;
+			Event Player) == Hero(Brigitte) || Hero Being Duplicated(Event Player) == Hero(Reinhardt) || Hero Of(Event Player) == Hero(
+			Symmetra))) == True;
 		Is Firing Primary(Event Player) == True;
-		Global.gateHealth < Global.gateMaxHealth;
+		Global.gateHealth < Global.gateMaxHealth[0];
 		Is In View Angle(Event Player, Global.gateRepairPosition, 30) == True;
-		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : (Hero Of(Event Player) == Hero(Symmetra) ? 12 : 3.500));
+		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : (Hero Of(
+			Event Player) == Hero(Symmetra) ? 12 : 3.500));
 	}
 
 	actions
@@ -1552,7 +1577,7 @@ rule("GATE REPAIR")
 			Wait(Is Using Ability 2(Event Player) == True ? 0.350 : 0.700, Ignore Condition);
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			Wait(0.850, Ignore Condition);
-		Else If(Hero of(Event Player) == Hero(Symmetra));
+		Else If(Hero Of(Event Player) == Hero(Symmetra));
 			Wait(0.100, Ignore Condition);
 		Else;
 			Wait(0.500, Ignore Condition);
@@ -1589,7 +1614,7 @@ rule("SUBROUTINE: GATE PROGRESS BAR COLOR")
 			Wait(0.100, Ignore Condition);
 		End;
 		Global.gateHealthEvent = Global.gateHealth;
-		Global.gateProgressBarColorComponent = Global.gateHealth * 255 / Global.gateMaxHealth;
+		Global.gateProgressBarColorComponent = Global.gateHealth * 255 / Global.gateMaxHealth[0];
 		Global.gateProgressBarColorCurrent = Custom Color(255, Global.gateProgressBarColorComponent, Global.gateProgressBarColorComponent,
 			255);
 	}
@@ -2324,7 +2349,7 @@ rule("BOT: ECHO - MAIN LOGIC - LOOP")
 	{
 		If(Event Player.botDoesUniqueBehaviour == False);
 			Event Player.botSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-				== True && Current Array Element.isInMenu == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
+				== True && Current Array Element.isInMenu[0] == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
 				Current Array Element)) == False && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
 				Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		End;
@@ -2404,7 +2429,7 @@ rule("BOT: ECHO - CAN SEE PLAYER")
 		Event Player.isRespawning == False;
 		Event Player.botDoesUniqueBehaviour == False;
 		Is In Line of Sight(Eye Position(Event Player), Eye Position(Event Player.botSeePlayer), Barriers Do Not Block LOS) == True;
-		Event Player.botSeePlayer.isInMenu == False;
+		Event Player.botSeePlayer.isInMenu[0] == False;
 	}
 
 	actions
@@ -2641,7 +2666,7 @@ rule("BOT: REIN - SET PLAYER AS TARGET")
 		Event Player.isRespawning == False;
 		"CAN SEE PLAYER"
 		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			&& Current Array Element.isInMenu == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
+			&& Current Array Element.isInMenu[0] == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
 			Current Array Element)) == False), Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
 			Barriers Do Not Block LOS)) == True;
 	}
@@ -2651,7 +2676,7 @@ rule("BOT: REIN - SET PLAYER AS TARGET")
 		Call Subroutine(BotResetPathFinding);
 		"SET CLOSEST PLAYER TO BOT AS TARGET AND FOLLOW HIM"
 		Event Player.botTargetPlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			== True && Current Array Element.isInMenu == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
+			== True && Current Array Element.isInMenu[0] == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
 			Current Array Element)) == False && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
 			Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		Start Facing(Event Player, Direction Towards(Position Of(Event Player), Position Of(Event Player.botTargetPlayer)), 360, To World,
@@ -2706,8 +2731,8 @@ rule("BOT: REIN - TARGET DEAD")
 		Is Alive(Event Player) == True;
 		Event Player.isRespawning == False;
 		Event Player.botTargetPlayer != -1;
-		(Is Dead(Event Player.botTargetPlayer) || Event Player.botTargetPlayer.isInMenu || (Hero Of(Event Player.botTargetPlayer) == Hero(
-			Sombra) && Is Using Ability 1(Event Player.botTargetPlayer))) == True;
+		(Is Dead(Event Player.botTargetPlayer) || Event Player.botTargetPlayer.isInMenu[0] || (Hero Of(Event Player.botTargetPlayer)
+			== Hero(Sombra) && Is Using Ability 1(Event Player.botTargetPlayer))) == True;
 	}
 
 	actions
@@ -2892,7 +2917,7 @@ rule("BOT: WIDOW - SEE PLAYER")
 		Event Player.hasBadStatus == False;
 		"CAN SEE PLAYER"
 		Is True For Any(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			&& Current Array Element.isInMenu == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
+			&& Current Array Element.isInMenu[0] == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
 			Current Array Element)) == False), Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
 			Barriers Do Not Block LOS)) == True;
 	}
@@ -2900,7 +2925,7 @@ rule("BOT: WIDOW - SEE PLAYER")
 	actions
 	{
 		Event Player.botSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			== True && Current Array Element.isInMenu == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
+			== True && Current Array Element.isInMenu[0] == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
 			Current Array Element)) == False && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
 			Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		Event Player.botWidowShotTime = Total Time Elapsed + (Global.timeMinutes >= 9 ? Random Real(2, 5) : Random Real(5, 10));
@@ -3093,7 +3118,7 @@ rule("BOT: BASTION - MAIN LOGIC - LOOP")
 	actions
 	{
 		Event Player.botSeePlayer = Sorted Array(Filtered Array(All Living Players(Team 1), Has Spawned(Current Array Element)
-			== True && Current Array Element.isInMenu == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
+			== True && Current Array Element.isInMenu[0] == False && (Hero Of(Current Array Element) == Hero(Sombra) && Is Using Ability 1(
 			Current Array Element)) == False && Is In Line of Sight(Eye Position(Event Player), Eye Position(Current Array Element),
 			Barriers Do Not Block LOS) == True), Distance Between(Position Of(Event Player), Position Of(Current Array Element)))[0];
 		"SEE THE PLAYER"
@@ -3684,29 +3709,29 @@ rule("money on kill")
 	actions
 	{
 		If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
-    		Global.upgradeMaxAmmoValue += Victim.isBoss == 1 ? 10 : 1;
-    	End;
+			Global.upgradeMaxAmmoValue += Victim.isBoss == 1 ? 10 : 1;
+		End;
 		If(Hero Of(Victim) == Hero(Zenyatta));
-			All Players(Team 1).money[0] += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
-			All Players(Team 1).money[0] += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Wrecking Ball));
-			All Players(Team 1).money[0] += 30 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 30 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 30 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 30 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Widowmaker));
-			All Players(Team 1).money[0] += 50 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 50 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 50 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 50 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Bastion));
-			All Players(Team 1).money[0] += 70 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 70 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 70 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 70 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Echo));
-			All Players(Team 1).money[0] += 90 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 90 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 90 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 90 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Orisa));
-			All Players(Team 1).money[0] += 120 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			Global.startMoney += 120 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
+			All Players(Team 1).money[0] += 120 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 120 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
 	}
 }
 
@@ -3735,9 +3760,12 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
 				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
 				Default Visibility);
-			Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n", Event Player.baseStats[0], Event Player.baseStats[1], Event Player.baseStats[2]), Custom String("speed: {0}\ndamageBoost[0]: {1}\ndamageBoost[1]: {2}\n", Event Player.baseStats[3], Event Player.damageBoost[0], Event Player.damageBoost[1]),
-            				Custom String("playerHealth: {0}\nhealBoost: {1}\nspeedBoost: {2}", Event Player.playerHealth, Event Player.healBoost, Event Player.speedBoost)), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
-            				Default Visibility);
+			Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
+				Event Player.baseStats[0], Event Player.baseStats[1], Event Player.baseStats[2]), Custom String(
+				"speed: {0}\ndamageBoost[0]: {1}\ndamageBoost[1]: {2}\n", Event Player.baseStats[3], Event Player.damageBoost[0],
+				Event Player.damageBoost[1]), Custom String("playerHealth: {0}\nhealBoost: {1}\nspeedBoost: {2}", Event Player.playerHealth,
+				Event Player.healBoost, Event Player.speedBoost)), Null, Null, Left, -10000, Color(Red), Color(White), Color(White),
+				Visible To and String, Default Visibility);
 		End;
 	}
 }
@@ -3758,13 +3786,13 @@ rule("Team 1 (Ability): Quick Fix")
 
 	actions
 	{
-		Event Player.baseStats[4] = Number of Eliminations(Event Player);
+		Event Player.baseStats[4] = Number Of Eliminations(Event Player);
 		Heal(Event Player, Null, Event Player.abilities[3] * 50);
 		Event Player.speedBoost += Event Player.abilities[3] * 20;
 		Call Subroutine(UpdatePlayerStats);
-		Wait Until(Number of Eliminations(Event Player) > Event Player.baseStats[4], 5);
+		Wait Until(Number Of Eliminations(Event Player) > Event Player.baseStats[4], 5);
 		Event Player.speedBoost -= Event Player.abilities[3] * 20;
-        Call Subroutine(UpdatePlayerStats);
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -4003,19 +4031,19 @@ rule("Auto Repair")
 	{
 		Is Game In Progress == True;
 		Global.automaticRepair == True;
-		Global.gateHealth < Global.gateMaxHealth;
+		Global.gateHealth < Global.gateMaxHealth[0];
 	}
 
 	actions
 	{
-		If(Global.gateMaxHealth - Global.gateHealth > 5 * Global.automaticRepair * (
+		If(Global.gateMaxHealth[0] - Global.gateHealth > 5 * Global.automaticRepair * (
 			Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 2 : 1));
 			Global.gateHealth += 5 * Global.automaticRepair * (
 				Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 2 : 1);
 			Global.upgradeGateMaxHealthValue += 5 * Global.automaticRepair;
 		Else;
-			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
-			Global.upgradeGateMaxHealthValue += Global.gateMaxHealth - Global.gateHealth;
+			Global.gateHealth += Global.gateMaxHealth[0] - Global.gateHealth;
+			Global.upgradeGateMaxHealthValue += Global.gateMaxHealth[0] - Global.gateHealth;
 		End;
 		"UPDATE GATE'S HEALTH BAR"
 		Start Rule(GateProgressBarColor, Restart Rule);
@@ -4071,7 +4099,7 @@ rule("Hero Talent Text")
 				"Standoff: Enemies cannot move once their skull is locked during deadeye"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Cassidy), Button(Ultimate)), Custom String(
 				"Flashpoint: Magnetic Grenade will heavily stun enemies if it sticks"));
-        Else If(Hero Of(Event Player) == Hero(D.Va));
+		Else If(Hero Of(Event Player) == Hero(D.Va));
 			Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(D.Va), Button(Secondary Fire)), Custom String(
 				"Voltage Grid: Defense matrix damages and roots enemies"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(D.Va), Button(Ability 1)), Custom String(
@@ -4100,12 +4128,14 @@ rule("Hero Talent Text")
 			Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Pyromania: All explosive attacks deal fire damage"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
 				"Trigger Happy: Gain +1 Concussion Mine every 4s, up to 5 max"));
-        Else If(Hero Of(Event Player) == Hero(Junker Queen));
-			Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Shout Louder: Commanding Shout wounds enemies in the area"));
+		Else If(Hero Of(Event Player) == Hero(Junker Queen));
+			Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String(
+				"Shout Louder: Commanding Shout wounds enemies in the area"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
 				"Grace Period: Gracie deals extra damage upon pulling an enemy back"));
-        Else If(Hero Of(Event Player) == Hero(Kiriko));
-			Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String("Shinobi Tactics: Healing with abilities creates energy explosions around the target"));
+		Else If(Hero Of(Event Player) == Hero(Kiriko));
+			Event Player.heroTalentText[1] = Array(Icon String(Fire), Custom String(
+				"Shinobi Tactics: Healing with abilities creates energy explosions around the target"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Junkrat), Button(Ability 2)), Custom String(
 				"Recession: Protection Suzu damages for 20% of health and freezes enemies"));
 		Else If(Hero Of(Event Player) == Hero(Lúcio));
@@ -4154,7 +4184,8 @@ rule("Hero Talent Text")
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Reinhardt), Button(Ultimate)), Custom String(
 				"Epicenter: Earth shatter travels in all directions"));
 		Else If(Hero Of(Event Player) == Hero(Roadhog));
-			Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String("Stench: Constantly inflict toxic damage to nearby enemeis"));
+			Event Player.heroTalentText[1] = Array(Icon String(Poison), Custom String(
+				"Stench: Constantly inflict toxic damage to nearby enemeis"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Roadhog), Button(Ability 1)), Custom String(
 				"Chainsnap: Chain Hook deals 4x more damage; resets upon eliminations"));
 		Else If(Hero Of(Event Player) == Hero(Sigma));
@@ -4236,7 +4267,6 @@ rule("Subroutine: Cancel player momentum")
 	}
 }
 
-
 rule("Ana: Sleep Paralysis")
 {
 	event
@@ -4272,44 +4302,44 @@ rule("Ana: Multinade")
 
 	conditions
 	{
-	    Event Player.abilities[12] == True;
+		Event Player.abilities[12] == True;
 		Is Using Ability 2(Event Player) == True;
 	}
 
 	actions
 	{
 		For Player Variable(Event Player, loopIterator, 0, 4, 1);
-        	Wait(0.030, Ignore Condition);
-        	Set Ability Cooldown(Event Player, Button(Ability 2), False);
-        	Cancel Primary Action(Event Player);
-        	Wait(0.050, Ignore Condition);
-        	Press Button(Event Player, Button(Ability 2));
-        End;
-        Wait(2, Ignore Condition);
+			Wait(0.030, Ignore Condition);
+			Set Ability Cooldown(Event Player, Button(Ability 2), False);
+			Cancel Primary Action(Event Player);
+			Wait(0.050, Ignore Condition);
+			Press Button(Event Player, Button(Ability 2));
+		End;
+		Wait(2, Ignore Condition);
 	}
 }
 
 rule("Ashe: Taunt")
 {
 	event
-    	{
-    		Player Dealt Knockback;
-    		Team 1;
-    		Ashe;
-    	}
+	{
+		Player Dealt Knockback;
+		Team 1;
+		Ashe;
+	}
 
 	conditions
 	{
 		Event Player.abilities[8] == True;
 		Event Ability == Button(Ability 1);
-        Victim != Event Player;
+		Victim != Event Player;
 	}
 
 	actions
 	{
 		Start Damage Over Time(Victim, Event Player, 3, Event Damage * 2.500);
-        Set Status(Victim, Null, Burning, 3);
-        Set Status(Victim, Null, Stunned, 3);
+		Set Status(Victim, Null, Burning, 3);
+		Set Status(Victim, Null, Stunned, 3);
 	}
 }
 
@@ -5325,7 +5355,8 @@ rule("Moira: Catalyst")
 		Event Player.healBoost[1] += 300;
 		Event Player.speedBoost -= 40;
 		Call Subroutine(UpdatePlayerStats);
-		Wait Until(!Is Button Held(Event Player, Button(Primary Fire)) || !Event Player.abilities[12] || !Is Using Ultimate(Event Player), 8);
+		Wait Until(!Is Button Held(Event Player, Button(Primary Fire)) || !Event Player.abilities[12] || !Is Using Ultimate(Event Player),
+			8);
 		Event Player.damageBoost[1] -= 300;
 		Event Player.speedBoost += 40;
 		Event Player.healBoost[1] -= 300;
@@ -5456,8 +5487,7 @@ rule("Pharah: Weaponized Storm")
 		Event Player.abilityEnd = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + Facing Direction Of(
 			Event Player) * 100, All Living Players(All Teams), Event Player, True);
 		Event Player.abilityProjectile = Eye Position(Event Player);
-		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Event Player.abilityProjectile, 1,
-			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Event Player.abilityProjectile, 1, Visible To Position and Radius);
 		Event Player.effects[7] = Last Created Entity;
 		Chase Player Variable At Rate(Event Player, abilityProjectile, Event Player.abilityEnd, 35, Destination and Rate);
 		Wait Until(!Event Player.abilities[12] || Event Player.abilityProjectile == Event Player.abilityEnd, 99999);
@@ -5824,8 +5854,8 @@ rule("Sigma: String Theory")
 		Stop Chasing Player Variable(Event Player, abilityProjectile);
 		Destroy Effect(Event Player.effects[1]);
 		Destroy Effect(Event Player.effects[2]);
-		Damage(Players Within Radius(Event Player.abilityProjectile, Min(10, 1.500 + Event Player.abilityCountdown * 0.017), Team 2,
-			Off), Event Player, Min(200, 100 + Event Player.abilityCountdown / 5));
+		Damage(Players Within Radius(Event Player.abilityProjectile, Min(10, 1.500 + Event Player.abilityCountdown * 0.017), Team 2, Off),
+			Event Player, Min(200, 100 + Event Player.abilityCountdown / 5));
 		Play Effect(All Players(All Teams), Debuff Impact Sound, Color(Violet), Event Player.abilityProjectile, 150);
 		Play Effect(All Players(All Teams), Bad Explosion, Color(Violet), Event Player.abilityProjectile, Min(10,
 			1.500 + Event Player.abilityCountdown * 0.017));
@@ -5897,14 +5927,13 @@ rule("Soldier76: Triple Threat")
 
 	actions
 	{
-		Event Player.abilityCountdown = Ray Cast Hit Position(Eye Position(Event Player), Ray Cast Hit Position(Eye Position(
-			Event Player), Eye Position(Event Player) + Facing Direction Of(Event Player) * 60, All Living Players(Team 2), Null, False)
+		Event Player.abilityCountdown = Ray Cast Hit Position(Eye Position(Event Player), Ray Cast Hit Position(Eye Position(Event Player),
+			Eye Position(Event Player) + Facing Direction Of(Event Player) * 60, All Living Players(Team 2), Null, False)
 			+ World Vector Of(Vector(-2, False, False), Event Player, Rotation), All Living Players(Team 2), Null, False);
 		Event Player.abilityProjectile = Ray Cast Hit Position(Eye Position(Event Player), Ray Cast Hit Position(Eye Position(
 			Event Player), Eye Position(Event Player) + Facing Direction Of(Event Player) * 60, All Living Players(Team 2), Null, False)
 			+ World Vector Of(Vector(2, False, False), Event Player, Rotation), All Living Players(Team 2), Null, False);
-		Event Player.abilityAvailable = Eye Position(Event Player) + World Vector Of(Vector(False, -0.250, False), Event Player,
-			Rotation);
+		Event Player.abilityAvailable = Eye Position(Event Player) + World Vector Of(Vector(False, -0.250, False), Event Player, Rotation);
 		Event Player.abilityEnd = Eye Position(Event Player) + World Vector Of(Vector(False, -0.250, False), Event Player, Rotation);
 		Chase Player Variable At Rate(Event Player, abilityAvailable, Event Player.abilityProjectile, 60, Destination and Rate);
 		Chase Player Variable At Rate(Event Player, abilityEnd, Event Player.abilityCountdown, 60, Destination and Rate);
@@ -6500,7 +6529,7 @@ rule("Wrecking Ball: Distort")
 	}
 }
 
-rule("Zarya- Combusta-bubble - Detect Barrier Target")
+rule("Zarya: Combusta-bubble - Detect Barrier Target")
 {
 	event
 	{
@@ -6529,7 +6558,7 @@ rule("Zarya- Combusta-bubble - Detect Barrier Target")
 	}
 }
 
-rule("Zarya- Combusta-Bubble - Self bubble")
+rule("Zarya: Combusta-Bubble - Self bubble")
 {
 	event
 	{
@@ -6555,7 +6584,7 @@ rule("Zarya- Combusta-Bubble - Self bubble")
 	}
 }
 
-rule("Zarya- Power Surge")
+rule("Zarya: Power Surge")
 {
 	event
 	{
@@ -7124,113 +7153,116 @@ rule("Create Shop Buttons")
 
 	actions
 	{
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String(
 			"┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃"),
 			Global.shopBasePosition - 41 * Global.shopPositionAngle[1] + 90 * Global.shopPositionAngle[0], 2.500, Do Not Clip, Visible To,
 			Color(White), Default Visibility);
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String(
 			"┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃\n┃"),
 			Global.shopBasePosition - 41 * Global.shopPositionAngle[1] - 90 * Global.shopPositionAngle[0], 2.500, Do Not Clip, Visible To,
 			Color(White), Default Visibility);
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("Refund"),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String("Refund"),
 			Global.shopBasePosition + 45 * Global.shopPositionAngle[1] + 67.500 * Global.shopPositionAngle[0], 3, Do Not Clip, Visible To,
 			Color(Green), Default Visibility);
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("[{0}] Leave",
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String("[{0}] Leave",
 			Input Binding String(Button(Reload))),
 			Global.shopBasePosition + 45 * Global.shopPositionAngle[1] - 67.500 * Global.shopPositionAngle[0], 3, Do Not Clip,
 			Visible To and String, Color(Green), Default Visibility);
-		Create In-World Text(Local Player.isInMenu ? Local Player : Empty Array, Custom String("{0}$\n", Local Player.money[0]),
+		Create In-World Text(Local Player.isInMenu[0] ? Local Player : Empty Array, Custom String("{0}$\n", Local Player.money[0]),
 			Global.shopBasePosition + 36.500 * Global.shopPositionAngle[1], 3, Do Not Clip, Visible To and String, Color(White),
 			Default Visibility);
-		Create In-World Text(Local Player.isInMenu ? Local Player : Empty Array, Custom String("▲"), Update Every Frame(
+		Create In-World Text(Local Player.isInMenu[0] ? Local Player : Empty Array, Custom String("▲"), Update Every Frame(
 			Global.shopBasePosition - (4 + Vertical Facing Angle Of(Local Player))
 			* Global.shopPositionAngle[1] + Horizontal Facing Angle Of(Local Player) * Global.shopPositionAngle[0]), 4, Do Not Clip,
 			Visible To Position and Color, Custom Color(245 + 10 * Sine From Radians(4 * Total Time Elapsed), 205 + 50 * Sine From Radians(
 			4 * Total Time Elapsed), 200 * Sine From Radians(4 * Total Time Elapsed), 255), Default Visibility);
 		"Headhunter"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[1] ? Custom String("Headhunter II\n  800$") : Custom String("Headhunter I\n  800$"),
 			Global.shopBasePosition + 20 * Global.shopPositionAngle[1] + 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[1] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Ambush"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[2] ? Custom String("Ambush II\n    800$") : Custom String("Ambush I\n    800$"),
 			Global.shopBasePosition - 2.500 * Global.shopPositionAngle[1] + 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[2] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Quick Fix"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[3] ? Custom String("Quick Fix II\n  700$") : Custom String("Quick Fix I\n  700$"),
 			Global.shopBasePosition - 25 * Global.shopPositionAngle[1] + 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[3] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Heavyweight"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[4] ? Custom String("Heavyweight II\n  1000$") : Custom String("Heavyweight I\n  1000$"),
 			Global.shopBasePosition - 47.500 * Global.shopPositionAngle[1] + 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[4] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Charged"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[5] ? Custom String("Charged II\n  700$") : Custom String("Charged I\n  700$"),
 			Global.shopBasePosition + 20 * Global.shopPositionAngle[1] + 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[5] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Haste"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[6] ? Custom String("Haste II\n  700$") : Custom String("Haste I\n  700$"),
 			Global.shopBasePosition - 2.500 * Global.shopPositionAngle[1] + 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[6] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Heavy Impact"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[7] ? Custom String("Heavy Impact II\n  1000$") : Custom String("Heavy Impact I\n  1000$"),
 			Global.shopBasePosition - 25 * Global.shopPositionAngle[1] + 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[7] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Hero Talent 1"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("Hero Talent 1\n  1200$"),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String(
+			"Hero Talent 1\n  1200$"),
 			Global.shopBasePosition - 47.500 * Global.shopPositionAngle[1] + 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[8] < 1 ? Color(Green) : Color(Gray), Default Visibility);
 		"Second Wind"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[9] ? Custom String("Second Wind II\n   900$") : Custom String("Second Wind I\n   900$"),
 			Global.shopBasePosition + 20 * Global.shopPositionAngle[1] - 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[9] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Binding Heal"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[10] ? Custom String("Binding Heal II\n   700$") : Custom String("Binding Heal I\n   700$"),
 			Global.shopBasePosition - 2.500 * Global.shopPositionAngle[1] - 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[10] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Resilience"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]),
 			Local Player.abilities[11] ? Custom String("Resilience II\n   800$") : Custom String("Resilience I\n   800$"),
 			Global.shopBasePosition - 25 * Global.shopPositionAngle[1] - 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[11] < 2 ? Color(Green) : Color(Gray), Default Visibility);
 		"Hero Talent 2"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("Hero Talent 2\n  1200$"),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String(
+			"Hero Talent 2\n  1200$"),
 			Global.shopBasePosition - 47.500 * Global.shopPositionAngle[1] - 22.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Local Player.abilities[12] < 1 ? Color(Green) : Color(Gray), Default Visibility);
 		"PlusDamage"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("+5% Damage\n  400$"),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String("+5% Damage\n  400$"),
 			Global.shopBasePosition + 20 * Global.shopPositionAngle[1] - 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Color(Green), Default Visibility);
 		"PlusHealth"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("+5% Health\n       400$"),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String(
+			"+5% Health\n       400$"),
 			Global.shopBasePosition - 2.500 * Global.shopPositionAngle[1] - 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Color(Green), Default Visibility);
 		"PlusHealing"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String("+5% Healing\n  400$"),
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String("+5% Healing\n  400$"),
 			Global.shopBasePosition - 25 * Global.shopPositionAngle[1] - 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To and String, Color(Green), Default Visibility);
 		"PlusHealing"
-		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu), Custom String(
+		Create In-World Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[0]), Custom String(
 			"+{0} Auto-Repair\n    400$", Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5),
 			Global.shopBasePosition - 47.500 * Global.shopPositionAngle[1] - 67.500 * Global.shopPositionAngle[0], 2.500, Do Not Clip,
 			Visible To String and Color, Global.automaticRepair < 5 ? Color(Green) : Color(Gray), Default Visibility);
 		"Use Update Every Frame to avoid showing the String when the cursor is out of bounds, resulting in 0\r\n	ROW 0"
-		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
+		Create In-World Text(Update Every Frame(Local Player.isInMenu[0] && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) + 11.250) < 47.500 ? Local Player : Empty Array),
 			Update Every Frame(Vertical Facing Angle Of(Local Player) < -33.750 ? Array(Custom String("Leave Buy Menu\n"), Custom String(
 			""), Custom String(""), Custom String("Refund your money\n"))[Round To Integer((Horizontal Facing Angle Of(Local Player) + 90)
 			/ 45, Down)] : Custom String("")), Global.shopBasePosition - 75 * Global.shopPositionAngle[1], 2.500, Do Not Clip,
 			Visible To and String, Color(White), Default Visibility);
 		"ROW 1"
-		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
+		Create In-World Text(Update Every Frame(Local Player.isInMenu[0] && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) + 11.250) < 22.500 ? Local Player : Empty Array),
 			Update Every Frame(Vertical Facing Angle Of(Local Player) < -11.250 ? Array(Custom String("Increase your damage by 5%\n"),
 			Local Player.abilities[9] ? Custom String(
@@ -7244,7 +7276,7 @@ rule("Create Shop Buttons")
 			Global.shopBasePosition - 75 * Global.shopPositionAngle[1], 2.500, Do Not Clip, Visible To and String, Color(White),
 			Default Visibility);
 		"ROW 2"
-		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
+		Create In-World Text(Update Every Frame(Local Player.isInMenu[0] && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) - 36.250) < 47.500 ? Local Player : Empty Array),
 			Update Every Frame(Vertical Facing Angle Of(Local Player) < 11.250 ? Array(Custom String("Increase your health by 5%\n"),
 			Local Player.abilities[10] ? Custom String("Binding Heal II: Heal yourself for 50% the amount when healing allies\n")
@@ -7258,7 +7290,7 @@ rule("Create Shop Buttons")
 			Global.shopBasePosition - 75 * Global.shopPositionAngle[1], 2.500, Do Not Clip, Visible To and String, Color(White),
 			Default Visibility);
 		"ROW 3"
-		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
+		Create In-World Text(Update Every Frame(Local Player.isInMenu[0] && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) - 83.750) < 72.500 ? Local Player : Empty Array),
 			Update Every Frame(Vertical Facing Angle Of(Local Player) < 33.750 ? Array(Custom String("Increase your healing by 5%\n"),
 			Local Player.abilities[11] ? Custom String("Resilience II: Take 30% less damage while below 60% health\n") : Custom String(
@@ -7270,7 +7302,7 @@ rule("Create Shop Buttons")
 			Local Player) + 90) / 45, Down)] : Custom String("")), Global.shopBasePosition - 75 * Global.shopPositionAngle[1], 2.500,
 			Do Not Clip, Visible To and String, Color(White), Default Visibility);
 		"ROW 4"
-		Create In-World Text(Update Every Frame(Local Player.isInMenu && Absolute Value(Horizontal Facing Angle Of(Local Player))
+		Create In-World Text(Update Every Frame(Local Player.isInMenu[0] && Absolute Value(Horizontal Facing Angle Of(Local Player))
 			< 90 && Absolute Value(Vertical Facing Angle Of(Local Player) - 133) < 99.250 ? Local Player : Empty Array),
 			Update Every Frame(Vertical Facing Angle Of(Local Player) < 56.250 ? Array(Custom String(
 			"Increase your auto-repair by {0}/5s\n", Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5),
@@ -7303,13 +7335,13 @@ rule("Toggle Shop")
 
 	actions
 	{
-		If(Event Player.isInMenu == False);
+		If(Event Player.isInMenu[0] == False);
 			Wait Until(!Is Button Held(Event Player, Button(Reload)), 0.500);
 			If(!Is Button Held(Event Player, Button(Reload)));
 				Abort;
 			End;
 		End;
-		Event Player.isInMenu = !Event Player.isInMenu;
+		Event Player.isInMenu[0] = !Event Player.isInMenu[0];
 	}
 }
 
@@ -7324,7 +7356,7 @@ rule("Open Shop")
 
 	conditions
 	{
-		Event Player.isInMenu == True;
+		Event Player.isInMenu[0] == True;
 	}
 
 	actions
@@ -7348,7 +7380,7 @@ rule("Close Shop")
 
 	conditions
 	{
-		Event Player.isInMenu == False;
+		Event Player.isInMenu[0] == False;
 	}
 
 	actions
@@ -7416,7 +7448,7 @@ rule("Buy Ability")
 
 	conditions
 	{
-		Event Player.isInMenu == True;
+		Event Player.isInMenu[0] == True;
 		Is Button Held(Event Player, Button(Primary Fire)) == True;
 		(Absolute Value(Horizontal Facing Angle Of(Event Player)) < 90 && Absolute Value(Vertical Facing Angle Of(Event Player))
 			+ 11.250 < 67) == True;
@@ -7428,7 +7460,7 @@ rule("Buy Ability")
 		If(Vertical Facing Angle Of(Event Player) < -33.750);
 			"LEAVE SHOP"
 			If(Horizontal Facing Angle Of(Event Player) + 99.750 < 55);
-				Event Player.isInMenu = !Event Player.isInMenu;
+				Event Player.isInMenu[0] = !Event Player.isInMenu[0];
 			"REFUND"
 			Else If(Horizontal Facing Angle Of(Event Player) + 0 > 45);
 				If(Event Player.money[1] != 0);
@@ -7638,7 +7670,7 @@ rule("Refund Single Ability")
 
 	conditions
 	{
-		Event Player.isInMenu == True;
+		Event Player.isInMenu[0] == True;
 		Is Button Held(Event Player, Button(Secondary Fire)) == True;
 		(Absolute Value(Horizontal Facing Angle Of(Event Player)) < 90 && Absolute Value(Vertical Facing Angle Of(Event Player))
 			+ 11.250 < 67) == True;
@@ -7829,7 +7861,7 @@ rule("Create Player HUD")
 	actions
 	{
 		Create HUD Text(All Players(Team 1), Custom String("{0}", Hero Icon String(Hero Of(Event Player))), Custom String("{0}{1}",
-			Event Player, Event Player.isInMenu ? Custom String("(In Shop)") : Custom String("")), Custom String("{0}{1}", Is Alive(
+			Event Player, Event Player.isInMenu[0] ? Custom String("(In Shop)") : Custom String("")), Custom String("{0}{1}", Is Alive(
 			Event Player) ? Custom String("{0} HP", Round To Integer(Health(Event Player), Up)) : Custom String("Dead"), Custom String(
 			", {0}$", Event Player.money)), Left, Local Player == Event Player ? -1 : Slot Of(Event Player), Is Dead(Event Player) ? Color(
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)), Is Dead(Event Player) ? Color(
@@ -7837,8 +7869,8 @@ rule("Create Player HUD")
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)),
 			Visible To Sort Order String and Color, Default Visibility);
 		Create HUD Text(Event Player.damageBoost[0] > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
-			Event Player.damageBoost[0]), Left, 913, Color(White), Color(White), Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.damageBoost[0]), Left, 913, Color(White), Color(White), Color(Turquoise), Visible To and String,
+			Default Visibility);
 		Create HUD Text(Event Player.abilities[9] ? Event Player : Null, Null, Null, Custom String("Second Wind {0}",
 			Event Player.abilities[9] == 1 ? Custom String("I") : Custom String("II")), Left, 908, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
@@ -7849,8 +7881,8 @@ rule("Create Player HUD")
 			Event Player.abilities[1] == 1 ? Custom String("I") : Custom String("II")), Left, 901, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.playerHealth > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
-			Event Player.playerHealth), Left, 914, Color(White), Color(White), Color(Turquoise),
-			Visible To and String, Default Visibility);
+			Event Player.playerHealth), Left, 914, Color(White), Color(White), Color(Turquoise), Visible To and String,
+			Default Visibility);
 		Create HUD Text(Event Player.abilities[10] ? Event Player : Null, Null, Null, Custom String("Binding Heal {0}",
 			Event Player.abilities[10] == 1 ? Custom String("I") : Custom String("II")), Left, 909, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
@@ -7864,8 +7896,7 @@ rule("Create Player HUD")
 			Event Player.healBoost[0]), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
 		Create HUD Text(Event Player.speedBoost > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
-			Event Player.speedBoost), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
-			Default Visibility);
+			Event Player.speedBoost), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.abilities[11] ? Event Player : Null, Null, Null, Custom String("Resilience {0}",
 			Event Player.abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
@@ -8177,7 +8208,7 @@ rule("Team 1: Player Dealt Healing")
 	{
 		Abort If(Healee != Event Player);
 		If(Event Player.abilities[10] == True);
-			Set Player Health(Event Player, Health(Event Player) + (Event Player.abilities[10] * 0.250) * Event Healing);
+			Set Player Health(Event Player, Health(Event Player) + Event Player.abilities[10] * 0.250 * Event Healing);
 		End;
 	}
 }
@@ -8198,15 +8229,666 @@ rule("Team 1: Player Dealt Damage")
 				Damage(Victim, Event Player, Event Damage * 0.500);
 			End;
 			If(Event Player.abilities[1] == True);
-				Damage(Victim, Event Player, Event Damage * (Event Player.abilities[1] * 0.4));
+				Damage(Victim, Event Player, Event Damage * Event Player.abilities[1] * 0.400);
 			End;
 		End;
 		If(Event Player.abilities[2] == True && Event Ability != Null && (Y Component Of(Position Of(Event Player)) - Y Component Of(
 			Position Of(Victim)) >= 3 || Absolute Value(Horizontal Angle Towards(Victim, Event Player)) >= 90) == True);
-			Damage(Victim, Event Player, Event Damage * (Event Player.abilities[2] * 0.3));
+			Damage(Victim, Event Player, Event Damage * Event Player.abilities[2] * 0.300);
 		End;
 		If(Global.perk[0] == True && Event Ability != Null && Distance Between(Event Player, Victim) >= 10);
-			Damage(Victim, Event Player, Event Damage * 0.5);
+			Damage(Victim, Event Player, Event Damage * 0.500);
 		End;
+	}
+}
+
+rule("▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒【Josbird's Cursor Menu】▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Global init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Null, Null, Custom String(
+			"Cursor Menu created by Josbird {0} Code: GETVX", Ability Icon String(Hero(Mercy), Button(Ultimate))), Right, -100, Color(
+			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(!Is Game In Progress && !Host Player.isInMenu[1] ? Host Player : Null, Custom String("{0}", Custom String(
+			"Press {0} - Crouch to open workshop settings", Input Binding String(Button(Crouch)))), Null, Null, Top, 1, Color(Yellow),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Global.extendedGlobalCollection[1] = 10;
+		Global.extendedGlobalCollection[2] = 5;
+		Global.extendedGlobalCollection[6] = True;
+		Global.exitButtonProperties = Array(Custom String("exit menu"), Global.extendedGlobalCollection[1] / 2 - 0.150,
+			Global.extendedGlobalCollection[2] / 2 - 0.150, 0.350);
+	}
+}
+
+rule("Create a menu button")
+{
+	event
+	{
+		Subroutine;
+		createMenuButton;
+	}
+
+	actions
+	{
+		If(Count Of(Event Player.newButton) != 13);
+			Log To Inspector(Custom String("[CursorMenu.createMenuButton] Error: incorrect number of arguments (got {0}, expected {1})",
+				Event Player.destroyButtonID, 13));
+		Else;
+			Event Player.lastMenuButtonID = Count Of(Event Player.buttons);
+			Event Player.extendedPlayerCollection[2] = 0;
+			While(Event Player.extendedPlayerCollection[2] < Count Of(Event Player.buttons));
+				If(Event Player.buttons[Event Player.extendedPlayerCollection[2]] == Null);
+					Event Player.lastMenuButtonID = Event Player.extendedPlayerCollection[2];
+					Event Player.extendedPlayerCollection[2] = Count Of(Event Player.buttons);
+				End;
+				Event Player.extendedPlayerCollection[2] += 1;
+			End;
+			Event Player.buttons[Event Player.lastMenuButtonID] = Event Player.newButton;
+		End;
+	}
+}
+
+rule("Destroy a menu button")
+{
+	event
+	{
+		Subroutine;
+		destroyMenuButton;
+	}
+
+	actions
+	{
+		If(Event Player.destroyButtonID >= Count Of(Event Player.buttons) || !Event Player.buttons[Event Player.destroyButtonID]);
+			Log To Inspector(Custom String("[CursorMenu.destroyMenuButton] Error: tried to destroy an invalid button ID ({0})",
+				Event Player.destroyButtonID));
+		Else;
+			Global.arrayBuilder = Event Player.buttons[Event Player.destroyButtonID];
+			Global.arrayBuilder[15] = True;
+			Event Player.buttons[Event Player.destroyButtonID] = Global.arrayBuilder;
+		End;
+	}
+}
+
+rule("Modify a menu button")
+{
+	event
+	{
+		Subroutine;
+		modifyMenuButton;
+	}
+
+	actions
+	{
+		If(Count Of(Event Player.buttonModification) % 2 == 0 || Count Of(Event Player.buttonModification) < 3);
+			Log To Inspector(Custom String("[CursorMenu.modifyMenuButton] Error: incorrect number of arguments ({0})", Count Of(First Of(
+				Event Player.buttonModification))));
+		Else If(First Of(Event Player.buttonModification) >= Count Of(Event Player.buttons) || !Event Player.buttons[First Of(
+				Event Player.buttonModification)]);
+			Log To Inspector(Custom String("[CursorMenu.modifyMenuButton] Error: tried to modify an invalid button ID ({0})", First Of(
+				Event Player.buttonModification)));
+		Else;
+			Event Player.extendedPlayerCollection[2] = 1;
+			While(Event Player.extendedPlayerCollection[2] < Count Of(Event Player.buttonModification));
+				If(
+					Event Player.buttonModification[Event Player.extendedPlayerCollection[2]] < 0 || Event Player.buttonModification[Event Player.extendedPlayerCollection[2]] >= 13);
+					Log To Inspector(Custom String("[CursorMenu.modifyMenuButton] Error: tried to modify an invalid property index ({0})", Count Of(
+						Event Player.buttonModification[Event Player.extendedPlayerCollection[2]])));
+				Else;
+					Global.arrayBuilder = Event Player.buttons[First Of(Event Player.buttonModification)];
+					Global.arrayBuilder[Event Player.buttonModification[Event Player.extendedPlayerCollection[2]]] = Event Player.buttonModification[Event Player.extendedPlayerCollection[2] + 1];
+					Event Player.buttons[First Of(Event Player.buttonModification)] = Global.arrayBuilder;
+				End;
+				Event Player.extendedPlayerCollection[2] += 2;
+			End;
+		End;
+	}
+}
+
+rule("Get properties of a menu button")
+{
+	event
+	{
+		Subroutine;
+		getButtonProperties;
+	}
+
+	actions
+	{
+		If(Event Player.getProperties >= Count Of(Event Player.buttons) || !Event Player.buttons[Event Player.getProperties]);
+			Log To Inspector(Custom String("[CursorMenu.getButtonProperties] Error: tried to access an invalid button ID ({0})",
+				Event Player.getProperties));
+		Else;
+			Event Player.getProperties = Array Slice(Event Player.buttons[Event Player.getProperties], 0, 13);
+		End;
+	}
+}
+
+rule("Toggle menu")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		!Is Dummy Bot(Event Player) == True;
+		Is Button Held(Event Player, Button(Crouch)) == True;
+		!Is Communicating Any Emote(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.isInMenu[1] = !Event Player.isInMenu[1];
+	}
+}
+
+rule("Create menu cursor")
+{
+	event
+	{
+		Subroutine;
+		createCursor;
+	}
+
+	actions
+	{
+		Create In-World Text(Filtered Array(Event Player, Total Time Elapsed % 0.032 < 0.016), Custom String("▲"), Update Every Frame(
+			Eye Position(Event Player) + 100 * (Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+			Horizontal Angle From Direction(Event Player.menuOriginalFacing)) * Cross Product(Facing Direction Of(Event Player),
+			Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(
+			Facing Direction Of(Event Player)) - 90)) + (Angle Difference(Vertical Angle From Direction(Facing Direction Of(Event Player)),
+			Vertical Angle From Direction(Event Player.menuOriginalFacing)) - 0.200) * Direction From Angles(
+			Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Facing Direction Of(
+			Event Player)) - 90) + 3 * Facing Direction Of(Event Player))), 3, Do Not Clip, Visible To Position String and Color, Color(
+			White), Default Visibility);
+		Modify Player Variable(Event Player, menuFrame, Append To Array, Last Text ID);
+		Create In-World Text(Filtered Array(Event Player, Total Time Elapsed % 0.032 >= 0.016), Custom String("▲"), Update Every Frame(
+			Eye Position(Event Player) + 100 * (Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+			Horizontal Angle From Direction(Event Player.menuOriginalFacing)) * Cross Product(Facing Direction Of(Event Player),
+			Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(
+			Facing Direction Of(Event Player)) - 90)) + (Angle Difference(Vertical Angle From Direction(Facing Direction Of(Event Player)),
+			Vertical Angle From Direction(Event Player.menuOriginalFacing)) - 0.200) * Direction From Angles(
+			Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Facing Direction Of(
+			Event Player)) - 90) + 3 * Facing Direction Of(Event Player))), 3, Do Not Clip, Visible To Position String and Color, Color(
+			White), Default Visibility);
+		Modify Player Variable(Event Player, menuFrame, Append To Array, Last Text ID);
+	}
+}
+
+rule("Do button update")
+{
+	event
+	{
+		Subroutine;
+		doButtonUpdate;
+	}
+
+	actions
+	{
+		Event Player.extendedPlayerCollection[2] = 0;
+		While(Event Player.extendedPlayerCollection[2] < Count Of(Event Player.buttons));
+			If(Event Player.buttons[Event Player.extendedPlayerCollection[2]]);
+				If(Event Player.buttons[Event Player.extendedPlayerCollection[2]][15]);
+					If(Event Player.buttons[Event Player.extendedPlayerCollection[2]][14]);
+						Destroy In-World Text(Event Player.buttons[Event Player.extendedPlayerCollection[2]][13]);
+					End;
+					Event Player.buttons[Event Player.extendedPlayerCollection[2]] = Null;
+				Else If((
+						!Event Player.buttons[Event Player.extendedPlayerCollection[2]][12] && Event Player.buttons[Event Player.extendedPlayerCollection[2]][14])
+						|| !Event Player.isInMenu[1]);
+					Destroy In-World Text(Event Player.buttons[Event Player.extendedPlayerCollection[2]][13]);
+					Global.arrayBuilder = Event Player.buttons[Event Player.extendedPlayerCollection[2]];
+					Global.arrayBuilder[14] = False;
+					Event Player.buttons[Event Player.extendedPlayerCollection[2]] = Global.arrayBuilder;
+				Else If(
+						Event Player.buttons[Event Player.extendedPlayerCollection[2]][12] && !Event Player.buttons[Event Player.extendedPlayerCollection[2]][14]);
+					Create In-World Text(Event Player, Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])
+						][10] ? Custom String(" {0} ", First Of(Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])]))
+						: First Of(Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])]), Update Every Frame(Eye Position(
+						Event Player) + 100 * (Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])][4] * Cross Product(
+						Facing Direction Of(Event Player), Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+						Vertical Angle From Direction(Facing Direction Of(Event Player)) - 90)) + (Event Player.buttons[Evaluate Once(
+						Event Player.extendedPlayerCollection[2])][5] - 0.200) * Direction From Angles(Horizontal Angle From Direction(
+						Facing Direction Of(Event Player)), Vertical Angle From Direction(Facing Direction Of(Event Player)) - 90)
+						+ 3 * Facing Direction Of(Event Player))), Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])][3],
+						Do Not Clip, Visible To Position String and Color, Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])
+						][11] && Absolute Value(Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+						Horizontal Angle From Direction(Event Player.menuOriginalFacing)) - Event Player.buttons[Evaluate Once(
+						Event Player.extendedPlayerCollection[2])][4]) <= Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])
+						][6] / 2 && Absolute Value(Angle Difference(Vertical Angle From Direction(Facing Direction Of(Event Player)),
+						Vertical Angle From Direction(Event Player.menuOriginalFacing)) - Event Player.buttons[Evaluate Once(
+						Event Player.extendedPlayerCollection[2])][5]) <= Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])
+						][7] / 2 ? Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])
+						][9] : Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])][8], Default Visibility);
+					Global.arrayBuilder = Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])];
+					Global.arrayBuilder[13] = Last Text ID;
+					Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])] = Global.arrayBuilder;
+					Global.arrayBuilder = Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])];
+					Global.arrayBuilder[14] = True;
+					Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])] = Global.arrayBuilder;
+				End;
+			End;
+			Event Player.extendedPlayerCollection[2] += 1;
+		End;
+	}
+}
+
+rule("Open menu")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		!Is Dummy Bot(Event Player) == True;
+		Event Player.isInMenu[1] == True;
+	}
+
+	actions
+	{
+		Set Aim Speed(Event Player, 15);
+		Event Player.menuOriginalFacing = Facing Direction Of(Event Player);
+		Set Primary Fire Enabled(Event Player, False);
+		Set Secondary Fire Enabled(Event Player, False);
+		Disable Hero HUD(Event Player);
+		Disable Game Mode HUD(Event Player);
+		Event Player.menuFrame = Empty Array;
+		Call Subroutine(createCursor);
+		Wait(0.016, Ignore Condition);
+		Wait(0.016, Ignore Condition);
+		Wait(0.016, Ignore Condition);
+		Call Subroutine(doButtonUpdate);
+		Call Subroutine(DisablePlayer);
+	}
+}
+
+rule("Close menu")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		!Is Dummy Bot(Event Player) == True;
+		!Event Player.isInMenu[1] == True;
+	}
+
+	actions
+	{
+		Set Aim Speed(Event Player, 100);
+		Set Primary Fire Enabled(Event Player, True);
+		Set Secondary Fire Enabled(Event Player, True);
+		Enable Hero HUD(Event Player);
+		Enable Game Mode HUD(Event Player);
+		Event Player.extendedPlayerCollection[2] = 0;
+		While(Event Player.extendedPlayerCollection[2] < Count Of(Event Player.menuFrame));
+			Destroy In-World Text(Event Player.menuFrame[Event Player.extendedPlayerCollection[2]]);
+			Event Player.extendedPlayerCollection[2] += 1;
+		End;
+		Destroy Icon(First Of(Event Player.extendedPlayerCollection));
+		Call Subroutine(doButtonUpdate);
+		Call Subroutine(EnablePlayer);
+	}
+}
+
+rule("Check for button update")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Event Player.isInMenu[1] == True;
+		Is True For Any(Event Player.buttons, Current Array Element && (Current Array Element[15] || (
+			!Current Array Element[12] && Current Array Element[14]) || (Current Array Element[12] && !Current Array Element[14])))
+			== True;
+	}
+
+	actions
+	{
+		Call Subroutine(doButtonUpdate);
+		Wait(0.016, Ignore Condition);
+	}
+}
+
+rule("Detect primary fire button press")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Event Player.isInMenu[1] == True;
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+	}
+
+	actions
+	{
+		If(Absolute Value(Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+			Horizontal Angle From Direction(Event Player.menuOriginalFacing)) - Global.exitButtonProperties[1])
+			<= Global.exitButtonProperties[3] / 2 && Absolute Value(Angle Difference(Vertical Angle From Direction(Facing Direction Of(
+			Event Player)), Vertical Angle From Direction(Event Player.menuOriginalFacing)) - Global.exitButtonProperties[2])
+			<= Global.exitButtonProperties[3] / 2);
+			Event Player.currActionID = First Of(Global.exitButtonProperties);
+		End;
+		Event Player.extendedPlayerCollection[3] = 0;
+		While(Event Player.extendedPlayerCollection[3] < Count Of(Event Player.buttons));
+			If(Event Player.buttons[Event Player.extendedPlayerCollection[3]][11] && Absolute Value(Angle Difference(
+				Horizontal Angle From Direction(Facing Direction Of(Event Player)), Horizontal Angle From Direction(
+				Event Player.menuOriginalFacing)) - Event Player.buttons[Event Player.extendedPlayerCollection[3]][4])
+				<= Event Player.buttons[Event Player.extendedPlayerCollection[3]][6] / 2 && Absolute Value(Angle Difference(
+				Vertical Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(
+				Event Player.menuOriginalFacing)) - Event Player.buttons[Event Player.extendedPlayerCollection[3]][5])
+				<= Event Player.buttons[Event Player.extendedPlayerCollection[3]][7] / 2);
+				Event Player.currActionID = Event Player.buttons[Event Player.extendedPlayerCollection[3]][1];
+			End;
+			Event Player.extendedPlayerCollection[3] += 1;
+		End;
+		If(Event Player.currActionID && Global.extendedGlobalCollection[6]);
+			Play Effect(Event Player, Explosion Sound, Color(White), Event Player, 30);
+		End;
+		Wait(0.016, Ignore Condition);
+		Event Player.currActionID = Null;
+	}
+}
+
+rule("Detect secondary fire button press")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Event Player.isInMenu[1] == True;
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+	}
+
+	actions
+	{
+		If(Absolute Value(Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+			Horizontal Angle From Direction(Event Player.menuOriginalFacing)) - Global.exitButtonProperties[1])
+			<= Global.exitButtonProperties[3] / 2 && Absolute Value(Angle Difference(Vertical Angle From Direction(Facing Direction Of(
+			Event Player)), Vertical Angle From Direction(Event Player.menuOriginalFacing)) - Global.exitButtonProperties[2])
+			<= Global.exitButtonProperties[3] / 2);
+			Event Player.currActionID = First Of(Global.exitButtonProperties);
+		End;
+		Event Player.extendedPlayerCollection[4] = 0;
+		While(Event Player.extendedPlayerCollection[4] < Count Of(Event Player.buttons));
+			If(Event Player.buttons[Event Player.extendedPlayerCollection[4]][11] && Absolute Value(Angle Difference(
+				Horizontal Angle From Direction(Facing Direction Of(Event Player)), Horizontal Angle From Direction(
+				Event Player.menuOriginalFacing)) - Event Player.buttons[Event Player.extendedPlayerCollection[4]][4])
+				<= Event Player.buttons[Event Player.extendedPlayerCollection[4]][6] / 2 && Absolute Value(Angle Difference(
+				Vertical Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(
+				Event Player.menuOriginalFacing)) - Event Player.buttons[Event Player.extendedPlayerCollection[4]][5])
+				<= Event Player.buttons[Event Player.extendedPlayerCollection[4]][7] / 2);
+				Event Player.currActionID = Event Player.buttons[Event Player.extendedPlayerCollection[4]][2];
+			End;
+			Event Player.extendedPlayerCollection[4] += 1;
+		End;
+		If(Event Player.currActionID && Global.extendedGlobalCollection[6]);
+			Play Effect(Event Player, Explosion Sound, Color(White), Event Player, 30);
+		End;
+		Wait(0.016, Ignore Condition);
+		Event Player.currActionID = Null;
+	}
+}
+
+rule("Cursor bounds")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Event Player.isInMenu[1] == True;
+		(Absolute Value(Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
+			Horizontal Angle From Direction(Event Player.menuOriginalFacing)))
+			> Global.extendedGlobalCollection[1] / 2 + 0.050 || Absolute Value(Angle Difference(Vertical Angle From Direction(
+			Facing Direction Of(Event Player)), Vertical Angle From Direction(Event Player.menuOriginalFacing)))
+			> Global.extendedGlobalCollection[2] / 2 + 0.050) == True;
+	}
+
+	actions
+	{
+		Set Facing(Event Player, Direction From Angles(Min(Max(Horizontal Angle From Direction(Event Player.menuOriginalFacing)
+			- Angle Difference(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Horizontal Angle From Direction(
+			Event Player.menuOriginalFacing)), Horizontal Angle From Direction(Event Player.menuOriginalFacing)
+			- Global.extendedGlobalCollection[1] / 2), Horizontal Angle From Direction(Event Player.menuOriginalFacing)
+			+ Global.extendedGlobalCollection[1] / 2), Min(Max(Vertical Angle From Direction(Event Player.menuOriginalFacing)
+			- Angle Difference(Vertical Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(
+			Event Player.menuOriginalFacing)), Vertical Angle From Direction(Event Player.menuOriginalFacing)
+			- Global.extendedGlobalCollection[2] / 2), Vertical Angle From Direction(Event Player.menuOriginalFacing)
+			+ Global.extendedGlobalCollection[2] / 2)), To World);
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒a")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("workshop rules")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Event Player == Host Player;
+	}
+
+	actions
+	{
+		Global.gateMaxHealth[0] = 500;
+		Global.gateMaxHealth[1] = 100;
+		Global.gateMaxHealth[2] = 1000;
+		Global.moneyMultiplier[0] = 1;
+		Global.moneyMultiplier[1] = 0.500;
+		Global.moneyMultiplier[2] = 2;
+		Global.selfNanoWorkshopSetting = False;
+		Host Player.newButton = Array(Custom String("GATE MAX HEALTH: {0}", Global.gateMaxHealth[0]), Null, Null, 3, -1, 0.500, 0, 0.300,
+			Color(Green), Color(Green), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[0] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("+/- 1"), Custom String("gateMaxHealthAddOne"), Custom String(
+			"gateMaxHealthSubtractOne"), 3, 0.650, 0.500, 0.500, 0.300, Color(Green), Color(Yellow), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[1] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("+/- 10"), Custom String("gateMaxHealthAddTen"), Custom String(
+			"gateMaxHealthSubtractTen"), 3, 1.150, 0.500, 0.500, 0.300, Color(Green), Color(Yellow), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[2] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("+/- 100"), Custom String("gateMaxHealthAddHundred"), Custom String(
+			"gateMaxHealthSubtractHundred"), 3, 1.700, 0.500, 0.500, 0.300, Color(Green), Color(Yellow), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[3] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("Money Multiplier: {0}", Global.moneyMultiplier[0]), Null, Null, 3, -1, 0, 0, 0.300,
+			Color(Green), Color(Green), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[4] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("+/- 0.01"), Custom String("moneyMultAddTen"), Custom String("moneyMultSubtractTen"),
+			3, 0.750, 0, 0.500, 0.300, Color(Green), Color(Yellow), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[5] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("+/- 0.10"), Custom String("moneyMultAddHundred"), Custom String(
+			"moneyMultSubtractHundred"), 3, 1.500, 0, 0.500, 0.300, Color(Green), Color(Yellow), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[6] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("Ana Self Nano: {0}", Global.selfNanoWorkshopSetting), Null, Null, 3, -1, -0.500, 0,
+			0.300, Color(Green), Color(Green), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[7] = Host Player.lastMenuButtonID;
+		Host Player.newButton = Array(Custom String("Toggle"), Custom String("anaSelfNano"), Null, 3, 0.750, -0.500, 1, 0.300, Color(
+			Green), Color(Yellow), True, True, True);
+		Call Subroutine(createMenuButton);
+		Host Player.workshopButtons[8] = Host Player.lastMenuButtonID;
+		Wait Until(Is Game In Progress == True, 9999);
+		Host Player.destroyButtonID = Host Player.workshopButtons[0];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[1];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[2];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[3];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[4];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[5];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[6];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[7];
+		Call Subroutine(destroyMenuButton);
+		Host Player.destroyButtonID = Host Player.workshopButtons[8];
+		Call Subroutine(destroyMenuButton);
+	}
+}
+
+rule("Actions")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Event Player.currActionID != Null;
+	}
+
+	actions
+	{
+		If(Event Player.currActionID == Custom String("gateMaxHealthAddOne"));
+			If(Global.gateMaxHealth[0] + 1 <= Global.gateMaxHealth[2]);
+				Global.gateMaxHealth[0] += 1;
+			Else;
+				Global.gateMaxHealth[0] = Global.gateMaxHealth[2];
+			End;
+		Else If(Event Player.currActionID == Custom String("gateMaxHealthSubtractOne"));
+			If(Global.gateMaxHealth[0] - 1 >= Global.gateMaxHealth[1]);
+				Global.gateMaxHealth[0] -= 1;
+			Else;
+				Global.gateMaxHealth[0] = Global.gateMaxHealth[1];
+			End;
+		Else If(Event Player.currActionID == Custom String("gateMaxHealthAddTen"));
+			If(Global.gateMaxHealth[0] + 10 <= Global.gateMaxHealth[2]);
+				Global.gateMaxHealth[0] += 10;
+			Else;
+				Global.gateMaxHealth[0] = Global.gateMaxHealth[2];
+			End;
+		Else If(Event Player.currActionID == Custom String("gateMaxHealthSubtractTen"));
+			If(Global.gateMaxHealth[0] - 10 >= Global.gateMaxHealth[1]);
+				Global.gateMaxHealth[0] -= 10;
+			Else;
+				Global.gateMaxHealth[0] = Global.gateMaxHealth[1];
+			End;
+		Else If(Event Player.currActionID == Custom String("gateMaxHealthAddHundred"));
+			If(Global.gateMaxHealth[0] + 100 <= Global.gateMaxHealth[2]);
+				Global.gateMaxHealth[0] += 100;
+			Else;
+				Global.gateMaxHealth[0] = Global.gateMaxHealth[2];
+			End;
+		Else If(Event Player.currActionID == Custom String("gateMaxHealthSubtractHundred"));
+			If(Global.gateMaxHealth[0] - 100 >= Global.gateMaxHealth[1]);
+				Global.gateMaxHealth[0] -= 100;
+			Else;
+				Global.gateMaxHealth[0] = Global.gateMaxHealth[1];
+			End;
+		Else If(Event Player.currActionID == Custom String("moneyMultAddTen"));
+			If(Global.moneyMultiplier[0] + 0.010 <= Global.moneyMultiplier[2]);
+				Global.moneyMultiplier[0] += 0.010;
+			Else;
+				Global.moneyMultiplier[0] = Global.moneyMultiplier[2];
+			End;
+		Else If(Event Player.currActionID == Custom String("moneyMultSubtractTen"));
+			If(Global.moneyMultiplier[0] - 0.010 >= Global.moneyMultiplier[1]);
+				Global.moneyMultiplier[0] -= 0.010;
+			Else;
+				Global.moneyMultiplier[0] = Global.moneyMultiplier[1];
+			End;
+		Else If(Event Player.currActionID == Custom String("moneyMultAddHundred"));
+			If(Global.moneyMultiplier[0] + 0.100 <= Global.moneyMultiplier[2]);
+				Global.moneyMultiplier[0] += 0.100;
+			Else;
+				Global.moneyMultiplier[0] = Global.moneyMultiplier[2];
+			End;
+		Else If(Event Player.currActionID == Custom String("moneyMultSubtractHundred"));
+			If(Global.moneyMultiplier[0] - 0.100 >= Global.moneyMultiplier[1]);
+				Global.moneyMultiplier[0] -= 0.100;
+			Else;
+				Global.moneyMultiplier[0] = Global.moneyMultiplier[1];
+			End;
+		Else If(Event Player.currActionID == Custom String("anaSelfNano"));
+			Global.selfNanoWorkshopSetting = !Global.selfNanoWorkshopSetting;
+		End;
+		Event Player.buttonModification = Array(Event Player.workshopButtons[0], 0, Custom String("GATE MAX HEALTH: {0}",
+			Global.gateMaxHealth[0]));
+		Call Subroutine(modifyMenuButton);
+		Event Player.buttonModification = Array(Event Player.workshopButtons[4], 0, Custom String("Money Multiplier: {0}",
+			Global.moneyMultiplier[0]));
+		Call Subroutine(modifyMenuButton);
+		Event Player.buttonModification = Array(Event Player.workshopButtons[7], 0, Custom String("Ana Self Nano: {0}",
+			Global.selfNanoWorkshopSetting));
+		Call Subroutine(modifyMenuButton);
 	}
 }
