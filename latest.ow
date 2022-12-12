@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "<FGf74b51FF>Defend The Castle Extended Version d140\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
+		Description: "<FGf74b51FF>Defend The Castle Extended Version d141\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -647,7 +647,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create In-World Text(All Players(Team 1), Custom String(
-			"Defend The Castle Extended d140\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
+			"Defend The Castle Extended d141\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(
@@ -1358,7 +1358,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 			If(Filtered Array(Global.lastBoss, Current Array Element == Hero Of(Event Player)) == False);
 				If(Global.activeBoss == False);
 					Global.activeBoss = Event Player;
-					Event Player.isBoss = 1;
+					Event Player.isBoss[0] = 1;
 				End;
 			End;
 		End;
@@ -1370,7 +1370,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 		Start Scaling Player(Event Player, 1, False);
 		"INDIVIDUAL HERO'S PROPERTIES"
 		If(Hero Of(Event Player) == Hero(Zenyatta));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Set Move Speed(Event Player, 30);
 				Set Max Health(Event Player, 10 * (100 + 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
@@ -1384,13 +1384,18 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 				Set Max Health(Event Player, 100 + 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Set Move Speed(Event Player, 20);
 				Set Max Health(Event Player, 5 * (70 + 10 * Count Of(All Players(Team 1))
 					+ 10 * Global.timeMinutes + 25 * Global.time5Minutes + 30 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
-			Else;
+			Else If(Event Player.isBoss[1] == 1);
+                Set Move Speed(Event Player, 50);
+                Set Max Health(Event Player, 40 + 7 * Count Of(All Players(Team 1))
+                					+ 5 * Global.timeMinutes + 20 * Global.time5Minutes + 15 * Global.time10Minutes);
+                Start Scaling Player(Event Player, 0.5, False);
+            Else;
 				If(30 + Global.timeMinutes + 2.500 * Global.time5Minutes > 40);
 					Set Move Speed(Event Player, 40);
 				Else;
@@ -1401,7 +1406,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					+ 10 * Global.timeMinutes + 25 * Global.time5Minutes + 30 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Widowmaker));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Set Damage Dealt(Event Player, 2 * (55 + 15 * Count Of(All Players(Team 1))
 					+ 25 * Global.time5Minutes + 30 * Global.time10Minutes));
 				Set Move Speed(Event Player, 100);
@@ -1417,13 +1422,18 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					+ 5 * Global.timeMinutes + 15 * Global.time5Minutes + 25 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Bastion));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Set Move Speed(Event Player, 50);
 				Set Damage Dealt(Event Player, 55 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 5 * Global.time10Minutes);
 				Start Scaling Player(Event Player, 3, False);
 				Set Max Health(Event Player, 5 * (125 + 150 * Count Of(All Players(Team 1))
 					+ 20 * Global.timeMinutes + 35 * Global.time5Minutes + 45 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
+			Else If(Event Player.isBoss[1] == 1);
+				Set Move Speed(Event Player, 100);
+				Set Damage Dealt(Event Player, 20 + 2 * Count Of(All Players(Team 1)) + 2 * Global.time5Minutes + 5 * Global.time10Minutes);
+                Set Max Health(Event Player, 60 + 60 * Count Of(All Players(Team 1))
+                    + 10 * Global.timeMinutes + 20 * Global.time5Minutes + 20 * Global.time10Minutes);
 			Else;
 				Set Move Speed(Event Player, 80);
 				Set Damage Dealt(Event Player, 55 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 5 * Global.time10Minutes);
@@ -1432,7 +1442,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					+ 20 * Global.timeMinutes + 35 * Global.time5Minutes + 45 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Orisa));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Start Scaling Player(Event Player, 1.800, False);
 				Set Max Health(Event Player, 5 * (200 + Count Of(All Players(Team 1)) * 70 + 50 * Global.time5Minutes + 75 * Global.time10Minutes)
 					* (Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
@@ -1443,7 +1453,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 				Set Move Speed(Event Player, 80 + 5 * Global.time5Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Echo));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Set Gravity(Event Player, 40);
 				Set Move Speed(Event Player, 50 + 5 * Global.time5Minutes);
 				Set Respawn Max Time(Event Player, 18);
@@ -1459,7 +1469,7 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 40 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Start Scaling Player(Event Player, 1.500, False);
 				Set Move Speed(Event Player, 50);
 				Set Damage Dealt(Event Player, 80 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 8 * Global.time10Minutes);
@@ -1467,6 +1477,12 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 				Set Max Health(Event Player, 5 * (45 + 25 * Count Of(All Players(Team 1))
 					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 40 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
+			Else If(Event Player.isBoss[1] == 1);
+				Start Scaling Player(Event Player, 0.500, False);
+				Set Move Speed(Event Player, 100);
+				Set Damage Dealt(Event Player, 30 + 2 * Count Of(All Players(Team 1)) + 2 * Global.time5Minutes + 5 * Global.time10Minutes);
+				Set Max Health(Event Player, 20 + 10 * Count Of(All Players(Team 1))
+                	+ 10 * Global.timeMinutes + 10 * Global.time5Minutes + 20 * Global.time10Minutes);
 			Else;
 				Set Move Speed(Event Player, 90);
 				Set Damage Dealt(Event Player, 80 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 8 * Global.time10Minutes);
@@ -1833,13 +1849,15 @@ rule("BOT: DEATH")
 
 	actions
 	{
-		If(Event Player.isBoss == 1);
+		If(Event Player.isBoss[0] == 1);
 			If(
 				Global.upgradePerkSharpshooterValue >= Global.upgradeCriticalDamageMaxValue[1] && Global.upgradeBossHealthValue < Global.upgradeCriticalDamageMaxValue[2]);
 				Global.upgradeBossHealthValue += 1;
 			End;
-			Event Player.isBoss = 0;
+			Event Player.isBoss[0] = 0;
 			Global.activeBoss = Null;
+		Else If(Event Player.isBoss[1] == 1);
+			Start Forcing Player To Be Hero(Event Player, (Random Integer(1, 100) > 50) ? Hero(Reinhardt) : (Random Integer(1, 100) > 33) ? Hero(Wrecking Ball) : Hero(Bastion));
 		End;
 		Event Player.isDead = True;
 		Event Player.hasBadStatus = False;
@@ -2048,7 +2066,7 @@ rule("BOT: ZEN - DEATH")
 		"DAMAGE GATE"
 		If(Distance Between(Position Of(Event Player), Global.gatePosition) < 3 && Is In Line of Sight(Eye Position(Event Player),
 			Global.gatePosition, Enemy Barriers Block LOS));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Global.gateHealth -= 125;
 			Else;
 				Global.gateHealth -= 25 + 5 * Global.time5Minutes;
@@ -2124,7 +2142,7 @@ rule("BOT: BALL - REACHED THE GATE")
 		Play Effect(All Players(Team 1), DVa Self Destruct Explosion Sound, Color(White), Eye Position(Event Player), 250);
 		If(Distance Between(Position Of(Event Player), Global.gatePosition) < 3.500 && Is In Line of Sight(Eye Position(Event Player),
 			Global.gatePosition, Enemy Barriers Block LOS));
-			If(Event Player.isBoss == 1);
+			If(Event Player.isBoss[0] == 1);
 				Global.gateHealth -= 300;
 			Else;
 				Global.gateHealth -= 150 + 10 * Global.time5Minutes;
@@ -2767,7 +2785,7 @@ rule("BOT: REIN - ATTACK TARGET")
 		Stop Holding Button(Event Player, Button(Secondary Fire));
 		"TARGET IS PLAYER"
 		Abort If(Event Player.botTargetPlayer != -1);
-		If(Event Player.isBoss == 1);
+		If(Event Player.isBoss[0] == 1);
 			"TARGET IS GATE"
 			Global.gateHealth -= 25 + 10 * Global.time10Minutes;
 		Else;
@@ -3615,8 +3633,11 @@ rule("GLOBAL: GAME LOGIC - MIN 6 - BASTION")
 			Wait(1, Ignore Condition);
 		End;
 		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+		While(Count Of(All Players(Team 2)) < 13);
+            Wait(1, Ignore Condition);
+            Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+            Last Created Entity.isBoss[1] = true;
+        End;
 	}
 }
 
@@ -3709,29 +3730,29 @@ rule("money on kill")
 	actions
 	{
 		If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
-			Global.upgradeMaxAmmoValue += Victim.isBoss == 1 ? 10 : 1;
+			Global.upgradeMaxAmmoValue += Victim.isBoss[0] == 1 ? 10 : 1;
 		End;
 		If(Hero Of(Victim) == Hero(Zenyatta));
-			All Players(Team 1).money[0] += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 10 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 10 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
-			All Players(Team 1).money[0] += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 20 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 20 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Wrecking Ball));
-			All Players(Team 1).money[0] += 30 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 30 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 30 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 30 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Widowmaker));
-			All Players(Team 1).money[0] += 50 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 50 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 50 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 50 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Bastion));
-			All Players(Team 1).money[0] += 70 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 70 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 70 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 70 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Echo));
-			All Players(Team 1).money[0] += 90 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 90 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 90 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 90 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 		Else If(Hero Of(Victim) == Hero(Orisa));
-			All Players(Team 1).money[0] += 120 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
-			Global.startMoney += 120 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier[0];
+			All Players(Team 1).money[0] += 120 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
+			Global.startMoney += 120 * (Victim.isBoss[0] ? 3 : 1) * Global.moneyMultiplier[0];
 	}
 }
 
@@ -8262,7 +8283,7 @@ rule("Global init")
 		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Null, Null, Custom String(
 			"Cursor Menu created by Josbird {0} Code: GETVX", Ability Icon String(Hero(Mercy), Button(Ultimate))), Right, -100, Color(
 			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(!Is Game In Progress && !Host Player.isInMenu[1] ? Host Player : Null, Custom String("{0}", Custom String(
+		Create HUD Text(Is Game In Progress == False ? (!Host Player.isInMenu[1] ? Host Player : Null) : Null, Custom String("{0}", Custom String(
 			"Press {0} - Crouch to open workshop settings", Input Binding String(Button(Crouch)))), Null, Null, Top, 1, Color(Yellow),
 			Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.extendedGlobalCollection[1] = 10;
