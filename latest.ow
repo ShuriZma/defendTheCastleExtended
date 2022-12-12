@@ -2,13 +2,13 @@ settings
 {
 	main
 	{
-		Description: "<FGf74b51FF>Defend The Castle Extended Version d138\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
+		Description: "<FGf74b51FF>Defend The Castle Extended Version d139\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
 	lobby
 	{
-		Max Spectators: 1
+		Max Spectators: 0
 		Max Team 1 Players: 4
 		Max Team 2 Players: 0
 		Return To Lobby: Never
@@ -43,7 +43,6 @@ settings
 	{
 		Beam Effects
         Buff Status Effects
-        Energy Explosion Effects
         Kinetic Explosion Effects
         Explosion Sounds
         Play More Effects
@@ -94,7 +93,6 @@ variables
 		38: upgradePlayerMaxHealthMaxValue
 		39: upgradeCriticalDamageMaxValue
 		40: upgradeGateMaxHealthMaxValue
-		41: damageBoost
 		42: isDebugAINavigation
 		43: gameLogicCountOfUniqueHeroes
 		44: isNewWaveGameLogicProcessing
@@ -169,9 +167,8 @@ variables
 		32: abilityProjectile
 		33: abilityEnd
 		34: abilityAvailable
-		35: moveSpeed
+		35: speedBoost
 		36: damageMod
-		37: critDamageBoost
 		38: soldierEspionage
 		39: healBoost
 		40: baseStats
@@ -219,7 +216,6 @@ subroutines
 	4: BotZenyattaRespawn
 	5: BotWidowRespawn
 	6: BotBallRespawn
-	7: GameLogicAddNextHeroInGame
 	8: BotOrisaRespawn
 	9: BotLandingFromSky
 	10: BotEchoRespawn
@@ -633,7 +629,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create In-World Text(All Players(Team 1), Custom String(
-			"Defend The Castle Extended d138\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
+			"Defend The Castle Extended d139\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(
@@ -679,9 +675,9 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.upgradeMaxAmmoMaxValue[0] = 150;
-		Global.upgradeMaxAmmoMaxValue[1] = 300;
-		Global.upgradeMaxAmmoMaxValue[2] = 500;
+		Global.upgradeMaxAmmoMaxValue[0] = 200;
+		Global.upgradeMaxAmmoMaxValue[1] = 450;
+		Global.upgradeMaxAmmoMaxValue[2] = 900;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
 		Global.upgradeCriticalDamageMaxValue[2] = 10;
@@ -943,7 +939,6 @@ rule("PLAYER: UPGRADE - CRITICAL DAMAGE - DEALT KILL")
 
 	actions
 	{
-		Big Message(All Players(Team 1), Custom String("WIDOW HEADSHOT"));
 		Global.upgradeCriticalDamageValue += 1;
 	}
 }
@@ -968,7 +963,7 @@ rule("GLOBAL: UPGRADE - CRITICAL DAMAGE - DONE")
 			"CRITICAL DAMAGE 150%"), Right, 7, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String(
-			"Sharpshooter: Deal 40% more damage to enemies that are further than 15 meters away"), Custom String("KILL ECHO {0}/{1}",
+			"Sharpshooter: 40% more damage at >15m"), Custom String("KILL ECHO {0}/{1}",
 			Global.upgradePerkSharpshooterValue, Global.upgradeCriticalDamageMaxValue[1]), Left, 14, Color(Orange), Color(White), Color(
 			White), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[1] = Last Text ID;
@@ -1072,8 +1067,8 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
 			"MAX AMMO 200%"), Right, 10, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL {2}: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL ENEMIES: {0}/{1}",
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1]), Left, 15, Color(Orange), Color(White), Color(
 			White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		For Global Variable(loopIterator, 0, Count Of(All Players(Team 1)), 1);
@@ -1106,10 +1101,9 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 			"+50% DAMAGE"), Right, 12, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
-			Custom String("KILL {2}: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2], Hero(Zenyatta)), Left, 15,
+			Custom String("KILL ENEMIES: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2]), Left, 15,
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
-		Global.damageBoost += 50;
 		Call Subroutine(UpdatePlayerStats);
 		Global.challengeCount += 1;
 	}
@@ -1193,8 +1187,8 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
 		"UPGRADE - MAX AMMO"
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL {2}: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0], Hero(Zenyatta)), Left, 15, Color(Orange), Color(White), Color(
+		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL ENEMIES: {0}/{1}",
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0]), Left, 15, Color(Orange), Color(White), Color(
 			White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Custom String("HOLD {0} - Reload to open the shop", Input Binding String(Button(Reload))),
@@ -1220,7 +1214,7 @@ rule("GLOBAL: SETUP PHASE")
 			Set Match Time(1);
 		Else;
 			Pause Match Time;
-			Create HUD Text(All Players(Team 1), Custom String("PRESS {0} TO VOTE FOR START | {1}/{2}", Button(Interact), Count Of(
+			Create HUD Text(All Players(Team 1), Custom String("PRESS {0} - INTERACT TO VOTE FOR START | {1}/{2}", Input Binding String(Button(Interact)), Count Of(
 				Filtered Array(All Players(Team 1), Current Array Element.vote[0] == 1)), Count Of(All Players(Team 1))), Null, Null, Top, 50,
 				Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
 			Global.globalHUDs[0] = Last Text ID;
@@ -1328,46 +1322,6 @@ rule("GLOBAL: TIMER - MAIN GAME LOOP")
 	}
 }
 
-rule("SUBROUTINE: GAME LOGIC - ADD NEXT HERO IN GAME")
-{
-	event
-	{
-		Subroutine;
-		GameLogicAddNextHeroInGame;
-	}
-
-	actions
-	{
-		"ALL HEROES WAS ADDED IN GAME"
-		Abort If(Global.defaultHeroBotsPoolCurrentId == Count Of(Global.defaultHeroBotsPool) - 1);
-		Global.defaultHeroBotsPoolCurrentId += 1;
-		"ВРЕМЕННЫЙ КОСТЫЛЬ ЧТОБЫ ЭХО ЗАМЕНИЛА ХАМСТЕРА"
-		If(Global.defaultHeroBotsPool[Global.defaultHeroBotsPoolCurrentId] == Hero(Echo));
-			"WAITING FOR ANY ZEN TO DIE"
-			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
-				Wrecking Ball)), 99999);
-			"REPLACE HIM TO A NEW HERO"
-			Global.defaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
-				== Hero(Wrecking Ball))[0];
-			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
-			Wait(0.100, Ignore Condition);
-			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
-			Abort;
-		End;
-		"ABORT IF NEXT HERO IN ARRAY ORDER IS NULL"
-		Abort If(Global.defaultHeroBotsPool[Global.defaultHeroBotsPoolCurrentId] == Null);
-		"WAITING FOR ANY ZEN TO DIE"
-		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
-			Zenyatta)), 99999);
-		"REPLACE HIM TO A NEW HERO"
-		Global.defaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
-			== Hero(Zenyatta))[0];
-		Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
-		Wait(0.100, Ignore Condition);
-		Create Dummy Bot(Global.defaultHeroBotsPool[Global.defaultHeroBotsPoolCurrentId], Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
-	}
-}
-
 rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 {
 	event
@@ -1411,8 +1365,8 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 		Else If(Hero Of(Event Player) == Hero(Wrecking Ball));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 20);
-				Set Max Health(Event Player, 5 * (70 + 20 * Count Of(All Players(Team 1))
-					+ 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
+				Set Max Health(Event Player, 5 * (70 + 10 * Count Of(All Players(Team 1))
+					+ 10 * Global.timeMinutes + 25 * Global.time5Minutes + 30 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
@@ -1422,82 +1376,82 @@ rule("SUBROUTINE: GAME LOGIC - SET BOT PROPERTIES")
 					Set Move Speed(Event Player, 30 + Global.timeMinutes + 2.500 * Global.time5Minutes);
 				End;
 				Set Ultimate Charge(Event Player, 0);
-				Set Max Health(Event Player, 70 + 20 * Count Of(All Players(Team 1))
-					+ 10 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
+				Set Max Health(Event Player, 70 + 10 * Count Of(All Players(Team 1))
+					+ 10 * Global.timeMinutes + 25 * Global.time5Minutes + 30 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Widowmaker));
 			If(Event Player.isBoss == 1);
-				Set Damage Dealt(Event Player, 2 * (85 + 15 * Count Of(All Players(Team 1))
-					+ 25 * Global.time5Minutes + 50 * Global.time10Minutes));
+				Set Damage Dealt(Event Player, 2 * (55 + 15 * Count Of(All Players(Team 1))
+					+ 25 * Global.time5Minutes + 30 * Global.time10Minutes));
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 5 * (100 + 25 * Count Of(All Players(Team 1))
-					+ 5 * Global.timeMinutes + 15 * Global.time5Minutes + 40 * Global.time10Minutes) * (
+				Set Max Health(Event Player, 5 * (50 + 25 * Count Of(All Players(Team 1))
+					+ 5 * Global.timeMinutes + 15 * Global.time5Minutes + 25 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Event Player.botCounter = 0;
-				Set Damage Dealt(Event Player, 85 + 15 * Count Of(All Players(Team 1)) + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
+				Set Damage Dealt(Event Player, 55 + 15 * Count Of(All Players(Team 1)) + 25 * Global.time5Minutes + 30 * Global.time10Minutes);
 				Set Move Speed(Event Player, 100);
-				Set Max Health(Event Player, 100 + 25 * Count Of(All Players(Team 1))
-					+ 5 * Global.timeMinutes + 15 * Global.time5Minutes + 40 * Global.time10Minutes);
+				Set Max Health(Event Player, 50 + 25 * Count Of(All Players(Team 1))
+					+ 5 * Global.timeMinutes + 15 * Global.time5Minutes + 25 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Bastion));
 			If(Event Player.isBoss == 1);
 				Set Move Speed(Event Player, 50);
-				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
+				Set Damage Dealt(Event Player, 55 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 5 * Global.time10Minutes);
 				Start Scaling Player(Event Player, 3, False);
-				Set Max Health(Event Player, 5 * (155 + 150 * Count Of(All Players(Team 1))
-					+ 20 * Global.timeMinutes + 40 * Global.time5Minutes + 65 * Global.time10Minutes) * (
+				Set Max Health(Event Player, 5 * (125 + 150 * Count Of(All Players(Team 1))
+					+ 20 * Global.timeMinutes + 35 * Global.time5Minutes + 45 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
 				Set Move Speed(Event Player, 80);
-				Set Damage Dealt(Event Player, 85 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
+				Set Damage Dealt(Event Player, 55 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 5 * Global.time10Minutes);
 				Start Scaling Player(Event Player, 2, False);
-				Set Max Health(Event Player, 155 + 150 * Count Of(All Players(Team 1))
-					+ 20 * Global.timeMinutes + 40 * Global.time5Minutes + 65 * Global.time10Minutes);
+				Set Max Health(Event Player, 125 + 150 * Count Of(All Players(Team 1))
+					+ 20 * Global.timeMinutes + 35 * Global.time5Minutes + 45 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Orisa));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 5 * (220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.time5Minutes + 100 * Global.time10Minutes)
+				Set Max Health(Event Player, 5 * (200 + Count Of(All Players(Team 1)) * 70 + 50 * Global.time5Minutes + 75 * Global.time10Minutes)
 					* (Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
-				Set Move Speed(Event Player, 30 + 5 * Global.time5Minutes);
+				Set Move Speed(Event Player, 20 + 5 * Global.time5Minutes);
 			Else;
 				Start Scaling Player(Event Player, 1.800, False);
-				Set Max Health(Event Player, 220 + Count Of(All Players(Team 1)) * 80 + 50 * Global.time5Minutes + 100 * Global.time10Minutes);
-				Set Move Speed(Event Player, 90 + 5 * Global.time5Minutes);
+				Set Max Health(Event Player, 200 + Count Of(All Players(Team 1)) * 70 + 50 * Global.time5Minutes + 75 * Global.time10Minutes);
+				Set Move Speed(Event Player, 80 + 5 * Global.time5Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Echo));
 			If(Event Player.isBoss == 1);
 				Set Gravity(Event Player, 40);
-				Set Move Speed(Event Player, 70 + 5 * Global.time5Minutes);
+				Set Move Speed(Event Player, 50 + 5 * Global.time5Minutes);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 5 * (90 + 25 * Count Of(All Players(Team 1))
-					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
+				Set Max Health(Event Player, 5 * (70 + 25 * Count Of(All Players(Team 1))
+					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 40 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 				Start Scaling Player(Event Player, 2, False);
 			Else;
 				Set Gravity(Event Player, 40);
-				Set Move Speed(Event Player, 130 + 5 * Global.time5Minutes);
+				Set Move Speed(Event Player, 110 + 5 * Global.time5Minutes);
 				Set Respawn Max Time(Event Player, 18);
-				Set Max Health(Event Player, 90 + 25 * Count Of(All Players(Team 1))
-					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
+				Set Max Health(Event Player, 70 + 25 * Count Of(All Players(Team 1))
+					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 40 * Global.time10Minutes);
 			End;
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			If(Event Player.isBoss == 1);
 				Start Scaling Player(Event Player, 1.500, False);
-				Set Move Speed(Event Player, 70);
-				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
+				Set Move Speed(Event Player, 50);
+				Set Damage Dealt(Event Player, 80 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 8 * Global.time10Minutes);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 5 * (55 + 25 * Count Of(All Players(Team 1))
-					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes) * (
+				Set Max Health(Event Player, 5 * (45 + 25 * Count Of(All Players(Team 1))
+					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 40 * Global.time10Minutes) * (
 					Global.upgradeBossHealthValue >= Global.upgradeCriticalDamageMaxValue[2] ? 0.900 : 1));
 			Else;
-				Set Move Speed(Event Player, 110);
-				Set Damage Dealt(Event Player, 100 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 10 * Global.time10Minutes);
+				Set Move Speed(Event Player, 90);
+				Set Damage Dealt(Event Player, 80 + 5 * Count Of(All Players(Team 1)) + 5 * Global.time5Minutes + 8 * Global.time10Minutes);
 				Set Respawn Max Time(Event Player, 15);
-				Set Max Health(Event Player, 55 + 25 * Count Of(All Players(Team 1))
-					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 50 * Global.time10Minutes);
+				Set Max Health(Event Player, 45 + 25 * Count Of(All Players(Team 1))
+					+ 15 * Global.timeMinutes + 25 * Global.time5Minutes + 40 * Global.time10Minutes);
 			End;
 		End;
 		Wait(0.250, Ignore Condition);
@@ -1524,14 +1478,13 @@ rule("Subroutine: UPDATE PLAYER STATS")
 
 	actions
 	{
-	    Big Message(Custom String("{0}", Event Player) == Custom String("ShuriZma") ? Event Player : NULL, Custom String("UpdatePlayerStats"));
-		Event Player.damageBoost[0] = Global.damageBoost + Event Player.abilities[13] * 5 + Event Player.damageBoost[1];
-		Set Damage Dealt(Event Player, Event Player.baseStats[0] + Event Player.damageBoost);
-		Event Player.playerHealth = Global.maxHealthDone + Event Player.abilities[14] * 5;
-        Set Max Health(Event Player, Event Player.baseStats[1] + Event Player.playerHealth);
-        Event Player.healBoost[0] = Event Player.healBoost[1] + Event Player.abilities[15] * 5;
-        Set Healing Dealt(Event Player, Event Player.baseStats[2] + Event Player.healBoost[0]);
-        Set Move Speed(Event Player, Event Player.baseStats[3] + Event Player.moveSpeed);
+		All Players(Team 1).damageBoost[0] = (Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[1] ? 50 : 0) + All Players(Team 1).abilities[13] * 5 + All Players(Team 1).damageBoost[1];
+		Set Damage Dealt(All Players(Team 1), All Players(Team 1).baseStats[0] + All Players(Team 1).damageBoost);
+		All Players(Team 1).playerHealth = Global.maxHealthDone + All Players(Team 1).abilities[14] * 5;
+        Set Max Health(All Players(Team 1), All Players(Team 1).baseStats[1] + All Players(Team 1).playerHealth);
+        All Players(Team 1).healBoost[0] = All Players(Team 1).healBoost[1] + All Players(Team 1).abilities[15] * 5;
+        Set Healing Dealt(All Players(Team 1), All Players(Team 1).baseStats[2] + All Players(Team 1).healBoost[0]);
+        Set Move Speed(All Players(Team 1), All Players(Team 1).baseStats[3] + All Players(Team 1).speedBoost);
 	}
 }
 
@@ -1563,8 +1516,6 @@ rule("Subroutine: GATE REPAIR")
 		Else;
 			Global.gateHealth += Global.gateMaxHealth - Global.gateHealth;
 		End;
-		Big Message(All Players(Team 1), Custom String("Repairing gate {0}", (Hero Of(Event Player) == Hero(Symmetra) ? 2 : 10) * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[1] ? 2 : 1) * (
-                                                                                     					Event Player.isNanoed == 1 ? 2 : 1)));
 		"CHARGE ULTIMATE"
 		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 2);
 		"UPDATE GATE'S HEALTH BAR"
@@ -2588,6 +2539,7 @@ rule("SUBROUTINE: ECHO - RESPAWN")
 
 	actions
 	{
+		Big Message(All Players(Team 1), Custom String("Echo Spawn"));
 		Event Player.botCounter = 0;
 		Event Player.botEffects = Empty Array;
 		Create Effect(All Players(Team 1), Good Aura, Color(Sky Blue), Global.botEchoRespawnPosition, Event Player.botCounter,
@@ -2599,7 +2551,7 @@ rule("SUBROUTINE: ECHO - RESPAWN")
 		Create Effect(All Players(Team 1), Energy Sound, Color(White), Global.botEchoRespawnPosition, 200, Visible To);
 		Modify Player Variable(Event Player, botEffects, Append To Array, Last Created Entity);
 		Chase Player Variable Over Time(Event Player, botCounter, 3, 0.800, Destination and Duration);
-		Play Effect(All Players(Team 1), Sombra EMP Explosion Effect, Color(Sky Blue), Global.botEchoRespawnPosition, 12);
+		Play Effect(All Players(Team 1), Junkrat RIP Tire Explosion Effect, Color(Sky Blue), Global.botEchoRespawnPosition, 12);
 		Play Effect(All Players(Team 1), Sombra EMP Explosion Sound, Null, Global.botEchoRespawnPosition, 100);
 		Wait(3, Ignore Condition);
 		Teleport(Event Player, Global.botEchoRespawnPosition);
@@ -3627,7 +3579,7 @@ rule("GLOBAL: GAME LOGIC - MIN 6 - BASTION")
 
 	actions
 	{
-		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Bastion))) == 0);
+		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Zenyatta))) > 0);
 			"WAITING FOR ANY ZEN TO DIE"
 			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
 				Zenyatta)), 99999);
@@ -3637,8 +3589,10 @@ rule("GLOBAL: GAME LOGIC - MIN 6 - BASTION")
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
 			Wait(1, Ignore Condition);
-			Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -3670,19 +3624,7 @@ rule("GLOBAL: GAME LOGIC - MIN 9 - ECHO, +1 BASTION")
 			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 		End;
 		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Bastion))) < 2);
-			Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(
-				Zenyatta)), 99999);
-			Global.defaultCurrentBot = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
-				== Hero(Zenyatta))[0];
-			Wait(0.200, Ignore Condition);
-			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
-			Wait(0.500, Ignore Condition);
 			Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
-		End;
-		"FILL EMPTY SLOTS BY ZENS"
-		While(Count Of(All Players(Team 2)) < 13);
-			Wait(1, Ignore Condition);
-			Create Dummy Bot(Hero(Zenyatta), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 		End;
 	}
 }
@@ -3742,12 +3684,12 @@ rule("money on kill")
 
 	actions
 	{
+		If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
+    		Global.upgradeMaxAmmoValue += Victim.isBoss == 1 ? 10 : 1;
+    	End;
 		If(Hero Of(Victim) == Hero(Zenyatta));
 			All Players(Team 1).money[0] += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 10 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
-			If(Global.upgradeMaxAmmoValue < Global.upgradeMaxAmmoMaxValue[2]);
-				Global.upgradeMaxAmmoValue += Victim.isBoss == 1 ? 10 : 1;
-			End;
 		Else If(Hero Of(Victim) == Hero(Reinhardt));
 			All Players(Team 1).money[0] += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
 			Global.startMoney += 20 * (Victim.isBoss ? 3 : 1) * Global.moneyMultiplier;
@@ -3788,12 +3730,15 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 		Event Player.damageBoost[1] = 0;
 		Event Player.playerHealth = 0;
 		Event Player.healBoost = 0;
-		Event Player.moveSpeed = 0;
+		Event Player.speedBoost = 0;
 		Event Player.money[0] = 2400 + Global.startMoney;
 		If(Custom String("{0}", Event Player) == Custom String("ShuriZma"));
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
 				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
 				Default Visibility);
+			Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n", Event Player.baseStats[0], Event Player.baseStats[1], Event Player.baseStats[2]), Custom String("speed: {0}\ndamageBoost[0]: {1}\ndamageBoost[1]: {2}\n", Event Player.baseStats[3], Event Player.damageBoost[0], Event Player.damageBoost[1]),
+            				Custom String("playerHealth: {0}\nhealBoost: {1}\nspeedBoost: {2}", Event Player.playerHealth, Event Player.healBoost, Event Player.speedBoost)), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
+            				Default Visibility);
 		End;
 	}
 }
@@ -3815,9 +3760,9 @@ rule("Team 1 (Ability): Quick Fix")
 	actions
 	{
 		Heal(Event Player, Null, Event Player.abilities[3] * 50);
-		Event Player.moveSpeed += Event Player.abilities[3] * 20;
+		Event Player.speedBoost += Event Player.abilities[3] * 20;
 		Call Subroutine(UpdatePlayerStats);
-		Event Player.moveSpeed -= Event Player.abilities[3] * 20;
+		Event Player.speedBoost -= Event Player.abilities[3] * 20;
 		Wait(5, Restart When True);
         Call Subroutine(UpdatePlayerStats);
 	}
@@ -4193,6 +4138,11 @@ rule("Hero Talent Text")
 				"Head Trauma: Concussive Blast deals damage and tazes enemies below half health"));
 			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Pharah), Button(Ability 1)), Custom String(
 				"Weaponized Storm: Every 6th rocket flies faster and detonates several clusters"));
+		Else If(Hero Of(Event Player) == Hero(Ramattra));
+			Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Ramattra), Button(Ability 1)), Custom String(
+				"Vile Dominance: Move faster and root enemies with every punch in nemesis form"));
+			Event Player.heroTalentText[2] = Array(Ability Icon String(Hero(Ramattra), Button(Ultimate)), Custom String(
+				"Nether Sector: Heal and gain bonus ultimate charge for every enemy grounded with vortex"));
 		Else If(Hero Of(Event Player) == Hero(Reaper));
 			Event Player.heroTalentText[1] = Array(Ability Icon String(Hero(Reaper), Button(Ability 1)), Custom String(
 				"Wraith Wrath: Shooting is enabled during wraith form with increased damage"));
@@ -4359,6 +4309,7 @@ rule("Ashe: Taunt")
 	{
 		Start Damage Over Time(Victim, Event Player, 3, Event Damage * 2.500);
         Set Status(Victim, Null, Burning, 3);
+        Set Status(Victim, Null, Stunned, 3);
 	}
 }
 
@@ -4544,13 +4495,13 @@ rule("Brigitte: Endeavor")
 		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Eye Position(Event Player), 15);
 		Heal(Players Within Radius(Event Player, 15, Team 1, Off), Event Player, 200);
 		Event Player.damageBoost[1] += 150;
-		Event Player.moveSpeed += 75;
+		Event Player.speedBoost += 75;
 		Call Subroutine(UpdatePlayerStats);
 		Add Health Pool To Player(Event Player, Armor, Max Health(Event Player) / 3, False, True);
 		Event Player.hpPool[1] = Last Created Health Pool;
 		Wait Until(!Event Player.abilities[8] || Is Dead(Event Player), 6);
 		Event Player.damageBoost[1] -= 150;
-		Event Player.moveSpeed -= 75;
+		Event Player.speedBoost -= 75;
 		Call Subroutine(UpdatePlayerStats);
 		Remove Health Pool From Player(Event Player.hpPool[1]);
 		Destroy Effect(Event Player.effects[1]);
@@ -5372,11 +5323,11 @@ rule("Moira: Catalyst")
 	{
 		Event Player.damageBoost[1] += 300;
 		Event Player.healBoost[1] += 300;
-		Event Player.moveSpeed -= 40;
+		Event Player.speedBoost -= 40;
 		Call Subroutine(UpdatePlayerStats);
 		Wait Until(!Is Button Held(Event Player, Button(Primary Fire)) || !Event Player.abilities[12] || !Is Using Ultimate(Event Player), 8);
 		Event Player.damageBoost[1] -= 300;
-		Event Player.moveSpeed += 40;
+		Event Player.speedBoost += 40;
 		Event Player.healBoost[1] -= 300;
 		Call Subroutine(UpdatePlayerStats);
 		Wait(0.250, Ignore Condition);
@@ -5523,6 +5474,73 @@ rule("Pharah: Weaponized Storm")
 	}
 }
 
+rule("Ramattra: Vile Dominance")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Ramattra;
+	}
+
+	conditions
+	{
+		Event Player.abilities[8] == True;
+		Health Of Type(Event Player, Armor) >= 100;
+	}
+
+	actions
+	{
+		Event Player.speedBoost += 30;
+		Event Player.abilityActive = True;
+		Call Subroutine(UpdatePlayerStats);
+		Wait Until((Ability Cooldown(Event Player, Button(Ability 1)) > 0.100 && !Is Using Ultimate(Event Player))
+			|| !Event Player.abilities[8], 9999);
+		Event Player.speedBoost -= 30;
+		Event Player.abilityActive = False;
+		Call Subroutine(UpdatePlayerStats);
+	}
+}
+
+rule("Ramattra: Vile Dominance")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Ramattra;
+	}
+
+	actions
+	{
+		Abort If(!Event Player.abilityActive);
+		Abort If(Event Ability == Null);
+		Abort If(Event Ability == Button(Ability 2));
+		Abort If(Event Ability == Button(Ultimate));
+		Set Status(Victim, Event Player, Rooted, 0.750);
+	}
+}
+
+rule("Ramattra: Nether Sector")
+{
+	event
+	{
+		Player Dealt Damage;
+		Team 1;
+		Ramattra;
+	}
+
+	actions
+	{
+		Abort If(!Event Player.abilities[12]);
+		Abort If(!Is On Ground(Event Player));
+		Abort If(Event Ability != Button(Ability 2));
+		Heal(Event Player, Event Player, 20);
+		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 1);
+		Wait(0.100, Ignore Condition);
+	}
+}
+
 rule("Reaper: Wraith Wrath")
 {
 	event
@@ -5546,7 +5564,7 @@ rule("Reaper: Wraith Wrath")
 			Visible To Position and Radius);
 		Event Player.effects[1] = Last Created Entity;
 		Event Player.damageBoost[1] += 30;
-		Event Player.moveSpeed += 50;
+		Event Player.speedBoost += 50;
 		Call Subroutine(UpdatePlayerStats);
 		Disallow Button(Event Player, Button(Ability 1));
 		Set Status(Event Player, Null, Phased Out, 3);
@@ -5554,7 +5572,7 @@ rule("Reaper: Wraith Wrath")
 		Allow Button(Event Player, Button(Ability 1));
 		Set Ability Cooldown(Event Player, Button(Ability 1), 8);
 		Event Player.damageBoost[1] -= 30;
-		Event Player.moveSpeed -= 50;
+		Event Player.speedBoost -= 50;
 		Call Subroutine(UpdatePlayerStats);
 		Destroy Effect(Event Player.effects[1]);
 	}
@@ -6123,7 +6141,7 @@ rule("Symmetra: Shield Generator")
 	actions
 	{
 		Event Player.damageBoost[1] += 30;
-		Event Player.moveSpeed += 30;
+		Event Player.speedBoost += 30;
 		Call Subroutine(UpdatePlayerStats);
 		Add Health Pool To Player(All Players(Team 1), Shields, Min(200, Max Health(Event Player) * 0.250), False, False);
 		Event Player.hpPool[6] = Last Created Health Pool;
@@ -6133,7 +6151,7 @@ rule("Symmetra: Shield Generator")
 		Destroy Effect(Event Player.effects[1]);
 		Remove Health Pool From Player(Event Player.hpPool[6]);
 		Event Player.damageBoost[1] -= 30;
-		Event Player.moveSpeed -= 30;
+		Event Player.speedBoost -= 30;
 		Call Subroutine(UpdatePlayerStats);
 	}
 }
@@ -7830,8 +7848,8 @@ rule("Create Player HUD")
 		Create HUD Text(Event Player.healBoost[0] > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
 			Event Player.healBoost[0]), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
-		Create HUD Text(Event Player.moveSpeed > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
-			Event Player.moveSpeed), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
+		Create HUD Text(Event Player.speedBoost > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
+			Event Player.speedBoost), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
 		Create HUD Text(Event Player.abilities[11] ? Event Player : Null, Null, Null, Custom String("Resilience {0}",
 			Event Player.abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Color(White), Color(White), Color(
@@ -7931,7 +7949,28 @@ rule("DEBUG - SKIP TIME")
 	}
 }
 
-disabled rule("DEBUG COLLECTION - Make Invincible, Show Player Coords")
+rule("DEBUG - SKIP TIME")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.isDebug == True;
+		(Is Button Held(Event Player, Button(Secondary Fire)) && Is Button Held(Event Player, Button(Crouch))) == True;
+	}
+
+	actions
+	{
+		Global.botEchoRespawnPosition = Vector(130, 23, -44);
+	}
+}
+
+rule("DEBUG COLLECTION - Make Invincible, Show Player Coords")
 {
 	event
 	{
@@ -7947,7 +7986,7 @@ disabled rule("DEBUG COLLECTION - Make Invincible, Show Player Coords")
 
 	actions
 	{
-		Create HUD Text(Local Player, Custom String("{0}", Position Of(Local Player)), Null, Null, Left, 0, Color(Yellow), Color(White),
+		Create HUD Text(Local Player, Custom String("{0}", Global.botEchoRespawnPosition), Null, Null, Left, 0, Color(Yellow), Color(White),
 			Color(White), Visible To and String, Default Visibility);
 		Set Status(Event Player, Null, Invincible, 9999);
 		Set Status(Event Player, Null, Phased Out, 9999);
