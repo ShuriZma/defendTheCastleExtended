@@ -675,9 +675,9 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.upgradeMaxAmmoMaxValue[0] = 200;
-		Global.upgradeMaxAmmoMaxValue[1] = 450;
-		Global.upgradeMaxAmmoMaxValue[2] = 900;
+		Global.upgradeMaxAmmoMaxValue[0] = 300;
+		Global.upgradeMaxAmmoMaxValue[1] = 650;
+		Global.upgradeMaxAmmoMaxValue[2] = 1000;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
 		Global.upgradeCriticalDamageMaxValue[2] = 10;
@@ -1539,7 +1539,7 @@ rule("GATE REPAIR")
 			Event Player) == Hero(Brigitte) || Hero Being Duplicated(Event Player) == Hero(Reinhardt) || Hero Of(Event Player) == Hero(Symmetra))) == True;
 		Is Firing Primary(Event Player) == True;
 		Global.gateHealth < Global.gateMaxHealth;
-		Is In View Angle(Event Player, Global.gateRepairPosition, 80) == True;
+		Is In Line of Sight(Event Player, Global.gateRepairPosition, Enemy Barriers Block LOS) == True;
 		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : (Hero Of(Event Player) == Hero(Symmetra) ? 12 : 3.500));
 	}
 
@@ -3759,11 +3759,12 @@ rule("Team 1 (Ability): Quick Fix")
 
 	actions
 	{
+		Event Player.baseStats[4] = Number of Eliminations(Event Player);
 		Heal(Event Player, Null, Event Player.abilities[3] * 50);
 		Event Player.speedBoost += Event Player.abilities[3] * 20;
 		Call Subroutine(UpdatePlayerStats);
+		Wait Until(Number of Eliminations(Event Player) > Event Player.baseStats[4], 5);
 		Event Player.speedBoost -= Event Player.abilities[3] * 20;
-		Wait(5, Restart When True);
         Call Subroutine(UpdatePlayerStats);
 	}
 }
@@ -6746,6 +6747,21 @@ rule("Refund")
 		Global.automaticRepair -= Event Player.abilities[16];
 		Event Player.abilities[16] = 0;
 		Call Subroutine(UpdatePlayerStats);
+	}
+}
+
+rule("Brig Shield Bash Stun")
+{
+	event
+	{
+		Player Dealt Knockback;
+		Team 1;
+		Brigitte;
+	}
+
+	actions
+	{
+		Set Status(Victim, Null, Stunned, 1);
 	}
 }
 
