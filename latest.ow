@@ -608,7 +608,7 @@ rule("GLOBAL: GAME MODE INIT - WORKSHOP SETTINGS")
 
 	actions
 	{
-		Global.isDebug = False;
+		Global.isDebug = true;
 		Global.isDebugAINavigation = False;
 		Global.gateMaxHealth = Workshop Setting Integer(Custom String("Defend The Castle Extended"), Custom String("GATE MAX HEALTH"), 500,
 			100, 1000, 0);
@@ -1164,8 +1164,7 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			Disable Inspector Recording;
 			Set Match Time(20);
 		End;
-		Create In-World Text(All Players(Team 1), Custom String("  {0}\r\nREPAIR\r\n  {1}", Hero Icon String(Hero(Torbjörn)),
-			Ability Icon String(Hero(Torbjörn), Button(Secondary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
+		Create In-World Text(All Players(Team 1), Custom String("{0}{1}\nREPAIR\n {2}", Custom String("{0}{1}{2}", Hero Icon String(Hero(Torbjörn)), Hero Icon String(Hero(Brigitte)), Hero Icon String(Hero(Reinhardt))), Hero Icon String(Hero(Symmetra)), Ability Icon String(Hero(Reinhardt), Button(Primary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
 		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Left, 11, Color(
 			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
@@ -1539,7 +1538,7 @@ rule("GATE REPAIR")
 			Event Player) == Hero(Brigitte) || Hero Being Duplicated(Event Player) == Hero(Reinhardt) || Hero Of(Event Player) == Hero(Symmetra))) == True;
 		Is Firing Primary(Event Player) == True;
 		Global.gateHealth < Global.gateMaxHealth;
-		Is In Line of Sight(Event Player, Global.gateRepairPosition, Enemy Barriers Block LOS) == True;
+		Is In View Angle(Event Player, Global.gateRepairPosition, 30) == True;
 		Distance Between(Position Of(Event Player), Global.gatePosition) < (Hero Of(Event Player) == Hero(Brigitte) ? 5 : (Hero Of(Event Player) == Hero(Symmetra) ? 12 : 3.500));
 	}
 
@@ -8002,7 +8001,7 @@ rule("DEBUG COLLECTION - Make Invincible, Show Player Coords")
 
 	actions
 	{
-		Create HUD Text(Local Player, Custom String("{0}", Global.botEchoRespawnPosition), Null, Null, Left, 0, Color(Yellow), Color(White),
+		Create HUD Text(Local Player, Custom String("{0}", Position Of(Event Player)), Null, Null, Left, 0, Color(Yellow), Color(White),
 			Color(White), Visible To and String, Default Visibility);
 		Set Status(Event Player, Null, Invincible, 9999);
 		Set Status(Event Player, Null, Phased Out, 9999);
