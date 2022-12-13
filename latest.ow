@@ -1849,6 +1849,7 @@ rule("BOT: DEATH")
 
 	actions
 	{
+		Event Player.deathPosition = Position Of(Event Player);
 		If(Event Player.isBoss[0] == 1);
 			If(
 				Global.upgradePerkSharpshooterValue >= Global.upgradeCriticalDamageMaxValue[1] && Global.upgradeBossHealthValue < Global.upgradeCriticalDamageMaxValue[2]);
@@ -4380,12 +4381,12 @@ rule("Ashe: Dancing Flames")
 
 	actions
 	{
-		Play Effect(All Players(All Teams), Explosion Sound, Color(Orange), Eye Position(Victim), 120);
-		Play Effect(All Players(All Teams), Good Explosion, Color(Orange), Victim, 5);
-		Play Effect(All Players(All Teams), Bad Pickup Effect, Color(Yellow), Victim, 5);
-		Start Damage Over Time(Players Within Radius(Victim, 5, Team 2, Surfaces), Event Player, 3, 15);
-		Set Status(Players Within Radius(Victim, 5, Team 2, Surfaces), Event Player, Burning, 3);
-		Damage(Players Within Radius(Victim, 5, Team 2, Surfaces), Event Player, 30);
+		Play Effect(All Players(All Teams), Explosion Sound, Color(Orange), Victim.deathPosition, 120);
+		Play Effect(All Players(All Teams), Good Explosion, Color(Orange), Victim.deathPosition, 5);
+		Play Effect(All Players(All Teams), Bad Pickup Effect, Color(Yellow), Victim.deathPosition, 5);
+		Start Damage Over Time(Players Within Radius(Victim.deathPosition, 5, Team 2, Surfaces), Event Player, 3, 15);
+		Set Status(Players Within Radius(Victim.deathPosition, 5, Team 2, Surfaces), Event Player, Burning, 3);
+		Damage(Players Within Radius(Victim.deathPosition, 5, Team 2, Surfaces), Event Player, 30);
 	}
 }
 
