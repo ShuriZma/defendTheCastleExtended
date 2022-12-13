@@ -8283,8 +8283,11 @@ rule("Global init")
 		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Null, Null, Custom String(
 			"Cursor Menu created by Josbird {0} Code: GETVX", Ability Icon String(Hero(Mercy), Button(Ultimate))), Right, -100, Color(
 			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Is Game In Progress == False ? (!Host Player.isInMenu[1] ? Host Player : Null) : Null, Custom String("{0}", Custom String(
+		Create HUD Text(Global.timeSeconds == 0 && Global.timeMinutes == 0 && !Host Player.isInMenu[1] ? Host Player : Null, Custom String("{0}", Custom String(
 			"Press {0} - Crouch to open workshop settings", Input Binding String(Button(Crouch)))), Null, Null, Top, 1, Color(Yellow),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Custom String("{0}", Custom String(
+			"Press {0} - Primary Fire to increase by X\nPress {1} - Secondary Fire to decrease by X", Input Binding String(Button(Primary Fire)), Input Binding String(Button(Secondary Fire)))), Null, Null, Right, 1, Color(Yellow),
 			Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.extendedGlobalCollection[1] = 10;
 		Global.extendedGlobalCollection[2] = 5;
@@ -8481,7 +8484,7 @@ rule("Do button update")
 				Else If(
 						Event Player.buttons[Event Player.extendedPlayerCollection[2]][12] && !Event Player.buttons[Event Player.extendedPlayerCollection[2]][14]);
 					Create In-World Text(Event Player, Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])
-						][10] ? Custom String(" {0} ", First Of(Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])]))
+						][10] ? Custom String("{0}", First Of(Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])]))
 						: First Of(Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])]), Update Every Frame(Eye Position(
 						Event Player) + 100 * (Event Player.buttons[Evaluate Once(Event Player.extendedPlayerCollection[2])][4] * Cross Product(
 						Facing Direction Of(Event Player), Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)),
