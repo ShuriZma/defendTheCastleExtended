@@ -2834,6 +2834,7 @@ rule("BOT: REIN - USE SHIELD")
 
 	conditions
 	{
+	    Event Player.isBoss[1] == False;
 		Distance Between(Position Of(Event Player), Position Of(Event Player.botTargetPlayer)) > 3;
 	}
 
@@ -3631,13 +3632,12 @@ rule("GLOBAL: GAME LOGIC - MIN 6 - BASTION")
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
 			Wait(1, Ignore Condition);
+			If(Count Of(All Players(Team 2)) < 13);
+			    Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
+                Last Created Entity.isBoss[1] = true;
+            End;
 		End;
 		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
-		While(Count Of(All Players(Team 2)) < 13);
-            Wait(1, Ignore Condition);
-            Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
-            Last Created Entity.isBoss[1] = true;
-        End;
 	}
 }
 
