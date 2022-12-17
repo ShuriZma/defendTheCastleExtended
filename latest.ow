@@ -693,9 +693,9 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.upgradeMaxAmmoMaxValue[0] = 300;
-		Global.upgradeMaxAmmoMaxValue[1] = 650;
-		Global.upgradeMaxAmmoMaxValue[2] = 1000;
+		Global.upgradeMaxAmmoMaxValue[0] = 200;
+		Global.upgradeMaxAmmoMaxValue[1] = 450;
+		Global.upgradeMaxAmmoMaxValue[2] = 700;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
 		Global.upgradeCriticalDamageMaxValue[2] = 10;
@@ -839,9 +839,7 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
 {
 	event
 	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
+		Ongoing - Global;
 	}
 
 	conditions
@@ -867,10 +865,30 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
 		End;
 		Global.maxHealthDone = 50;
-		Call Subroutine(UpdatePlayerStats);
 		Heal(All Players(Team 1), Null, 9999);
 		Global.challengeCount += 1;
 	}
+}
+
+rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
+{
+	event
+	{
+		Ongoing - Each Player;
+        Team 1;
+        All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		(Global.upgradePlayerMaxHealthValue >= Global.upgradePlayerMaxHealthMaxValue[0]) == True;
+	}
+
+	actions
+    {
+		Call Subroutine(UpdatePlayerStats);
+    }
 }
 
 rule("GLOBAL: UPGRADE - PERK UP YOU GO - DONE")
@@ -915,9 +933,7 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
 {
 	event
 	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
+		Ongoing - Global;
 	}
 
 	conditions
@@ -938,9 +954,29 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
 		End;
 		Global.maxHealthDone = 150;
-		Call Subroutine(UpdatePlayerStats);
 		Heal(All Players(Team 1), Null, 9999);
 		Global.challengeCount += 1;
+	}
+}
+
+rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		(Global.upgradePlayerMaxHealthValue >= Global.upgradePlayerMaxHealthMaxValue[2]) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -1108,9 +1144,7 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 {
 	event
 	{
-		Ongoing - Each Player;
-		Team 1;
-		All;
+		Ongoing - Global;
 	}
 
 	conditions
@@ -1132,6 +1166,27 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
 		Call Subroutine(UpdatePlayerStats);
 		Global.challengeCount += 1;
+	}
+}
+
+rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		(Global.upgradeMaxAmmoValue >= Global.upgradeMaxAmmoMaxValue[1]) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(UpdatePlayerStats);
 	}
 }
 
@@ -3495,11 +3550,11 @@ rule("SUBROUTINE: ORISA - RESPAWN")
 	{
 		Global.botOrisaParent = Event Player;
 		"WAITING FOR ANY BASTION TO DIE"
-		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(Bastion)),
+		Wait Until(Is True For Any(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element) == Hero(Bastion) && Current Array Element.isBoss[0] == False && Current Array Element.isBoss[1] == False),
 			99999);
 		"SETUP BASTION AS CHILD"
 		Global.botOrisaChild = Filtered Array(All Players(Team 2), Is Dead(Current Array Element) && Hero Of(Current Array Element)
-			== Hero(Bastion))[0];
+			== Hero(Bastion) && Current Array Element.isBoss[0] == False && Current Array Element.isBoss[1] == False)[0];
 		Global.botOrisaChild.botIsOrisaChild = True;
 		Global.botOrisaChild.botDoesUniqueBehaviour = True;
 		Wait(2, Ignore Condition);
@@ -3649,7 +3704,7 @@ rule("GLOBAL: GAME LOGIC - MIN 6 - BASTION")
 			Wait(0.200, Ignore Condition);
 			Destroy Dummy Bot(Team 2, Slot Of(Global.defaultCurrentBot));
 			Wait(1, Ignore Condition);
-			If(Count Of(All Players(Team 2)) < 13);
+			If(Count Of(All Players(Team 2)) < 11);
 				Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 999, 0), Vector(0, 0, 0));
 				Last Created Entity.isBoss[1] = True;
 			End;
@@ -3685,9 +3740,7 @@ rule("GLOBAL: GAME LOGIC - MIN 9 - ECHO, +1 BASTION")
 			Wait(1, Ignore Condition);
 			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 		End;
-		While(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Bastion))) < 2);
-			Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
-		End;
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -3798,7 +3851,7 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
 				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
 				Default Visibility);
-			Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
+			disabled Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
 				Event Player.baseStats[0], Event Player.baseStats[1], Event Player.baseStats[2]), Custom String(
 				"speed: {0}\ndamageBoost[0]: {1}\ndamageBoost[1]: {2}\n", Event Player.baseStats[3], Event Player.damageBoost[0],
 				Event Player.damageBoost[1]), Custom String("playerHealth: {0}\nhealBoost: {1}\n{2}", Event Player.playerHealth,
@@ -3824,14 +3877,19 @@ rule("Team 1 (Ability): Quick Fix")
 
 	actions
 	{
+	    If(Event Player.baseStats[5] != Event Player.abilities[3] * 20);
+	        Event Player.speedBoost -= Event Player.baseStats[5];
+		End;
+
 		Heal(Event Player, Null, Event Player.abilities[3] * 50);
-		If(Event Player.baseStats[4] != True);
+		If(Event Player.baseStats[4] != True || Event Player.baseStats[5] != Event Player.abilities[3] * 20);
+			Event Player.baseStats[5] = Event Player.abilities[3] * 20;
 			Event Player.baseStats[4] = True;
-			Event Player.speedBoost += Event Player.abilities[3] * 20;
+			Event Player.speedBoost += Event Player.baseStats[5];
 			Call Subroutine(UpdatePlayerStats);
 		End;
 		Wait(5, Restart When True);
-		Event Player.speedBoost -= Event Player.abilities[3] * 20;
+		Event Player.speedBoost -= Event Player.baseStats[5];
 		Event Player.baseStats[4] = False;
 		Call Subroutine(UpdatePlayerStats);
 	}
@@ -8090,7 +8148,7 @@ rule("OPTIONAL ENDING - CREATE EXFIL POINT")
 	conditions
 	{
 		Is Game In Progress == True;
-		Global.challengeCount == 12;
+		Global.challengeCount >= 12;
 	}
 
 	actions
