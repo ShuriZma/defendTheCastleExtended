@@ -243,7 +243,6 @@ subroutines
 	20: PlayerRespawn
 	21: BotRespawn
 	22: BotWidowBadStatus
-	23: GameLogicWave0
 	24: Refund
 	25: EnablePlayer
 	26: GateRepair
@@ -702,7 +701,7 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 		Global.upgradePlayerMaxHealthMaxValue[0] = 4000;
 		Global.upgradePlayerMaxHealthMaxValue[1] = 9000;
 		Global.upgradePlayerMaxHealthMaxValue[2] = 15000;
-		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up) > 1000 ? 1000 : Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
 		Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
 		Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
 		Abort If(Global.isDebug == False);
@@ -738,11 +737,11 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH - DONE")
 	{
 		Play Effect(All Players(Team 1), Good Explosion, Color(Green), Global.gatePosition, 5);
 		Play Effect(All Players(Team 1), Buff Impact Sound, Color(Green), Global.gatePosition, 100);
-		Global.gateMaxHealth[0] = Global.upgradeGateMaxHealthMaxValue[0];
+		Global.gateMaxHealth[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
 		Global.gateHealth = Global.gateMaxHealth[0];
 		Destroy HUD Text(Global.upgradeGateMaxHealthHudId[0]);
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("GATE'S MAX HEALTH: {0} HP", Global.upgradeGateMaxHealthMaxValue[0]), Right, 1, Color(
+			Icon String(Checkmark)), Custom String("GATE'S MAX HEALTH: {0} HP", Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up)), Right, 1, Color(
 			Green), Color(Green), Color(Green), Visible To, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("2X GATE REPAIR"),
@@ -1164,7 +1163,6 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 			Custom String("KILL ENEMIES: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2]), Left, 15, Color(Orange),
 			Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
-		Call Subroutine(UpdatePlayerStats);
 		Global.challengeCount += 1;
 	}
 }
@@ -1257,7 +1255,7 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
 		"UPGRADE - GATE'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String(
-			"GATE'S MAX HEALTH: {0} HP", Global.upgradeGateMaxHealthMaxValue[0]), Custom String("REPAIR GATE {0}/{1} HP",
+			"GATE'S MAX HEALTH: {0} HP", Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up)), Custom String("REPAIR GATE {0}/{1} HP",
 			Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[0]), Left, 12, Color(Orange), Color(White), Color(White),
 			Visible To and String, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[0] = Last Text ID;
@@ -1346,7 +1344,6 @@ rule("GLOBAL: GAME IN PROGRESS")
 		Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.timeMinutes,
 			Global.timeSeconds < 10 ? Custom String("0{0}", Global.timeSeconds) : Global.timeSeconds), Top, 2, Color(White), Color(White),
 			Color(White), Visible To and String, Default Visibility);
-		Start Rule(GameLogicWave0, Do Nothing);
 	}
 }
 
@@ -1922,6 +1919,9 @@ rule("BOT: DEATH")
 			Event Player.isBoss[0] = 0;
 			Global.activeBoss = Null;
 		Else If(Event Player.isBoss[1] == 1);
+			If(Hero Of(Event Player) == Hero(Wrecking Ball));
+				Destroy Effect(Event Player.botEffects[0]);
+			End;
 			Wait(1, Ignore Condition);
 			Start Forcing Player To Be Hero(Event Player, Random Integer(1, 100) > 50 ? Hero(Reinhardt) : (Random Integer(1, 100) > 33 ? Hero(
 				Wrecking Ball) : (Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Zenyatta))) > 0 ? Hero(
@@ -2219,7 +2219,7 @@ rule("BOT: BALL - REACHED THE GATE")
 			End;
 			Start Rule(GateProgressBarColor, Restart Rule);
 		End;
-		Damage(Players Within Radius(Eye Position(Event Player), 7, Team 1, Surfaces And All Barriers), Event Player, 200);
+		Damage(Players Within Radius(Eye Position(Event Player), 5, Team 1, Surfaces And All Barriers), Event Player, 100);
 	}
 }
 
@@ -3851,7 +3851,7 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
 				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
 				Default Visibility);
-			disabled Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
+			Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
 				Event Player.baseStats[0], Event Player.baseStats[1], Event Player.baseStats[2]), Custom String(
 				"speed: {0}\ndamageBoost[0]: {1}\ndamageBoost[1]: {2}\n", Event Player.baseStats[3], Event Player.damageBoost[0],
 				Event Player.damageBoost[1]), Custom String("playerHealth: {0}\nhealBoost: {1}\n{2}", Event Player.playerHealth,
@@ -3877,7 +3877,7 @@ rule("Team 1 (Ability): Quick Fix")
 
 	actions
 	{
-	    If(Event Player.baseStats[5] != Event Player.abilities[3] * 20);
+	    If(Event Player.baseStats[5] != Event Player.abilities[3] * 20 && Event Player.baseStats[4] == True);
 	        Event Player.speedBoost -= Event Player.baseStats[5];
 		End;
 
@@ -7967,7 +7967,7 @@ rule("Create Player HUD")
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)), Is Dead(Event Player) ? Color(
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)),
 			Visible To Sort Order String and Color, Default Visibility);
-		Create HUD Text(Event Player.damageBoost[0] > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
+		Create HUD Text(Event Player.damageBoost[0] != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
 			Event Player.damageBoost[0]), Left, 913, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
 		Create HUD Text(Event Player.abilities[9] ? Event Player : Null, Null, Null, Custom String("Second Wind {0}",
@@ -7979,7 +7979,7 @@ rule("Create Player HUD")
 		Create HUD Text(Event Player.abilities[1] ? Event Player : Null, Null, Null, Custom String("Headhunter {0}",
 			Event Player.abilities[1] == 1 ? Custom String("I") : Custom String("II")), Left, 901, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.playerHealth > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
+		Create HUD Text(Event Player.playerHealth != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
 			Event Player.playerHealth), Left, 914, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
 		Create HUD Text(Event Player.abilities[10] ? Event Player : Null, Null, Null, Custom String("Binding Heal {0}",
@@ -7991,10 +7991,10 @@ rule("Create Player HUD")
 		Create HUD Text(Event Player.abilities[2] ? Event Player : Null, Null, Null, Custom String("Ambush {0}",
 			Event Player.abilities[2] == 1 ? Custom String("I") : Custom String("II")), Left, 902, Color(White), Color(White), Color(
 			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.healBoost[0] > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
+		Create HUD Text(Event Player.healBoost[0] != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
 			Event Player.healBoost[0]), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
 			Default Visibility);
-		Create HUD Text(Event Player.speedBoost > 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
+		Create HUD Text(Event Player.speedBoost != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
 			Event Player.speedBoost), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
 		Create HUD Text(Event Player.abilities[11] ? Event Player : Null, Null, Null, Custom String("Resilience {0}",
 			Event Player.abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Color(White), Color(White), Color(
@@ -8840,13 +8840,10 @@ rule("workshop rules")
 
 	actions
 	{
-		Global.gateMaxHealth[0] = 500;
 		Global.gateMaxHealth[1] = 100;
 		Global.gateMaxHealth[2] = 1000;
-		Global.moneyMultiplier[0] = 1;
 		Global.moneyMultiplier[1] = 0.500;
 		Global.moneyMultiplier[2] = 2;
-		Global.selfNanoWorkshopSetting = False;
 		Host Player.newButton = Array(Custom String("GATE MAX HEALTH: {0}", Global.gateMaxHealth[0]), Null, Null, 3, -1, 0.500, 0, 0.300,
 			Color(Green), Color(Green), True, True, True);
 		Call Subroutine(createMenuButton);
@@ -8985,6 +8982,9 @@ rule("Actions")
 		Else If(Event Player.currActionID == Custom String("anaSelfNano"));
 			Global.selfNanoWorkshopSetting = !Global.selfNanoWorkshopSetting;
 		End;
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up) > 1000 ? 1000 : Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
+        Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
+        Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
 		Event Player.buttonModification = Array(Event Player.workshopButtons[0], 0, Custom String("GATE MAX HEALTH: {0}",
 			Global.gateMaxHealth[0]));
 		Call Subroutine(modifyMenuButton);
