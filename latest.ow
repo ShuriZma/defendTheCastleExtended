@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "<FGf74b51FF>Defend The Castle Extended Version d142\nby ShuriZma#2349\nJ1K6F (Code Version: c135)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
+		Description: "<FGf74b51FF>Defend The Castle Extended Version d143\nby ShuriZma#2349\nJ1K6F (Code Version: d143)\nOriginal mode by HuKuTa94#2589\n\nDefend the gate, kill enemies\nand don't allow them to damage the gate!\n\nSpecial Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents\n& Josbird for teaching me about Menus!\n\nFind this mode on: workshop.codes/defend-the-castle\nFind the Original Mode on: workshop.codes/BQEGS\nTell me what you think on Discord: dc.shuri.gg\n\nPS: SHINGEN PLS COME BACK"
 		Mode Name: "Defend The Castle Extended"
 	}
 
@@ -646,7 +646,7 @@ rule("GLOBAL: GAME MODE INIT - COMMON PROPERTIES")
 	actions
 	{
 		Create In-World Text(All Players(Team 1), Custom String(
-			"Defend The Castle Extended d142\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
+			"Defend The Castle Extended d143\r\nby ShuriZma#2349\r\nOriginal mode by HUKUTA94#2589\r\nDiscord: dc.shuri.gg\r\n{0}",
 			Custom String(
 			"Special Thanks to:\nShingen#21859 for the Abilities,\nLemonAid#11644 for the Hero Talents &\nJosbird for teaching me about Menus{0}",
 			Custom String("   \nPS: SHINGEN PLS COME BACK"))), Vector(165, 12, -46.500), 1.200, Clip Against Surfaces, Visible To, Color(
@@ -692,18 +692,18 @@ rule("GLOBAL: TEAM UPGRADES - INIT")
 
 	actions
 	{
-		Global.upgradeMaxAmmoMaxValue[0] = 200;
-		Global.upgradeMaxAmmoMaxValue[1] = 450;
-		Global.upgradeMaxAmmoMaxValue[2] = 700;
+		Global.upgradeMaxAmmoMaxValue[0] = 150;
+		Global.upgradeMaxAmmoMaxValue[1] = 300;
+		Global.upgradeMaxAmmoMaxValue[2] = 500;
 		Global.upgradeCriticalDamageMaxValue[0] = 10;
 		Global.upgradeCriticalDamageMaxValue[1] = 5;
 		Global.upgradeCriticalDamageMaxValue[2] = 10;
-		Global.upgradePlayerMaxHealthMaxValue[0] = 4000;
-		Global.upgradePlayerMaxHealthMaxValue[1] = 9000;
-		Global.upgradePlayerMaxHealthMaxValue[2] = 15000;
-		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up) > 1000 ? 1000 : Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
-		Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
-		Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
+		Global.upgradePlayerMaxHealthMaxValue[0] = 3000;
+		Global.upgradePlayerMaxHealthMaxValue[1] = 7000;
+		Global.upgradePlayerMaxHealthMaxValue[2] = 12000;
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.500, Up) > 1000 ? 1000 : Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.500, Up);
+		Global.upgradeGateMaxHealthMaxValue[1] = Round To Integer(Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0] * 0.500, Up);
+		Global.upgradeGateMaxHealthMaxValue[2] = Round To Integer(Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1] * 0.500, Up);
 		Abort If(Global.isDebug == False);
 		Global.upgradeMaxAmmoMaxValue[0] = 1;
 		Global.upgradeCriticalDamageMaxValue[0] = 1;
@@ -737,16 +737,11 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH - DONE")
 	{
 		Play Effect(All Players(Team 1), Good Explosion, Color(Green), Global.gatePosition, 5);
 		Play Effect(All Players(Team 1), Buff Impact Sound, Color(Green), Global.gatePosition, 100);
-		Global.gateMaxHealth[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
+		Global.gateMaxHealth[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.500, Up);
 		Global.gateHealth = Global.gateMaxHealth[0];
 		Destroy HUD Text(Global.upgradeGateMaxHealthHudId[0]);
-		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("GATE'S MAX HEALTH: {0} HP", Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up)), Right, 1, Color(
-			Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeGateMaxHealthHudId[0] = Last Text ID;
-		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("2X GATE REPAIR"),
-			Custom String("REPAIR GATE {0}/{1} HP", Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[1]), Left, 12,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("2X GATE REPAIR"), Custom String("REPAIR GATE {0}/{1} HP", Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[1]),
+			Left, 12, Color(Blue), Color(Blue), Color(Blue), Visible To and String, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[1] = Last Text ID;
 		Start Rule(GateProgressBarColor, Restart Rule);
 		Global.challengeCount += 1;
@@ -771,13 +766,9 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 2 - DONE")
 		Play Effect(All Players(Team 1), Good Explosion, Color(Green), Global.gatePosition, 5);
 		Play Effect(All Players(Team 1), Buff Impact Sound, Color(Green), Global.gatePosition, 100);
 		Destroy HUD Text(Global.upgradeGateMaxHealthHudId[1]);
-		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("2X GATE REPAIR"), Right, 2, Color(Green), Color(Green), Color(Green), Visible To,
-			Default Visibility);
-		Global.upgradeGateMaxHealthHudId[1] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("2X AUTO-REPAIR"),
 			Custom String("REPAIR GATE {0}/{1} HP", Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[2]), Left, 12,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+			Color(Blue), Color(Blue), Color(Blue), Visible To and String, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[2] = Last Text ID;
 		Global.gateHealth = Global.gateMaxHealth[0];
 		Start Rule(GateProgressBarColor, Restart Rule);
@@ -803,10 +794,6 @@ rule("GLOBAL: UPGRADE - GATE'S MAX HEALTH 3 - DONE")
 		Play Effect(All Players(Team 1), Good Explosion, Color(Green), Global.gatePosition, 5);
 		Play Effect(All Players(Team 1), Buff Impact Sound, Color(Green), Global.gatePosition, 100);
 		Destroy HUD Text(Global.upgradeGateMaxHealthHudId[2]);
-		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String("{0}",
-			Icon String(Checkmark)), Custom String("2X AUTO-REPAIR"), Right, 3, Color(Green), Color(Green), Color(Green), Visible To,
-			Default Visibility);
-		Global.upgradeGateMaxHealthHudId[2] = Last Text ID;
 		Global.gateHealth = Global.gateMaxHealth[0];
 		Start Rule(GateProgressBarColor, Restart Rule);
 		Global.challengeCount += 1;
@@ -850,13 +837,9 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradePlayerMaxHealthHudId[0]);
-		Destroy HUD Text(Global.upgradePlayerMaxHealthHudId[1]);
-		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"PLAYER'S MAX HEALTH +50%"), Right, 4, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradePlayerMaxHealthHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("Up You Go: You respawn twice as fast"), Custom String(
 			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.upgradePlayerMaxHealthValue, Down),
-			Global.upgradePlayerMaxHealthMaxValue[1]), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
+			Global.upgradePlayerMaxHealthMaxValue[1]), Left, 13, Color(Blue), Color(Blue), Color(Blue), Visible To and String,
 			Default Visibility);
 		Global.upgradePlayerMaxHealthHudId[1] = Last Text ID;
 		For Global Variable(loopIterator, 0, Count Of(All Players(Team 1)), 1);
@@ -906,12 +889,9 @@ rule("GLOBAL: UPGRADE - PERK UP YOU GO - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradePlayerMaxHealthHudId[1]);
-		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("{0}", Icon String(Checkmark)), Custom String("Up You Go"),
-			Right, 5, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradePlayerMaxHealthHudId[1] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("PLAYER'S MAX HEALTH +100%"), Custom String(
 			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.upgradePlayerMaxHealthValue, Down),
-			Global.upgradePlayerMaxHealthMaxValue[2]), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
+			Global.upgradePlayerMaxHealthMaxValue[2]), Left, 13, Color(Blue), Color(Blue), Color(Blue), Visible To and String,
 			Default Visibility);
 		Global.upgradePlayerMaxHealthHudId[2] = Last Text ID;
 		Set Respawn Max Time(All Players(Team 1), 5);
@@ -921,8 +901,8 @@ rule("GLOBAL: UPGRADE - PERK UP YOU GO - DONE")
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
 		End;
 		Global.perk[2] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Up You Go"), Left, 917, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Custom String("Up You Go"), Null, Left, 917, Color(White), Color(Green), Color(
+			White), Visible To and String, Default Visibility);
 		All Players(Team 1).abilityHUD[17] = Last Text ID;
 		Global.challengeCount += 1;
 	}
@@ -944,10 +924,6 @@ rule("GLOBAL: UPGRADE - PLAYER'S MAX HEALTH 2 - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradePlayerMaxHealthHudId[2]);
-		Destroy HUD Text(Global.upgradePlayerMaxHealthHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"PLAYER'S MAX HEALTH +100%"), Right, 6, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradePlayerMaxHealthHudId[2] = Last Text ID;
 		For Global Variable(loopIterator, 0, Count Of(All Players(Team 1)), 1);
 			Play Effect(All Players(Team 1), Good Pickup Effect, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 1);
 			Play Effect(All Players(Team 1), Buff Impact Sound, Color(Yellow), Position Of(All Players(Team 1)[Global.loopIterator]), 100);
@@ -1018,12 +994,9 @@ rule("GLOBAL: UPGRADE - CRITICAL DAMAGE - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradeCriticalDamageHudId[0]);
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"CRITICAL DAMAGE 150%"), Right, 7, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("Sharpshooter: 40% more damage at >15m"), Custom String(
-			"KILL ECHO {0}/{1}", Global.upgradePerkSharpshooterValue, Global.upgradeCriticalDamageMaxValue[1]), Left, 14, Color(Orange),
-			Color(White), Color(White), Visible To and String, Default Visibility);
+			"KILL ECHO {0}/{1}", Global.upgradePerkSharpshooterValue, Global.upgradeCriticalDamageMaxValue[1]), Left, 14, Color(Blue),
+			Color(Blue), Color(Blue), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[1] = Last Text ID;
 		Global.challengeCount += 1;
 	}
@@ -1068,16 +1041,13 @@ rule("GLOBAL: UPGRADE - PERK SHARPSHOOTER - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradeCriticalDamageHudId[1]);
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"Sharpshooter"), Right, 8, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeCriticalDamageHudId[1] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("-10% BOSS HEALTH"), Custom String("KILL Bosses {0}/{1}",
-			Global.upgradeBossHealthValue, Global.upgradeCriticalDamageMaxValue[2]), Left, 14, Color(Orange), Color(White), Color(White),
+			Global.upgradeBossHealthValue, Global.upgradeCriticalDamageMaxValue[2]), Left, 14, Color(Blue), Color(Blue), Color(Blue),
 			Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[2] = Last Text ID;
 		Global.perk[0] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Sharpshooter"), Left, 918, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Custom String("Sharpshooter"), Null, Left, 918, Color(White), Color(Green), Color(
+			White), Visible To and String, Default Visibility);
 		All Players(Team 1).abilityHUD[18] = Last Text ID;
 		Global.challengeCount += 1;
 	}
@@ -1099,9 +1069,6 @@ rule("GLOBAL: UPGRADE - -10% BOSS HEALTH - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradeCriticalDamageHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"-10% BOSS HEALTH"), Right, 9, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeCriticalDamageHudId[2] = Last Text ID;
 		Global.challengeCount += 1;
 	}
 }
@@ -1122,11 +1089,8 @@ rule("GLOBAL: UPGRADE - MAX AMMO - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradeMaxAmmoHudId[0]);
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"MAX AMMO 200%"), Right, 10, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("+50% DAMAGE"), Custom String("KILL ENEMIES: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1]), Left, 15, Color(Orange), Color(White), Color(White),
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[1]), Left, 15, Color(Blue), Color(Blue), Color(Blue),
 			Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		For Global Variable(loopIterator, 0, Count Of(All Players(Team 1)), 1);
@@ -1155,13 +1119,9 @@ rule("GLOBAL: UPGRADE - +50% DAMAGE - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradeMaxAmmoHudId[1]);
-		Destroy HUD Text(Global.upgradeMaxAmmoHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"+50% DAMAGE"), Right, 12, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeMaxAmmoHudId[1] = Last Text ID;
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("Bulletstorm: Your weapon can hold unlimited ammo"),
-			Custom String("KILL ENEMIES: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2]), Left, 15, Color(Orange),
-			Color(White), Color(White), Visible To and String, Default Visibility);
+			Custom String("KILL ENEMIES: {0}/{1}", Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[2]), Left, 15, Color(Blue),
+			Color(Blue), Color(Blue), Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
 		Global.challengeCount += 1;
 	}
@@ -1204,12 +1164,9 @@ rule("GLOBAL: UPGRADE - PERK BULLETSTORM - DONE")
 	actions
 	{
 		Destroy HUD Text(Global.upgradeMaxAmmoHudId[2]);
-		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("{0}", Icon String(Checkmark)), Custom String(
-			"Bulletstorm"), Right, 11, Color(Green), Color(Green), Color(Green), Visible To, Default Visibility);
-		Global.upgradeMaxAmmoHudId[2] = Last Text ID;
 		Global.perk[1] = 1;
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Custom String("Bulletstorm"), Null, Left, 919, Color(White), Color(Green), Color(
+			White), Visible To and String, Default Visibility);
 		All Players(Team 1).abilityHUD[19] = Last Text ID;
 		Global.challengeCount += 1;
 	}
@@ -1247,32 +1204,32 @@ rule("GLOBAL: ASSEMBLING PHASE - MAKE CHALLENGE HUDS")
 			Torbjörn)), Hero Icon String(Hero(Brigitte)), Hero Icon String(Hero(Reinhardt))), Hero Icon String(Hero(Symmetra)),
 			Ability Icon String(Hero(Reinhardt), Button(Primary Fire))), Global.gatePosition + Vector(0, 1.400, 0), 1.200, Do Not Clip,
 			Visible To, Color(White), Default Visibility);
-		Create HUD Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[1] == 0), Custom String(
-			"HOLD {0} - Reload to open the shop", Input Binding String(Button(Reload))), Null, Null, Top, 1000, Color(Yellow), Color(
-			White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[1] == 0), Null, Custom String(
+			"HOLD {0} - Reload to open the shop", Input Binding String(Button(Reload))), Null, Top, 1000, Color(White), Color(
+			Yellow), Color(White), Visible To and String, Default Visibility);
 		Wait Until(Is Game In Progress == True, 9999);
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Left, 11, Color(
-			White), Color(Blue), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Custom String("TEAM CHALLENGES {0}/12", Global.challengeCount), Null, Left, 11, Color(
+			White), Color(Red), Color(White), Visible To and String, Default Visibility);
 		"UPGRADE - GATE'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Ability Icon String(Hero(Reinhardt), Button(Secondary Fire)), Custom String(
 			"GATE'S MAX HEALTH: {0} HP", Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up)), Custom String("REPAIR GATE {0}/{1} HP",
-			Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[0]), Left, 12, Color(Orange), Color(White), Color(White),
+			Global.upgradeGateMaxHealthValue, Global.upgradeGateMaxHealthMaxValue[0]), Left, 12, Color(Blue), Color(Blue), Color(Blue),
 			Visible To and String, Default Visibility);
 		Global.upgradeGateMaxHealthHudId[0] = Last Text ID;
 		"UPGRADE - PLAYER'S MAX HEALTH"
 		Create HUD Text(All Players(Team 1), Icon String(Plus), Custom String("PLAYER'S MAX HEALTH +50%"), Custom String(
 			"HEAL PLAYERS {0}/{1} HP", Round To Integer(Global.upgradePlayerMaxHealthValue, Down),
-			Global.upgradePlayerMaxHealthMaxValue[0]), Left, 13, Color(Orange), Color(White), Color(White), Visible To and String,
+			Global.upgradePlayerMaxHealthMaxValue[0]), Left, 13, Color(Blue), Color(Blue), Color(Blue), Visible To and String,
 			Default Visibility);
 		Global.upgradePlayerMaxHealthHudId[0] = Last Text ID;
 		"UPGRADE - CRITICAL DAMAGE"
 		Create HUD Text(All Players(Team 1), Icon String(Skull), Custom String("CRITICAL DAMAGE 150%"), Custom String(
 			"KILL WIDOW WITH HEADSHOT: {0}/{1}", Global.upgradeCriticalDamageValue, Global.upgradeCriticalDamageMaxValue[0]), Left, 14,
-			Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+			Color(Blue), Color(Blue), Color(Blue), Visible To and String, Default Visibility);
 		Global.upgradeCriticalDamageHudId[0] = Last Text ID;
 		"UPGRADE - MAX AMMO"
 		Create HUD Text(All Players(Team 1), Icon String(Asterisk), Custom String("MAX AMMO 200%"), Custom String("KILL ENEMIES: {0}/{1}",
-			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0]), Left, 15, Color(Orange), Color(White), Color(White),
+			Global.upgradeMaxAmmoValue, Global.upgradeMaxAmmoMaxValue[0]), Left, 15, Color(Blue), Color(Blue), Color(Blue),
 			Visible To and String, Default Visibility);
 		Global.upgradeMaxAmmoHudId[0] = Last Text ID;
 	}
@@ -1296,10 +1253,10 @@ rule("GLOBAL: SETUP PHASE")
 			Set Match Time(1);
 		Else;
 			Pause Match Time;
-			Create HUD Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[1] == 0), Custom String(
+			Create HUD Text(Filtered Array(All Players(Team 1), Current Array Element.isInMenu[1] == 0), Null, Custom String(
 				"PRESS {0} - INTERACT TO VOTE FOR START | {1}/{2}", Input Binding String(Button(Interact)), Count Of(Filtered Array(
-				All Players(Team 1), Current Array Element.vote[0] == 1)), Count Of(All Players(Team 1))), Null, Null, Top, 50, Color(Red),
-				Color(White), Color(White), Visible To and String, Default Visibility);
+				All Players(Team 1), Current Array Element.vote[0] == 1)), Count Of(All Players(Team 1))), Null, Top, 50, Color(White),
+				Color(Red), Color(White), Visible To and String, Default Visibility);
 			Global.globalHUDs[0] = Last Text ID;
 			Set Match Time(10);
 			While(Count Of(Filtered Array(All Players(Team 1), Current Array Element.vote[0] == 1)) <= Count Of(All Players(Team 1)) / 2);
@@ -1341,8 +1298,8 @@ rule("GLOBAL: GAME IN PROGRESS")
 		Create Progress Bar HUD Text(All Players(Team 1), Global.gateHealthChase * 100 / Global.gateMaxHealth[0], Custom String(
 			"GATE {0}/{1}", Global.gateHealth, Global.gateMaxHealth[0]), Top, 1, Global.gateProgressBarColorCurrent, Color(White),
 			Visible To Values and Color, Default Visibility);
-		Create HUD Text(All Players(Team 1), Null, Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.timeMinutes,
-			Global.timeSeconds < 10 ? Custom String("0{0}", Global.timeSeconds) : Global.timeSeconds), Top, 2, Color(White), Color(White),
+		Create HUD Text(All Players(Team 1), Null, Custom String("SURVIVED TIME:  {0}:{1}", Global.timeMinutes,
+			Global.timeSeconds < 10 ? Custom String("0{0}", Global.timeSeconds) : Global.timeSeconds), Null, Top, 2, Color(White), Color(White),
 			Color(White), Visible To and String, Default Visibility);
 	}
 }
@@ -2651,7 +2608,6 @@ rule("SUBROUTINE: ECHO - RESPAWN")
 
 	actions
 	{
-		Big Message(All Players(Team 1), Custom String("Echo Spawn"));
 		Event Player.botCounter = 0;
 		Event Player.botEffects = Empty Array;
 		Create Effect(All Players(Team 1), Good Aura, Color(Sky Blue), Global.botEchoRespawnPosition, Event Player.botCounter,
@@ -3740,6 +3696,7 @@ rule("GLOBAL: GAME LOGIC - MIN 9 - ECHO, +1 BASTION")
 			Wait(1, Ignore Condition);
 			Create Dummy Bot(Hero(Echo), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 		End;
+		Wait Until(Count Of(Filtered Array(All Players(Team 2), Hero Of(Current Array Element) == Hero(Zenyatta))) == 0, 99999);
 		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 9999, 0), Vector(0, 0, 0));
 	}
 }
@@ -3848,15 +3805,15 @@ rule("Abilities and Hero Talents by Shingen and LemonAid")
 		Event Player.speedBoost = 0;
 		Event Player.money[0] = 2400 + Global.startMoney;
 		If(Custom String("{0}", Event Player) == Custom String("ShuriZma"));
-			Create HUD Text(Event Player, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
-				Server Load Peak), Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String,
+			Create HUD Text(Event Player, Null, Custom String("Serverload: {0}, AVG {1}, Peak {2}", Server Load, Server Load Average,
+				Server Load Peak), Null, Right, -10000, Color(White), Color(Red), Color(White), Visible To and String,
 				Default Visibility);
-			Create HUD Text(Event Player, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
+			Create HUD Text(Event Player, Null, Custom String("{0}{1}{2}", Custom String("damage: {0}\nhealth: {1}\nhealing: {2}\n",
 				Event Player.baseStats[0], Event Player.baseStats[1], Event Player.baseStats[2]), Custom String(
 				"speed: {0}\ndamageBoost[0]: {1}\ndamageBoost[1]: {2}\n", Event Player.baseStats[3], Event Player.damageBoost[0],
 				Event Player.damageBoost[1]), Custom String("playerHealth: {0}\nhealBoost: {1}\n{2}", Event Player.playerHealth,
 				Event Player.healBoost, Custom String("speedBoost: {0}\nkills: {1}", Event Player.speedBoost, Event Player.baseStats[4]))),
-				Null, Null, Left, -10000, Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
+				Null, Right, -10000, Color(White), Color(Red), Color(White), Visible To and String, Default Visibility);
 		End;
 	}
 }
@@ -6794,17 +6751,17 @@ rule("Team 1 Challenges")
 	actions
 	{
 		If(Global.perk[2] == 1);
-			Create HUD Text(Event Player, Null, Null, Custom String("Up You Go"), Left, 917, Color(White), Color(White), Color(Turquoise),
+			Create HUD Text(Event Player, Null, Custom String("Up You Go"), Null, Left, 917, Color(White), Color(Green), Color(White),
 				Visible To and String, Default Visibility);
 			Event Player.abilityHUD[17] = Last Text ID;
 		End;
 		If(Global.perk[0] == 1);
-			Create HUD Text(Event Player, Null, Null, Custom String("Sharpshooter"), Left, 918, Color(White), Color(White), Color(Turquoise),
+			Create HUD Text(Event Player, Null, Custom String("Sharpshooter"), Null, Left, 918, Color(White), Color(Green), Color(White),
 				Visible To and String, Default Visibility);
 			Event Player.abilityHUD[18] = Last Text ID;
 		End;
 		If(Global.perk[1] == 1);
-			Create HUD Text(Event Player, Null, Null, Custom String("Bulletstorm"), Left, 919, Color(White), Color(White), Color(Turquoise),
+			Create HUD Text(Event Player, Null, Custom String("Bulletstorm"), Null, Left, 919, Color(White), Color(Green), Color(White),
 				Visible To and String, Default Visibility);
 			Event Player.abilityHUD[19] = Last Text ID;
 		End;
@@ -6910,8 +6867,8 @@ rule("Lucio Dash HUD Creation")
 	{
 		If(Event Player.lucioDashActive == False);
 			Event Player.lucioDashActive = True;
-			Create HUD Text(Event Player, Null, Null, Custom String("{0} Slam on ground - Press: {1}", Ability Icon String(Hero(Wrecking Ball),
-				Button(Crouch)), Input Binding String(Button(Crouch))), Left, 1000, Color(White), Color(White), Color(White),
+			Create HUD Text(Event Player, Null, Custom String("{0} Slam on ground - Press: {1}", Ability Icon String(Hero(Wrecking Ball),
+				Button(Crouch)), Input Binding String(Button(Crouch))), Null, Left, 1000, Color(White), Color(Green), Color(White),
 				Visible To and String, Default Visibility);
 			Event Player.lucioDashIcon = Last Text ID;
 		End;
@@ -7967,60 +7924,60 @@ rule("Create Player HUD")
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)), Is Dead(Event Player) ? Color(
 			Red) : (Health(Event Player) > Max Health(Event Player) * 0.500 ? Color(Green) : Color(Orange)),
 			Visible To Sort Order String and Color, Default Visibility);
-		Create HUD Text(Event Player.damageBoost[0] != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Damage",
-			Event Player.damageBoost[0]), Left, 913, Color(White), Color(White), Color(Turquoise), Visible To and String,
+		Create HUD Text(Event Player.damageBoost[0] != 0 ? Event Player : Null, Null, Custom String("+{0}% Damage",
+			Event Player.damageBoost[0]), Null, Left, 913, Color(Green), Color(Green), Color(Green), Visible To and String,
 			Default Visibility);
-		Create HUD Text(Event Player.abilities[9] ? Event Player : Null, Null, Null, Custom String("Second Wind {0}",
-			Event Player.abilities[9] == 1 ? Custom String("I") : Custom String("II")), Left, 908, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[5] ? Event Player : Null, Null, Null, Custom String("Charged {0}",
-			Event Player.abilities[5] == 1 ? Custom String("I") : Custom String("II")), Left, 905, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[1] ? Event Player : Null, Null, Null, Custom String("Headhunter {0}",
-			Event Player.abilities[1] == 1 ? Custom String("I") : Custom String("II")), Left, 901, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.playerHealth != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Health",
-			Event Player.playerHealth), Left, 914, Color(White), Color(White), Color(Turquoise), Visible To and String,
+		Create HUD Text(Event Player.abilities[9] ? Event Player : Null, Null, Custom String("Second Wind {0}",
+			Event Player.abilities[9] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 908, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[5] ? Event Player : Null, Null, Custom String("Charged {0}",
+			Event Player.abilities[5] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 905, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[1] ? Event Player : Null, Null, Custom String("Headhunter {0}",
+			Event Player.abilities[1] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 901, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.playerHealth != 0 ? Event Player : Null, Null, Custom String("+{0}% Health",
+			Event Player.playerHealth), Null, Left, 914, Color(Green), Color(Green), Color(Green), Visible To and String,
 			Default Visibility);
-		Create HUD Text(Event Player.abilities[10] ? Event Player : Null, Null, Null, Custom String("Binding Heal {0}",
-			Event Player.abilities[10] == 1 ? Custom String("I") : Custom String("II")), Left, 909, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[6] ? Event Player : Null, Null, Null, Custom String("Haste {0}",
-			Event Player.abilities[6] == 1 ? Custom String("I") : Custom String("II")), Left, 906, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[2] ? Event Player : Null, Null, Null, Custom String("Ambush {0}",
-			Event Player.abilities[2] == 1 ? Custom String("I") : Custom String("II")), Left, 902, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.healBoost[0] != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Healing",
-			Event Player.healBoost[0]), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String,
+		Create HUD Text(Event Player.abilities[10] ? Event Player : Null, Null, Custom String("Binding Heal {0}",
+			Event Player.abilities[10] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 909, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[6] ? Event Player : Null, Null, Custom String("Haste {0}",
+			Event Player.abilities[6] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 906, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[2] ? Event Player : Null, Null, Custom String("Ambush {0}",
+			Event Player.abilities[2] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 902, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.healBoost[0] != 0 ? Event Player : Null, Null, Custom String("+{0}% Healing",
+			Event Player.healBoost[0]), Null, Left, 915, Color(Green), Color(Green), Color(Green), Visible To and String,
 			Default Visibility);
-		Create HUD Text(Event Player.speedBoost != 0 ? Event Player : Null, Null, Null, Custom String("+{0}% Movement Speed",
-			Event Player.speedBoost), Left, 915, Color(White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[11] ? Event Player : Null, Null, Null, Custom String("Resilience {0}",
-			Event Player.abilities[11] == 1 ? Custom String("I") : Custom String("II")), Left, 910, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[7] ? Event Player : Null, Null, Null, Custom String("Heavy Impact {0}",
-			Event Player.abilities[7] == 1 ? Custom String("I") : Custom String("II")), Left, 907, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[3] ? Event Player : Null, Null, Null, Custom String("Quick Fix {0}",
-			Event Player.abilities[3] == 1 ? Custom String("I") : Custom String("II")), Left, 903, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Global.automaticRepair ? Event Player : Null, Null, Null, Custom String("{0} total Auto-Repair/5s",
-			Global.automaticRepair * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5)), Left, 916,
-			Color(White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[12] ? Event Player : Null, Null, Null, Custom String("{0} {1}",
-			Event Player.heroTalentText[2][0], Event Player.heroTalentText[2][1]), Top, 902, Color(White), Color(White), Color(Green),
+		Create HUD Text(Event Player.speedBoost != 0 ? Event Player : Null, Null, Custom String("+{0}% Movement Speed",
+			Event Player.speedBoost), Null, Left, 915, Color(Green), Color(Green), Color(Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[11] ? Event Player : Null, Null, Custom String("Resilience {0}",
+			Event Player.abilities[11] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 910, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[7] ? Event Player : Null, Null, Custom String("Heavy Impact {0}",
+			Event Player.abilities[7] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 907, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[3] ? Event Player : Null, Null, Custom String("Quick Fix {0}",
+			Event Player.abilities[3] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 903, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
+		Create HUD Text(Global.automaticRepair ? Event Player : Null, Null, Custom String("{0} total Auto-Repair/5s",
+			Global.automaticRepair * (Global.upgradeGateMaxHealthValue >= Global.upgradeGateMaxHealthMaxValue[2] ? 10 : 5)), Null, Left, 916,
+			Color(Green), Color(Green), Color(Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[12] ? Event Player : Null, Null, Custom String("{0} {1}",
+			Event Player.heroTalentText[2][0], Event Player.heroTalentText[2][1]), Null, Top, 902, Color(Green), Color(Green), Color(Green),
 			Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[12] ? Event Player : Null, Null, Null, Custom String("Hero Talent 2"), Left, 912, Color(
-			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[8] ? Event Player : Null, Null, Null, Custom String("{0} {1}",
-			Event Player.heroTalentText[1][0], Event Player.heroTalentText[1][1]), Top, 901, Color(White), Color(White), Color(Green),
+		Create HUD Text(Event Player.abilities[12] ? Event Player : Null, Null, Custom String("Hero Talent 2"), Null, Left, 912, Color(
+			Green), Color(Green), Color(Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[8] ? Event Player : Null, Null, Custom String("{0} {1}",
+			Event Player.heroTalentText[1][0], Event Player.heroTalentText[1][1]), Null, Top, 901, Color(Green), Color(Green), Color(Green),
 			Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[8] ? Event Player : Null, Null, Null, Custom String("Hero Talent 1"), Left, 911, Color(
-			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Event Player.abilities[4] ? Event Player : Null, Null, Null, Custom String("Heavyweight {0}",
-			Event Player.abilities[4] == 1 ? Custom String("I") : Custom String("II")), Left, 904, Color(White), Color(White), Color(
-			Turquoise), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[8] ? Event Player : Null, Null, Custom String("Hero Talent 1"), Null, Left, 911, Color(
+			Green), Color(Green), Color(Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player.abilities[4] ? Event Player : Null, Null, Custom String("Heavyweight {0}",
+			Event Player.abilities[4] == 1 ? Custom String("I") : Custom String("II")), Null, Left, 904, Color(Green), Color(Green), Color(
+			Green), Visible To and String, Default Visibility);
 	}
 }
 
@@ -8067,8 +8024,8 @@ rule("BOSS HUD")
 
 	actions
 	{
-		Create HUD Text(All Players(Team 1), Global.activeBoss ? Custom String("Boss: {0}, HP:  {1}/{2}", Hero Of(Global.activeBoss),
-			Health(Global.activeBoss), Max Health(Global.activeBoss)) : Custom String(""), Null, Null, Top, 900, Color(Red), Color(White),
+		Create HUD Text(All Players(Team 1), Null, Global.activeBoss ? Custom String("Boss: {0}, HP:  {1}/{2}", Hero Of(Global.activeBoss),
+			Health(Global.activeBoss), Max Health(Global.activeBoss)) : Custom String(""), Null, Top, 900, Color(White), Color(Red),
 			Color(White), Visible To and String, Default Visibility);
 	}
 }
@@ -8131,7 +8088,7 @@ rule("DEBUG COLLECTION - Make Invincible, Show Player Coords")
 
 	actions
 	{
-		Create HUD Text(Local Player, Custom String("{0}", Position Of(Event Player)), Null, Null, Left, 0, Color(Yellow), Color(White),
+		Create HUD Text(Local Player, Null, Custom String("{0}", Position Of(Event Player)), Null, Left, 0, Color(White), Color(Yellow),
 			Color(White), Visible To and String, Default Visibility);
 		Set Status(Event Player, Null, Invincible, 9999);
 		Set Status(Event Player, Null, Phased Out, 9999);
@@ -8153,8 +8110,8 @@ rule("OPTIONAL ENDING - CREATE EXFIL POINT")
 
 	actions
 	{
-		Create HUD Text(All Players(Team 1), Custom String("Exfiltration available! (optional - ends the mode)"), Null, Null, Top, 50,
-			Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(Team 1), Null, Custom String("Exfiltration available! (optional - ends the mode)"), Null, Top, 50,
+			Color(White), Color(Red), Color(White), Visible To and String, Default Visibility);
 		Global.globalHUDs[1] = Last Text ID;
 		Create In-World Text(All Players(Team 1), Custom String(
 			"Exfiltration available! Gather here!\n{0}/{1} Players ready to exfiltrate!", Count Of(Filtered Array(All Players(Team 1),
@@ -8358,15 +8315,15 @@ rule("Global init")
 
 	actions
 	{
-		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Null, Null, Custom String(
-			"Cursor Menu created by Josbird {0} Code: GETVX", Ability Icon String(Hero(Mercy), Button(Ultimate))), Right, -100, Color(
-			White), Color(White), Color(Turquoise), Visible To and String, Default Visibility);
-		Create HUD Text(Global.timeSeconds == 0 && Global.timeMinutes == 0 && !Host Player.isInMenu[1] ? Host Player : Null, Custom String(
-			"{0}", Custom String("Press {0} - Crouch to open workshop settings", Input Binding String(Button(Crouch)))), Null, Null, Top,
-			1, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Custom String("{0}", Custom String(
+		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Null, Custom String(
+			"Cursor Menu created by Josbird {0} Code: GETVX", Ability Icon String(Hero(Mercy), Button(Ultimate))), Null, Right, -100, Color(
+			White), Color(Turquoise), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Global.timeSeconds == 0 && Global.timeMinutes == 0 && !Host Player.isInMenu[1] ? Host Player : Null, Null, Custom String(
+			"{0}", Custom String("Press {0} - Crouch to open workshop settings", Input Binding String(Button(Crouch)))), Null, Top,
+			1, Color(White), Color(Yellow), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Is Game In Progress == False && Host Player.isInMenu[1] ? Host Player : Null, Null, Custom String("{0}", Custom String(
 			"Press {0} - Primary Fire to increase by X\nPress {1} - Secondary Fire to decrease by X", Input Binding String(Button(
-			Primary Fire)), Input Binding String(Button(Secondary Fire)))), Null, Null, Right, 1, Color(Yellow), Color(White), Color(
+			Primary Fire)), Input Binding String(Button(Secondary Fire)))), Null, Right, 1, Color(White), Color(Yellow), Color(
 			White), Visible To and String, Default Visibility);
 		Global.extendedGlobalCollection[1] = 10;
 		Global.extendedGlobalCollection[2] = 5;
@@ -8591,6 +8548,39 @@ rule("Do button update")
 			End;
 			Event Player.extendedPlayerCollection[2] += 1;
 		End;
+	}
+}
+
+rule("Close menu on start")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Event Player.isInMenu[1] == True;
+	}
+
+	actions
+	{
+		Event Player.isInMenu[1] = False;
+		Set Aim Speed(Event Player, 100);
+		Set Primary Fire Enabled(Event Player, True);
+		Set Secondary Fire Enabled(Event Player, True);
+		Enable Hero HUD(Event Player);
+		Event Player.extendedPlayerCollection[2] = 0;
+		While(Event Player.extendedPlayerCollection[2] < Count Of(Event Player.menuFrame));
+			Destroy In-World Text(Event Player.menuFrame[Event Player.extendedPlayerCollection[2]]);
+			Event Player.extendedPlayerCollection[2] += 1;
+		End;
+		Destroy Icon(First Of(Event Player.extendedPlayerCollection));
+		Call Subroutine(doButtonUpdate);
+		Call Subroutine(EnablePlayer);
 	}
 }
 
@@ -8982,9 +8972,9 @@ rule("Actions")
 		Else If(Event Player.currActionID == Custom String("anaSelfNano"));
 			Global.selfNanoWorkshopSetting = !Global.selfNanoWorkshopSetting;
 		End;
-		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up) > 1000 ? 1000 : Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.750, Up);
-        Global.upgradeGateMaxHealthMaxValue[1] = Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0];
-        Global.upgradeGateMaxHealthMaxValue[2] = Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1];
+		Global.upgradeGateMaxHealthMaxValue[0] = Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.500, Up) > 1000 ? 1000 : Round To Integer(Global.gateMaxHealth[0] + Global.gateMaxHealth[0] * 0.500, Up);
+		Global.upgradeGateMaxHealthMaxValue[1] = Round To Integer(Global.upgradeGateMaxHealthMaxValue[0] + Global.upgradeGateMaxHealthMaxValue[0] * 0.500, Up);
+		Global.upgradeGateMaxHealthMaxValue[2] = Round To Integer(Global.upgradeGateMaxHealthMaxValue[1] + Global.upgradeGateMaxHealthMaxValue[1] * 0.500, Up);
 		Event Player.buttonModification = Array(Event Player.workshopButtons[0], 0, Custom String("GATE MAX HEALTH: {0}",
 			Global.gateMaxHealth[0]));
 		Call Subroutine(modifyMenuButton);
